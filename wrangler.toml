@@ -1,0 +1,28 @@
+name               = "mbg-cron"
+main               = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Cron: every 6 hours — free tier supports up to 5 cron jobs
+[triggers]
+crons = ["0 */6 * * *"]
+
+# D1 — replace database_id after creating in dashboard
+[[d1_databases]]
+binding       = "DB"
+database_name = "MBG_DB"
+database_id   = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# KV — replace id after creating in dashboard
+[[kv_namespaces]]
+binding = "MBG_KV"
+id      = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Non-secret config — safe to commit
+[vars]
+AI_PROVIDER = "google"
+AI_MODEL    = "gemini-2.0-flash"
+
+# Secrets — set via CLI, never in this file:
+#   wrangler secret put AI_API_KEY     (your Google AI / OpenRouter key)
+#   wrangler secret put CRON_SECRET    (random string, min 32 chars)
+#   wrangler secret put PAGES_ORIGIN   (your Pages URL e.g. https://mbg.pages.dev)
