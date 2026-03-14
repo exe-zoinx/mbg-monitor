@@ -1,5 +1,5 @@
 name               = "mbg-cron"
-main               = "src/index.js"
+main               = "index.js"
 compatibility_date = "2025-01-01"
 
 # Cron: every 6 hours — free tier supports up to 5 cron jobs

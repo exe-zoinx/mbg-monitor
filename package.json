@@ -1,0 +1,14 @@
+{
+  "name": "mbg-monitor",
+  "version": "1.0.0",
+  "description": "Serverless incident map for Indonesia's Makan Bergizi Gratis program",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
