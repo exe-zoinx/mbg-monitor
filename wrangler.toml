@@ -9,18 +9,18 @@ crons = ["0 */6 * * *"]
 # D1 — replace database_id after creating in dashboard
 [[d1_databases]]
 binding       = "DB"
-database_name = "MBG_DB"
-database_id   = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_name = "mbg_db"
+database_id   = "b7bedb49-d8df-4cb8-85e9-b52ce03478ba"
 
 # KV — replace id after creating in dashboard
 [[kv_namespaces]]
-binding = "MBG_KV"
-id      = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+binding = "KV"
+id      = "c41e9797e4634a03bb192a32cd712f21"
 
 # Non-secret config — safe to commit
 [vars]
 AI_PROVIDER = "google"
-AI_MODEL    = "gemini-2.0-flash"
+AI_MODEL    = "gemini-2.5-flash-lite"
 
 # Secrets — set via CLI, never in this file:
 #   wrangler secret put AI_API_KEY     (your Google AI / OpenRouter key)
