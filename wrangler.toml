@@ -1,28 +1,19 @@
-name               = "mbg-cron"
-main               = "index.js"
-compatibility_date = "2025-01-01"
+name            = "mbg-monitor"
+pages_build_output_dir = "."
+compatibility_date     = "2025-01-01"
 
-# Cron: every 6 hours — free tier supports up to 5 cron jobs
-[triggers]
-crons = ["0 */6 * * *"]
-
-# D1 — replace database_id after creating in dashboard
+# D1 binding for Pages Functions (/api/data, /api/history)
 [[d1_databases]]
 binding       = "DB"
-database_name = "mbg_db"
-database_id   = "b7bedb49-d8df-4cb8-85e9-b52ce03478ba"
+database_name = "mbd_db"
+database_id   = "b7bedb49-d8df-4cb8-85e9-b52ce03478ba"   # same DB as worker
 
-# KV — replace id after creating in dashboard
+# KV binding for Pages Functions
 [[kv_namespaces]]
-binding = "KV"
-id      = "c41e9797e4634a03bb192a32cd712f21"
+binding = "MBG_KV"
+id      = "c41e9797e4634a03bb192a32cd712f21"         # same namespace as worker
 
-# Non-secret config — safe to commit
-[vars]
-AI_PROVIDER = "google"
-AI_MODEL    = "gemini-2.5-flash-lite"
-
-# Secrets — set via CLI, never in this file:
-#   wrangler secret put AI_API_KEY     (your Google AI / OpenRouter key)
-#   wrangler secret put CRON_SECRET    (random string, min 32 chars)
-#   wrangler secret put PAGES_ORIGIN   (your Pages URL e.g. https://mbg.pages.dev)
+# Secrets — set via CLI:
+#   cd pages
+#   wrangler pages secret put REFRESH_SECRET
+#   (same value as CRON_SECRET in worker)

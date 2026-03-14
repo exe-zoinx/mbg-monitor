@@ -1,16 +1,13 @@
 {
-  "name": "mbg-monitor",
-  "version": "1.0.0",
-  "description": "Serverless incident map for Indonesia's Makan Bergizi Gratis program",
-  "main": "index.js",
+  "name": "mbg-monitor-pages",
+  "private": true,
+  "description": "MBG Monitor Pages — incident map frontend for Indonesia's Makan Bergizi Gratis program",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "package.json": "^2.0.1"
+    "deploy": "wrangler pages deploy .",
+    "dev":    "wrangler pages dev .",
+    "secret": "wrangler pages secret put"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^3"
   }
 }
