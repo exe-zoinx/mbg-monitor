@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy to Pages
 on: [push]
 jobs:
@@ -10,7 +9,10 @@ jobs:
       with: { node-version: 22 }
     - run: npm ci
     - run: npm run build  # if needed
-    - uses: cloudflare/wrangler-action@v3
+    - uses: cloudflare/pages-action@v1
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        command: pages deploy . --project-name=mbg-monitor
+        accountId: d0ab4a941004d8666f9dce08c4553abf  # your account ID
+        projectName: mbg-monitor
+        directory: .
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
