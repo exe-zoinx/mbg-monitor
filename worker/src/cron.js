@@ -3,32 +3,32 @@ import { summarizeWithAI } from './ai.js';
 
 export async function handleCron(env) {
   const start = Date.now();
-  let newsAdded = 0;
+  let incidentsAdded = 0;
   let rawOk = true;
 
   try {
     console.log('[CRON] Starting crawl...');
 
-    // Step 1: Scrape all sources
+    // Step 1: Scrape all sources — returns incident-formatted articles
     const articles = await scrapeAll(env);
     console.log(`[CRON] Scraped ${articles.length} articles`);
 
-    // Step 2: Process and insert each article
+    // Step 2: Process and insert each article as an incident
     for (const article of articles) {
       try {
         // Generate content hash for dedup
         const contentHash = await generateHash(article.url + article.title);
 
-        // Check if already exists
+        // Check if already exists in incidents table
         const existing = await env.DB.prepare(
-          'SELECT id FROM news WHERE content_hash = ?'
-        ).bind(contentHash).first();
+          'SELECT id FROM incidents WHERE source = ? AND title = ?'
+        ).bind(article.source || '', article.title).first().catch(() => null);
 
         if (existing) continue;
 
         // AI summarization (optional — only if API key available)
         let summary = article.summary || '';
-        let tag = article.tag || '';
+        let tag = article.tag || 'mbg';
 
         if (env.AI_API_KEY && article.title) {
           try {
@@ -42,23 +42,27 @@ export async function handleCron(env) {
           }
         }
 
-        // Insert into D1
+        // Insert into incidents table (news articles become incidents)
         await env.DB.prepare(`
-          INSERT INTO news (date, headline, summary, source, url, tag, content_hash)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
-          article.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
-          article.title,
-          summary,
-          article.source,
-          article.url,
           tag,
-          contentHash,
+          article.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
+          null, // lat — news articles don't have coordinates
+          null, // lng
+          article.title,
+          article.location || 'Indonesia',
+          0, // victims — unknown from article
+          summary,
+          article.source || 'Unknown',
+          article.url || '',
+          0, // is_baseline: 0 = from scraper
         ).run();
 
-        newsAdded++;
+        incidentsAdded++;
       } catch (insertErr) {
-        console.warn('[CRON] Failed to insert article:', insertErr.message);
+        console.warn('[CRON] Failed to insert incident:', insertErr.message);
       }
     }
 
@@ -67,7 +71,7 @@ export async function handleCron(env) {
       await env.mbg_kv.put('mbg:meta', JSON.stringify({
         refreshed_at: new Date().toISOString(),
         provider: 'cron',
-        model: 'rss-scraper',
+        model: 'web-scraper-v1',
       }));
     }
 
@@ -76,9 +80,9 @@ export async function handleCron(env) {
     await env.DB.prepare(`
       INSERT INTO crawl_log (duration_ms, news_added, raw_ok, provider, model)
       VALUES (?, ?, ?, ?, ?)
-    `).bind(duration, newsAdded, rawOk ? 1 : 0, 'rss', 'cron-v1').run();
+    `).bind(duration, incidentsAdded, rawOk ? 1 : 0, 'scraper', 'web-v1').run();
 
-    console.log(`[CRON] Complete: ${newsAdded} new articles in ${duration}ms`);
+    console.log(`[CRON] Complete: ${incidentsAdded} new incidents in ${duration}ms`);
 
   } catch (err) {
     console.error('[CRON] Failed:', err);
@@ -86,7 +90,7 @@ export async function handleCron(env) {
     await env.DB.prepare(`
       INSERT INTO crawl_log (duration_ms, news_added, raw_ok, provider, model)
       VALUES (?, ?, ?, ?, ?)
-    `).bind(duration, newsAdded, 0, 'rss', 'cron-v1').run().catch(() => {});
+    `).bind(duration, incidentsAdded, 0, 'scraper', 'web-v1').run().catch(() => {});
   }
 }
 

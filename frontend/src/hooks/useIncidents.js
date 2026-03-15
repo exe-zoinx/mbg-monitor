@@ -11,7 +11,7 @@ export function useIncidents(data) {
 
     const existing = new Set(BASELINE.map(b => `${b.date}|${b.loc.slice(0, 8)}`));
     const newInc = data.incidents
-      .filter(r => r.lat && r.lng && !existing.has(`${r.date}|${(r.loc || '').slice(0, 8)}`))
+      .filter(r => !existing.has(`${r.date}|${(r.loc || '').slice(0, 8)}`))
       .map((r, i) => ({ ...r, id: 9000 + i, victims: r.victims || 0 }));
 
     return [...BASELINE, ...newInc];
@@ -47,6 +47,7 @@ export function useIncidents(data) {
       sppg: cats.sppg || 0,
       kecelakaan: cats.kecelakaan || 0,
       tewas: cats.tewas || 0,
+      mbg: cats.mbg || 0,
     };
   }, [incidents]);
 

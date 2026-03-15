@@ -65,6 +65,103 @@ export default {
         return json({ ok: true, news: result.results || [] }, 200, corsHeaders);
       }
 
+      // GET /debug — test scraping
+      if (url.pathname === '/debug') {
+        const results = {};
+
+        // Test Antara fetch and parse
+        try {
+          const antaraRes = await fetch('https://www.antaranews.com/search?q=mbg', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'text/html',
+            },
+          });
+          const antaraHtml = await antaraRes.text();
+
+          // Test the regex patterns
+          const cardRegex = /<div\s+class="card__post\s+card__post-list\s+card__post__transition\s+mt-30">([\s\S]*?)(?=<div\s+class="card__post\s+card__post-list\s+card__post__transition\s+mt-30">|<div\s+class="pagination-area">|<\/main>)/g;
+          let cardMatch;
+          let count = 0;
+          const sampleArticles = [];
+          while ((cardMatch = cardRegex.exec(antaraHtml)) !== null) {
+            count++;
+            const chunk = cardMatch[1];
+            const urlMatch = chunk.match(/<h2\s+class="h5">\s*<a\s+href="(https:\/\/www\.antaranews\.com\/[^"]+)"/);
+            const titleMatch = chunk.match(/<h2\s+class="h5">\s*<a\s+href="[^"]+"\s+title="([^"]+)"/);
+            if (count <= 3) {
+              sampleArticles.push({
+                url: urlMatch ? urlMatch[1] : null,
+                title: titleMatch ? titleMatch[1] : null,
+                chunkLen: chunk.length,
+              });
+            }
+          }
+
+          results.antara = {
+            status: antaraRes.status,
+            htmlLength: antaraHtml.length,
+            hasCardPost: antaraHtml.includes('card__post'),
+            articlesFound: count,
+            sampleArticles,
+          };
+        } catch (err) {
+          results.antara = { error: err.message };
+        }
+
+        return json(results, 200, corsHeaders);
+      }
+
+      // GET /test-scrape — run the full scraper and return results
+      if (url.pathname === '/test-scrape') {
+        try {
+          const articles = await scrapeAll(env);
+          return json({
+            ok: true,
+            count: articles.length,
+            articles: articles.slice(0, 5),
+          }, 200, corsHeaders);
+        } catch (err) {
+          return json({ error: err.message, stack: err.stack }, 500, corsHeaders);
+        }
+      }
+
+      // GET /test-insert — test full scrape + insert flow
+      if (url.pathname === '/test-insert') {
+        try {
+          const articles = await scrapeAll(env);
+          const results = [];
+
+          for (const article of articles.slice(0, 3)) {
+            try {
+              const tag = article.tag || 'mbg';
+              const insertResult = await env.DB.prepare(`
+                INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `).bind(
+                tag,
+                article.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
+                null, null,
+                article.title,
+                article.location || 'Indonesia',
+                0,
+                article.summary || '',
+                article.source || 'Unknown',
+                article.url || '',
+                0,
+              ).run();
+              results.push({ title: article.title, success: true, meta: insertResult.meta });
+            } catch (err) {
+              results.push({ title: article.title, error: err.message });
+            }
+          }
+
+          return json({ ok: true, totalArticles: articles.length, insertResults: results }, 200, corsHeaders);
+        } catch (err) {
+          return json({ error: err.message, stack: err.stack }, 500, corsHeaders);
+        }
+      }
+
       // GET / — API info
       return json({
         ok: true,

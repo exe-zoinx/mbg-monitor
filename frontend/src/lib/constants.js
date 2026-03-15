@@ -4,6 +4,7 @@ export const COL = {
   sppg: '#388bfd',
   kecelakaan: '#d29922',
   tewas: '#bc8cff',
+  mbg: '#f0883e',
   lainnya: '#7d8590',
 };
 
@@ -12,10 +13,11 @@ export const TLBL = {
   sppg: 'SPPG',
   kecelakaan: 'Kecelakaan',
   tewas: 'Korban Jiwa',
+  mbg: 'MBG',
   lainnya: 'Lainnya',
 };
 
-export const CATEGORIES = ['all', 'keracunan', 'sppg', 'kecelakaan', 'tewas'];
+export const CATEGORIES = ['all', 'keracunan', 'sppg', 'kecelakaan', 'tewas', 'mbg'];
 
 export const CAT_SHORT = {
   all: 'Semua',
@@ -23,6 +25,7 @@ export const CAT_SHORT = {
   sppg: 'SPPG',
   kecelakaan: 'KLL',
   tewas: 'Tewas',
+  mbg: 'MBG',
 };
 
 export function fmtDate(d) {

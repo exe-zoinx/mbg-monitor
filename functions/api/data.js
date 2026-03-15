@@ -23,20 +23,12 @@ export async function onRequestGet(ctx) {
 
   try {
     // Run all queries in parallel — catch errors for tables that may not exist yet
-    const [incRes, newsRes, statsRes] = await Promise.all([
+    const [incRes, statsRes] = await Promise.all([
       DB.prepare(`
-        SELECT id, cat, date, lat, lng, title, loc, victims, note, source, is_baseline
+        SELECT id, cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline
         FROM incidents
-        WHERE lat IS NOT NULL AND lng IS NOT NULL
         ORDER BY date DESC
         LIMIT 500
-      `).all().catch(() => ({ results: [] })),
-
-      DB.prepare(`
-        SELECT n.id, n.date, n.headline, n.summary, n.source, n.url, n.tag
-        FROM news n
-        ORDER BY n.date DESC, n.id DESC
-        LIMIT 30
       `).all().catch(() => ({ results: [] })),
 
       DB.prepare(`
@@ -46,24 +38,24 @@ export async function onRequestGet(ctx) {
       `).first().catch(() => null),
     ]);
 
-    // If DB is empty (first deploy, schema done but no crawl yet) return 404
-    if (!incRes.results?.length && !meta) {
-      return json({ error: 'NO_DATA', message: 'No crawl data yet. Trigger /trigger on the Worker.' }, 404);
-    }
-
+    // If meta not in KV, pull from crawl_log
     if (!meta) {
-      // Fallback: pull from crawl_log
       const last = await DB.prepare(
         'SELECT crawled_at, provider, model FROM crawl_log ORDER BY id DESC LIMIT 1'
       ).first().catch(() => null);
       if (last) meta = { refreshed_at: last.crawled_at, provider: last.provider, model: last.model };
     }
 
+    // If DB is completely empty (no incidents, no crawl history) return 404
+    const hasAnyData = (incRes.results?.length > 0) || !!meta;
+    if (!hasAnyData) {
+      return json({ error: 'NO_DATA', message: 'No crawl data yet. Trigger /trigger on the Worker.' }, 404);
+    }
+
     return json(
       {
         ok: true,
         incidents: incRes.results  || [],
-        news:      newsRes.results || [],
         stats:     statsRes        || null,
         meta,
       },

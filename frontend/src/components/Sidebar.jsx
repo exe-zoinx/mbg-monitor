@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { CATEGORIES, CAT_SHORT, COL, TLBL, fmtDate, esc } from '../lib/constants';
+import { CATEGORIES, CAT_SHORT, COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
   incidents,
@@ -181,7 +181,6 @@ export default function Sidebar({
               color: filterCat === cat ? 'var(--tx)' : 'var(--mu)',
               textAlign: 'center',
               cursor: 'pointer',
-              borderBottom: `2px solid ${filterCat === cat ? 'var(--red)' : 'transparent'}`,
               background: 'none',
               border: 'none',
               borderBottomWidth: 2,
@@ -202,13 +201,13 @@ export default function Sidebar({
               lineHeight: 1.4,
               color: filterCat === cat ? '#fff' : undefined,
             }}>
-              {cat === 'all' ? stats.total : cat === 'keracunan' ? stats.keracunan : cat === 'sppg' ? stats.sppg : cat === 'kecelakaan' ? stats.kecelakaan : stats.tewas}
+              {cat === 'all' ? stats.total : cat === 'keracunan' ? stats.keracunan : cat === 'sppg' ? stats.sppg : cat === 'kecelakaan' ? stats.kecelakaan : cat === 'tewas' ? stats.tewas : stats.mbg}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Feed */}
+      {/* Feed — single unified list of all incidents */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length === 0 ? (
           <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--mu)', fontFamily: 'var(--mo)', fontSize: 11 }}>
@@ -221,7 +220,14 @@ export default function Sidebar({
               inc={inc}
               isActive={activeId === inc.id}
               onClick={() => {
-                focusInc(inc.id);
+                // If incident has article URL, open it in new tab
+                const url = safeUrl(inc.url);
+                if (url) {
+                  window.open(url, '_blank', 'noopener,noreferrer');
+                } else if (inc.lat && inc.lng) {
+                  // If has coordinates, focus on map
+                  focusInc(inc.id);
+                }
                 if (typeof window !== 'undefined' && window.innerWidth <= 640) {
                   setSidebarOpen(false);
                 }
@@ -320,6 +326,9 @@ function StatsRow({ stats }) {
 
 function FeedItem({ inc, isActive, onClick }) {
   const c = COL[inc.cat] || COL.lainnya;
+  const hasArticle = !!safeUrl(inc.url);
+  const hasCoords = inc.lat && inc.lng;
+
   return (
     <div
       onClick={onClick}
@@ -338,14 +347,18 @@ function FeedItem({ inc, isActive, onClick }) {
       <div style={{
         width: 8,
         height: 8,
-        borderRadius: '50%',
+        borderRadius: hasCoords ? '50%' : '2px',
         background: c,
         marginTop: 3,
         flexShrink: 0,
+        transform: hasCoords ? 'none' : 'rotate(45deg)',
       }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'var(--tx)' }}>
           {inc.title}
+          {hasArticle && (
+            <span style={{ fontSize: 9, marginLeft: 4, color: 'var(--mu)' }}>🔗</span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 5, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
           <span style={{
@@ -362,7 +375,7 @@ function FeedItem({ inc, isActive, onClick }) {
             {TLBL[inc.cat] || inc.cat}
           </span>
           <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
-            📍 {inc.loc.split(',')[0]}
+            📍 {(inc.loc || 'Indonesia').split(',')[0]}
           </span>
           <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
             {fmtDate(inc.date)}
@@ -377,7 +390,28 @@ function FeedItem({ inc, isActive, onClick }) {
               +{inc.victims}
             </span>
           )}
+          {inc.source && (
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', fontStyle: 'italic' }}>
+              {inc.source}
+            </span>
+          )}
         </div>
+        {/* Show note/summary for incidents without coordinates (from news) */}
+        {inc.note && !hasCoords && (
+          <div style={{
+            fontSize: 10,
+            color: 'var(--mu)',
+            lineHeight: 1.4,
+            marginTop: 4,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}>
+            {inc.note}
+          </div>
+        )}
       </div>
     </div>
   );
