@@ -58,6 +58,9 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     const filteredIds = new Set(filtered.map(i => i.id));
 
     incidents.forEach(inc => {
+      // Skip incidents without valid coordinates (news articles without map position)
+      if (!inc.lat || !inc.lng) return;
+
       const m = L.marker([inc.lat, inc.lng], { icon: mkIcon(inc.cat, inc.victims || 0) })
         .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
         .on('click', () => focusInc(inc.id));
