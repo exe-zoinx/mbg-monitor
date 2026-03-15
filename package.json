@@ -1,13 +1,33 @@
 {
-  "name": "mbg-monitor-pages",
+  "name": "mbg-monitor",
   "private": true,
-  "description": "MBG Monitor Pages — incident map frontend for Indonesia's Makan Bergizi Gratis program",
+  "description": "MBG Monitor — incident map frontend for Indonesia's Makan Bergizi Gratis program",
+  "type": "module",
   "scripts": {
-    "deploy": "wrangler pages deploy .",
-    "dev":    "wrangler pages dev .",
-    "secret": "wrangler pages secret put"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "worker:dev": "wrangler dev --config worker/wrangler.toml",
+    "worker:deploy": "wrangler deploy --config worker/wrangler.toml",
+    "secret": "wrangler pages secret put",
+    "worker:secret": "wrangler secret put --config worker/wrangler.toml"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.4.27",
+    "daisyui": "^5.5.19",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "vite": "^8.0.0",
     "wrangler": "^3"
   }
 }
