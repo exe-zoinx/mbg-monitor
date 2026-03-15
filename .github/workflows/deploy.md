@@ -1,0 +1,16 @@
+# .github/workflows/deploy.yml
+name: Deploy to Pages
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with: { node-version: 22 }
+    - run: npm ci
+    - run: npm run build  # if needed
+    - uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        command: pages deploy . --project-name=mbg-monitor
