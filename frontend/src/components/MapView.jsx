@@ -16,7 +16,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     const map = L.map(mapRef.current, {
       center: [-2.5, 118],
       zoom: 5,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
     });
 
@@ -25,6 +25,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       subdomains: 'abcd',
     }).addTo(map);
 
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
     L.control.attribution({ prefix: '© <a href="https://carto.com" style="color:#7d8590">CARTO</a>' }).addTo(map);
 
     const cluster = L.markerClusterGroup({

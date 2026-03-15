@@ -22,7 +22,7 @@ export async function onRequestGet(ctx) {
   }
 
   try {
-    // Run all queries in parallel
+    // Run all queries in parallel — catch errors for tables that may not exist yet
     const [incRes, newsRes, statsRes] = await Promise.all([
       DB.prepare(`
         SELECT id, cat, date, lat, lng, title, loc, victims, note, source, is_baseline
@@ -30,20 +30,20 @@ export async function onRequestGet(ctx) {
         WHERE lat IS NOT NULL AND lng IS NOT NULL
         ORDER BY date DESC
         LIMIT 500
-      `).all(),
+      `).all().catch(() => ({ results: [] })),
 
       DB.prepare(`
         SELECT n.id, n.date, n.headline, n.summary, n.source, n.url, n.tag
         FROM news n
         ORDER BY n.date DESC, n.id DESC
         LIMIT 30
-      `).all(),
+      `).all().catch(() => ({ results: [] })),
 
       DB.prepare(`
         SELECT poisoning_incidents, total_victims, victims_note, budget_spent_t, budget_note, captured_at
         FROM stats_snapshot
         ORDER BY id DESC LIMIT 1
-      `).first(),
+      `).first().catch(() => null),
     ]);
 
     // If DB is empty (first deploy, schema done but no crawl yet) return 404
