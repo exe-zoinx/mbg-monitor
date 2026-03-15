@@ -5,12 +5,12 @@ compatibility_date     = "2025-01-01"
 # D1 binding for Pages Functions (/api/data, /api/history)
 [[d1_databases]]
 binding       = "DB"
-database_name = "mbd_db"
+database_name = "mbg_db"
 database_id   = "b7bedb49-d8df-4cb8-85e9-b52ce03478ba"   # same DB as worker
 
 # KV binding for Pages Functions
 [[kv_namespaces]]
-binding = "MBG_KV"
+binding = "mbg_kv"
 id      = "c41e9797e4634a03bb192a32cd712f21"         # same namespace as worker
 
 # Secrets — set via CLI:
