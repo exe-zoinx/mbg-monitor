@@ -1,5 +1,4 @@
 name                    = "mbg-monitor"
-account_id              = "d0ab4a941004d8666f9dce08c4553abf"
 pages_build_output_dir  = "."
 compatibility_date      = "2025-01-01"
 
