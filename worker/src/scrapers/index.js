@@ -17,19 +17,15 @@ import { searchMBGArticles } from '../search-apis.js';
 const TODAY = () => new Date().toISOString().slice(0, 10);
 const MIN_DATE = '2024-01-01';
 
-// Tavily/Exa search queries - targeted for specific data points
+// Tavily/Exa search queries - reduced for worker CPU limits
 const API_QUERIES = [
   'keracunan MBG siswa sekolah makan bergizi gratis',
-  'SPPG ditutup beroperasi makan bergizi gratis Indonesia',
-  'laporan keluhan orang tua makan bergizi gratis',
-  '4711 kasus keracunan MBG daftar lengkap',
+  '4711 kasus keracunan MBG daftar lengkap ratusan ribuan',
   'ratusan siswa keracunan makanan sekolah MBG 2025',
-  'food poisoning Indonesia free school meals Prabowo',
-  'MBG anggaran korupsi pengadaan makanan',
-  'site:tempo.co OR site:kompas.com OR site:detik.com keracunan MBG 2025',
+  'food poisoning Indonesia free school meals program Prabowo',
 ];
 
-// Direct HTML scraping queries
+// Direct HTML scraping - Antara only for speed
 const HTML_QUERIES = [
   'keracunan mbg',
   'makan bergizi gratis',
@@ -73,31 +69,17 @@ export async function scrapeAll(env) {
     }
   }
 
-  // Kompas
-  for (const query of HTML_QUERIES) {
+  // Kompas (1 query only for speed)
+  for (const query of ['keracunan mbg']) {
     try {
       const encoded = encodeURIComponent(query);
       const url = `https://search.kompas.com/search/?q=${encoded}&sort=date`;
       const articles = await scrapeKompasSearch(url);
       if (articles.length) console.log(`[SCRAPER] Kompas "${query}": ${articles.length}`);
       allArticles.push(...articles);
-      await delay(800);
+      await delay(600);
     } catch (err) {
       console.warn(`[SCRAPER] Kompas failed:`, err.message);
-    }
-  }
-
-  // Detik
-  for (const query of HTML_QUERIES) {
-    try {
-      const encoded = encodeURIComponent(query);
-      const url = `https://www.detik.com/search/searchall?query=${encoded}&sortby=time`;
-      const articles = await scrapeDetikSearch(url);
-      if (articles.length) console.log(`[SCRAPER] Detik "${query}": ${articles.length}`);
-      allArticles.push(...articles);
-      await delay(800);
-    } catch (err) {
-      console.warn(`[SCRAPER] Detik failed:`, err.message);
     }
   }
 
@@ -113,15 +95,18 @@ export async function scrapeAll(env) {
     return true;
   });
 
+  // Deduplicate similar incidents (same event from different sources)
+  const deduped = deduplicateIncidents(unique);
+  console.log(`[SCRAPER] After incident dedup: ${deduped.length} (from ${unique.length})`);
+
   // Phase 3: Enrich top keracunan articles with full content via Firecrawl
   if (env.FIRECRAWL_API_KEY) {
-    const toEnrich = unique.filter(a => a.tag === 'keracunan' && a.summary.length < 100).slice(0, 3);
+    const toEnrich = deduped.filter(a => a.tag === 'keracunan' && a.summary.length < 100).slice(0, 3);
     for (const article of toEnrich) {
       try {
         const content = await enrichWithFirecrawl(env, article.url);
         if (content && content.length > article.summary.length) {
           article.summary = content.slice(0, 500);
-          // Re-extract victims from fuller content
           const newVictims = extractVictims(article.title, article.summary);
           if (newVictims > article.victims) article.victims = newVictims;
         }
@@ -131,8 +116,8 @@ export async function scrapeAll(env) {
     }
   }
 
-  console.log(`[SCRAPER] Final: ${unique.length} relevant articles`);
-  return unique;
+  console.log(`[SCRAPER] Final: ${deduped.length} relevant articles`);
+  return deduped;
 }
 
 /**
@@ -174,6 +159,65 @@ function isRelevantMBG(title, summary) {
 }
 
 /**
+ * Deduplicate incidents that refer to the same event from different sources.
+ * Merge if: same location + close dates (within 7 days) + similar victim counts
+ */
+function deduplicateIncidents(articles) {
+  if (articles.length <= 1) return articles;
+
+  // Sort by date descending
+  articles.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const merged = [];
+  const used = new Set();
+
+  for (let i = 0; i < articles.length; i++) {
+    if (used.has(i)) continue;
+    const a = articles[i];
+    let best = { ...a };
+
+    for (let j = i + 1; j < articles.length; j++) {
+      if (used.has(j)) continue;
+      const b = articles[j];
+
+      // Check if same location
+      const locA = (a.location || '').toLowerCase().replace(/kota |kabupaten |kab\. /g, '');
+      const locB = (b.location || '').toLowerCase().replace(/kota |kabupaten |kab\. /g, '');
+      const sameLoc = locA && locB && (locA === locB || locA.includes(locB) || locB.includes(locA));
+      if (!sameLoc) continue;
+
+      // Check date proximity (within 7 days)
+      if (a.date && b.date) {
+        const dA = new Date(a.date);
+        const dB = new Date(b.date);
+        const diffDays = Math.abs(dA - dB) / 86400000;
+        if (diffDays > 7) continue;
+      }
+
+      // Check victim similarity (within 100% or one is 0)
+      const vA = a.victims || 0;
+      const vB = b.victims || 0;
+      const similarVictims = vA === 0 || vB === 0 ||
+        Math.abs(vA - vB) / Math.max(vA, vB, 1) < 1.0;
+
+      if (similarVictims) {
+        // Merge: keep the one with more info
+        if (b.victims > best.victims) best.victims = b.victims;
+        if (b.summary.length > best.summary.length) best.summary = b.summary;
+        if (!best.url && b.url) best.url = b.url;
+        if (!best.lat && b.lat) { best.lat = b.lat; best.lng = b.lng; }
+        best.source = best.source + ', ' + b.source;
+        used.add(j);
+      }
+    }
+
+    merged.push(best);
+  }
+
+  return merged;
+}
+
+/**
  * Validate date - returns ISO date string, never null/undefined/invalid
  */
 function validateDate(dateStr) {
@@ -202,26 +246,28 @@ function extractVictims(title, desc) {
   const text = title + ' ' + desc;
   let maxVictims = 0;
 
-  // Helper: parse Indonesian number (e.g., "4.711" -> 4711, "1.281" -> 1281)
-  const parseNum = s => parseInt(String(s).replace(/\./g, ''), 10) || 0;
+  // Helper: parse number (handles Indonesian dots AND English commas: "4.711" or "1,000")
+  const parseNum = s => parseInt(String(s).replace(/[.,]/g, ''), 10) || 0;
 
-  // Pattern 1: "4.711 kasus", "1.281 kasus" (highest priority - comprehensive reports)
-  const kasusMatch = text.match(/([\d.]+)\s*kasus/i);
+  // Pattern 1: "4.711 kasus" / "1,000 cases" (comprehensive reports - highest priority)
+  const kasusMatch = text.match(/([\d.,]+)\s*(?:kasus|cases|victims|korban)/i);
   if (kasusMatch) {
     const n = parseNum(kasusMatch[1]);
     if (n > maxVictims && n < 50000) maxVictims = n;
   }
 
-  // Pattern 2: "X siswa/murid/anak/korban dirawat/dilarikan/sakit/keracunan"
-  const highConf = [
-    /([\d.]+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga|korban)\s*(?:dirawat|dilarikan|sakit|keracunan|terdampak|meninggal|tewas|mengalami)/i,
-    /([\d.]+)\s*(?:siswa|murid|anak|pelajar|korban|orang|pasien)\s*(?:yang|terpaksa|berhasil)/i,
-    /(?:dirawat|dilarikan|dibawa|menjadi korban)\s*(?:ke\s*(?:rs|puskesmas|rumah sakit))?\s*(?:sebanyak|sekitar|hingga|mencapai)?\s*([\d.]+)/i,
-    /(?:menimpa|mengakibatkan|menyebabkan|meracuni)\s*([\d.]+)\s*(?:siswa|murid|anak|orang|warga|korban)/i,
-    /([\d.]+)\s*(?:korban|pasien|terdampak|warga|orang)\s*(?:berhasil|sudah|telah|masih|dirawat)/i,
+  // Pattern 2: "Over/More than 1,000 children/students/people" (English articles)
+  const engConf = [
+    /(?:over|more than|above|nearly|almost|approximately|about|around)\s*([\d.,]+)\s*(?:children|students|kids|people|victims|cases|fall ill|hospitalized|sickened)/i,
+    /([\d.,]+)\s*(?:children|students|kids|people|victims)\s*(?:fall ill|fell ill|were|are|hospitalized|sickened|affected|poisoned)/i,
+    /([\d.,]+)\s*(?:siswa|murid|anak|pelajar|korban|orang|pasien)\s*(?:dirawat|dilarikan|sakit|keracunan|terdampak|meninggal|tewas|mengalami)/i,
+    /([\d.,]+)\s*(?:siswa|murid|anak|pelajar|korban|orang|pasien)\s*(?:yang|terpaksa|berhasil)/i,
+    /([\d.,]+)\s*(?:korban|pasien|terdampak|warga|orang)\s*(?:berhasil|sudah|telah|masih|dirawat)/i,
+    /(?:menimpa|mengakibatkan|menyebabkan|meracuni)\s*([\d.,]+)\s*(?:siswa|murid|anak|orang|warga|korban)/i,
+    /([\d.,]+)\s*(?:hospitalized|affected|poisoned|sick|ill)/i,
   ];
 
-  for (const p of highConf) {
+  for (const p of engConf) {
     const m = text.match(p);
     if (m) {
       const n = parseNum(m[1]);
@@ -229,11 +275,12 @@ function extractVictims(title, desc) {
     }
   }
 
-  // Pattern 3: "sebanyak/mencapai X orang/korban/pasien"
+  // Pattern 3: "sebanyak X orang" / "reached X"
   if (maxVictims === 0) {
     const medConf = [
-      /(?:sebanyak|sekitar|hingga|mencapai|lebih dari|sedikitnya|sebanyaknya)\s*([\d.]+)\s*(?:orang|korban|pasien|terdampak|warga|siswa|murid|anak)/i,
-      /(?:korban|pasien|terdampak|kasus)\s*(?:mencapai|berjumlah|sebanyak|sekitar|hingga|ada)\s*([\d.]+)/i,
+      /(?:sebanyak|sekitar|hingga|mencapai|lebih dari|sedikitnya)\s*([\d.,]+)\s*(?:orang|korban|pasien|terdampak|warga|siswa|murid|anak)/i,
+      /(?:korban|pasien|terdampak|kasus)\s*(?:mencapai|berjumlah|sebanyak|hingga|ada)\s*([\d.,]+)/i,
+      /(?:reached|hit|totaled)\s*([\d.,]+)/i,
     ];
     for (const p of medConf) {
       const m = text.match(p);
@@ -244,18 +291,20 @@ function extractVictims(title, desc) {
     }
   }
 
-  // Pattern 4: "X ribu" (thousands)
+  // Pattern 4: "X ribu" / "X thousand"
   if (maxVictims === 0) {
-    const ribuMatch = text.match(/([\d.]+)\s*ribu/i);
+    const ribuMatch = text.match(/([\d.,]+)\s*(?:ribu|thousand)/i);
     if (ribuMatch) maxVictims = parseNum(ribuMatch[1]) * 1000;
   }
 
-  // Pattern 5: Approximate counts
+  // Pattern 5: Approximate counts (Indonesian + English)
   if (maxVictims === 0) {
-    if (/ribuan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 2000;
+    if (/ribuan\s*(?:siswa|murid|anak|korban|orang)/i.test(text)) maxVictims = 2000;
     else if (/lebih dari\s*satu\s*ribu/i.test(text)) maxVictims = 1000;
-    else if (/ratusan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 200;
-    else if (/puluhan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 50;
+    else if (/ratusan\s*(?:siswa|murid|anak|korban|orang)/i.test(text)) maxVictims = 200;
+    else if (/hundreds\s*(?:of\s*)?(?:children|students|kids|people)/i.test(text)) maxVictims = 200;
+    else if (/puluhan\s*(?:siswa|murid|anak|korban|orang)/i.test(text)) maxVictims = 50;
+    else if (/dozens\s*(?:of\s*)?(?:children|students|kids)/i.test(text)) maxVictims = 50;
     else if (/massal/i.test(text)) maxVictims = 50;
   }
 

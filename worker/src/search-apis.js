@@ -179,7 +179,7 @@ export async function searchMBGArticles(env, queries) {
         return t.includes('keracunan') || t.includes('poisoning') || t.includes('korban') ||
                t.includes('kasus') || t.includes('dirawat') || t.includes('victim');
       })
-      .slice(0, 5); // Max 5 Firecrawl calls
+      .slice(0, 3); // Max 3 Firecrawl calls (worker CPU limit)
 
     for (const article of toEnrich) {
       try {
