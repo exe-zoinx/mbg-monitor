@@ -12,18 +12,21 @@
  *   - Budget / corruption
  */
 
-import { searchMBGArticles, enrichWithFirecrawl } from '../search-apis.js';
+import { searchMBGArticles } from '../search-apis.js';
 
+const TODAY = () => new Date().toISOString().slice(0, 10);
 const MIN_DATE = '2024-01-01';
 
-// Tavily/Exa search queries (Indonesian + English for broader coverage)
+// Tavily/Exa search queries - targeted for specific data points
 const API_QUERIES = [
   'keracunan MBG siswa sekolah makan bergizi gratis',
-  'SPPG ditutup makan bergizi gratis Indonesia',
+  'SPPG ditutup beroperasi makan bergizi gratis Indonesia',
   'laporan keluhan orang tua makan bergizi gratis',
-  'site:tempo.co OR site:kompas.com MBG keracunan',
-  'site:liputan6.com OR site:detik.com makan bergizi gratis',
-  'food poisoning Indonesia free school meals program',
+  '4711 kasus keracunan MBG daftar lengkap',
+  'ratusan siswa keracunan makanan sekolah MBG 2025',
+  'food poisoning Indonesia free school meals Prabowo',
+  'MBG anggaran korupsi pengadaan makanan',
+  'site:tempo.co OR site:kompas.com OR site:detik.com keracunan MBG 2025',
 ];
 
 // Direct HTML scraping queries
@@ -39,15 +42,16 @@ const HTML_QUERIES = [
 export async function scrapeAll(env) {
   const allArticles = [];
 
-  // Phase 1: Tavily/Exa search APIs (broad coverage, better relevance)
+  // Phase 1: Tavily/Exa search APIs (broad coverage + Firecrawl enrichment)
   const apiArticles = await searchMBGArticles(env, API_QUERIES);
   for (const a of apiArticles) {
+    const date = validateDate(a.date);
     allArticles.push({
       title: (a.title || '').slice(0, 300),
-      summary: (a.summary || '').slice(0, 500),
+      summary: (a.summary || '').slice(0, 800),
       url: a.url,
       source: a.source || 'Web',
-      date: a.date || new Date().toISOString().slice(0, 10),
+      date,
       tag: detectTag((a.title + ' ' + a.summary).toLowerCase()),
       ...extractLocationAndCoords(a.title, a.summary),
     });
@@ -170,79 +174,89 @@ function isRelevantMBG(title, summary) {
 }
 
 /**
+ * Validate date - returns ISO date string, never null/undefined/invalid
+ */
+function validateDate(dateStr) {
+  if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return TODAY();
+  // Check ISO format YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 2024 && d.getFullYear() <= 2026) {
+      return dateStr;
+    }
+  }
+  // Check ISO datetime
+  if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return dateStr.slice(0, 10);
+    }
+  }
+  return TODAY();
+}
+
+/**
  * Extract victim count from article text
- * CRITICAL: Must avoid false positives like "22 SPPG" (count of kitchens, not victims)
  */
 function extractVictims(title, desc) {
   const text = title + ' ' + desc;
   let maxVictims = 0;
 
-  // EXCLUDE false positives: numbers followed by SPPG/dapur/vendor (counts of facilities, not victims)
-  const falsePositive = /(\d+)\s*(?:sppg|dapur|vendor|sekolah|kantor|instansi)/i;
-  const hasFalsePositive = falsePositive.test(text);
+  // Helper: parse Indonesian number (e.g., "4.711" -> 4711, "1.281" -> 1281)
+  const parseNum = s => parseInt(String(s).replace(/\./g, ''), 10) || 0;
 
-  // Pattern 1: "X siswa/murid/anak dirawat/dilarikan/sakit/keracunan" (high confidence)
+  // Pattern 1: "4.711 kasus", "1.281 kasus" (highest priority - comprehensive reports)
+  const kasusMatch = text.match(/([\d.]+)\s*kasus/i);
+  if (kasusMatch) {
+    const n = parseNum(kasusMatch[1]);
+    if (n > maxVictims && n < 50000) maxVictims = n;
+  }
+
+  // Pattern 2: "X siswa/murid/anak/korban dirawat/dilarikan/sakit/keracunan"
   const highConf = [
-    /(\d+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga)\s*(?:dirawat|dilarikan|sakit|keracunan|terdampak|meninggal|tewas)/i,
-    /(\d+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga)\s*(?:yang|terpaksa|mengalami)/i,
-    /(?:dirawat|dilarikan|dibawa)\s*(?:ke\s*(?:rs|puskesmas|rumah sakit))?\s*(?:sebanyak|sekitar|hingga|mencapai)?\s*(\d+)/i,
-    /(?:menimpa|mengakibatkan|menyebabkan|membuat)\s*(\d+)\s*(?:siswa|murid|anak|orang|warga)/i,
+    /([\d.]+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga|korban)\s*(?:dirawat|dilarikan|sakit|keracunan|terdampak|meninggal|tewas|mengalami)/i,
+    /([\d.]+)\s*(?:siswa|murid|anak|pelajar|korban|orang|pasien)\s*(?:yang|terpaksa|berhasil)/i,
+    /(?:dirawat|dilarikan|dibawa|menjadi korban)\s*(?:ke\s*(?:rs|puskesmas|rumah sakit))?\s*(?:sebanyak|sekitar|hingga|mencapai)?\s*([\d.]+)/i,
+    /(?:menimpa|mengakibatkan|menyebabkan|meracuni)\s*([\d.]+)\s*(?:siswa|murid|anak|orang|warga|korban)/i,
+    /([\d.]+)\s*(?:korban|pasien|terdampak|warga|orang)\s*(?:berhasil|sudah|telah|masih|dirawat)/i,
   ];
 
   for (const p of highConf) {
     const m = text.match(p);
     if (m) {
-      const n = parseInt(m[1]);
-      if (n > maxVictims && n < 10000) maxVictims = n;
+      const n = parseNum(m[1]);
+      if (n > maxVictims && n < 50000) maxVictims = n;
     }
   }
 
-  // Pattern 2: "korban/pasien/terdampak mencapai X" or "sebanyak X orang"
+  // Pattern 3: "sebanyak/mencapai X orang/korban/pasien"
   if (maxVictims === 0) {
-    const mediumConf = [
-      /(?:korban|pasien|terdampak)\s*(?:mencapai|berjumlah|sebanyak|sekitar|hingga)\s*(\d+)/i,
-      /(?:sebanyak|sekitar|hingga|mencapai|lebih dari|sedikitnya)\s*(\d+)\s*(?:orang|korban|pasien|terdampak|warga)/i,
-      /(\d+)\s*(?:korban|pasien|terdampak|warga)\s*(?:berhasil|sudah|telah|masih)/i,
+    const medConf = [
+      /(?:sebanyak|sekitar|hingga|mencapai|lebih dari|sedikitnya|sebanyaknya)\s*([\d.]+)\s*(?:orang|korban|pasien|terdampak|warga|siswa|murid|anak)/i,
+      /(?:korban|pasien|terdampak|kasus)\s*(?:mencapai|berjumlah|sebanyak|sekitar|hingga|ada)\s*([\d.]+)/i,
     ];
-
-    for (const p of mediumConf) {
+    for (const p of medConf) {
       const m = text.match(p);
       if (m) {
-        const n = parseInt(m[1]);
-        if (n > maxVictims && n < 10000) maxVictims = n;
+        const n = parseNum(m[1]);
+        if (n > maxVictims && n < 50000) maxVictims = n;
       }
     }
   }
 
-  // Pattern 3: "X siswa/murid/anak" only if NOT followed by facility words (SPPG/dapur)
-  if (maxVictims === 0 && !hasFalsePositive) {
-    const lowConf = [
-      /(\d+)\s*(?:siswa|murid|anak|pelajar)\s*(?:di |yang |dan |,)/i,
-      /(\d+)\s*(?:orang|warga)\s*(?:di |yang |dan |,)/i,
-    ];
-    for (const p of lowConf) {
-      const m = text.match(p);
-      if (m) {
-        const n = parseInt(m[1]);
-        if (n > maxVictims && n < 10000) maxVictims = n;
-      }
-    }
-  }
-
-  // Pattern 4: Approximate counts
+  // Pattern 4: "X ribu" (thousands)
   if (maxVictims === 0) {
-    const approx = [
-      [ /ribuan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 2000 ],
-      [ /ratusan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 200 ],
-      [ /puluhan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 50 ],
-      [ /belasan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 15 ],
-    ];
-    for (const [p, est] of approx) {
-      if (p.test(text)) {
-        maxVictims = est;
-        break;
-      }
-    }
+    const ribuMatch = text.match(/([\d.]+)\s*ribu/i);
+    if (ribuMatch) maxVictims = parseNum(ribuMatch[1]) * 1000;
+  }
+
+  // Pattern 5: Approximate counts
+  if (maxVictims === 0) {
+    if (/ribuan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 2000;
+    else if (/lebih dari\s*satu\s*ribu/i.test(text)) maxVictims = 1000;
+    else if (/ratusan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 200;
+    else if (/puluhan\s*(?:siswa|murid|anak|korban|orang|pasien)/i.test(text)) maxVictims = 50;
+    else if (/massal/i.test(text)) maxVictims = 50;
   }
 
   return maxVictims;

@@ -1,17 +1,9 @@
 /**
  * Search API Integrations for MBG Monitor
  *
- * Supports Tavily, Exa, and Firecrawl APIs with automatic key rotation/fallback.
- * Each API is tried in order; if one fails, the next is used.
+ * Tavily/Exa for search, Firecrawl for full article content extraction.
+ * Firecrawl returns metadata with dates and full content with victim counts.
  */
-
-// Indonesian news domains for Tavily filtering
-const ID_NEWS_DOMAINS = [
-  'kompas.com', 'detik.com', 'antaranews.com', 'tempo.co', 'tribunnews.com',
-  'cnnindonesia.com', 'liputan6.com', 'suara.com', 'tirto.id', 'kumparan.com',
-  'republika.co.id', 'okezone.com', 'sindonews.com', 'merdeka.com', 'jpnn.com',
-  'viva.co.id', 'beritasatu.com', 'nasional.kompas.com', 'jabar.tribunnews.com',
-];
 
 // Tavily Search API
 async function searchTavily(query, apiKey, opts = {}) {
@@ -29,7 +21,7 @@ async function searchTavily(query, apiKey, opts = {}) {
         topic: 'news',
         start_date: opts.startDate || '2024-01-01',
         include_answer: false,
-        include_raw_content: false,
+        include_raw_content: true,
       }),
     });
 
@@ -42,7 +34,7 @@ async function searchTavily(query, apiKey, opts = {}) {
     return (data.results || []).map(r => ({
       title: r.title || '',
       url: r.url || '',
-      summary: r.content || '',
+      summary: r.content || r.raw_content?.slice(0, 500) || '',
       source: extractDomain(r.url),
       date: r.published_date ? r.published_date.slice(0, 10) : null,
       provider: 'tavily',
@@ -68,8 +60,8 @@ async function searchExa(query, apiKey, opts = {}) {
         type: 'auto',
         startPublishedDate: opts.startDate || '2024-01-01',
         contents: {
-          text: false,
-          highlights: { numSentences: 3 },
+          text: true,
+          highlights: { numSentences: 5 },
         },
       }),
     });
@@ -83,7 +75,7 @@ async function searchExa(query, apiKey, opts = {}) {
     return (data.results || []).map(r => ({
       title: r.title || '',
       url: r.url || '',
-      summary: (r.highlights || []).join(' '),
+      summary: (r.text || '').slice(0, 500) || (r.highlights || []).join(' '),
       source: extractDomain(r.url),
       date: r.publishedDate ? r.publishedDate.slice(0, 10) : null,
       provider: 'exa',
@@ -94,7 +86,7 @@ async function searchExa(query, apiKey, opts = {}) {
   }
 }
 
-// Firecrawl - scrape full article content
+// Firecrawl - scrape full article content with metadata
 async function scrapeWithFirecrawl(url, apiKey) {
   try {
     const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
@@ -116,12 +108,27 @@ async function scrapeWithFirecrawl(url, apiKey) {
     }
 
     const data = await res.json();
-    if (!data.success || !data.data?.markdown) return null;
+    if (!data.success || !data.data) return null;
+
+    const meta = data.data.metadata || {};
+    const content = data.data.markdown || '';
+
+    // Extract date from metadata (multiple possible fields)
+    let date = null;
+    if (meta.publishedTime) {
+      date = meta.publishedTime.slice(0, 10);
+    } else if (meta['article:published_time']) {
+      date = meta['article:published_time'].slice(0, 10);
+    } else if (meta.content_PublishedDate) {
+      date = meta.content_PublishedDate.slice(0, 10);
+    }
 
     return {
-      title: data.data.metadata?.title || '',
-      content: data.data.markdown.slice(0, 2000),
+      title: meta.title || meta.ogTitle || '',
+      content: content.slice(0, 3000),
+      date,
       source: extractDomain(url),
+      description: meta.description || meta.ogDescription || '',
       provider: 'firecrawl',
     };
   } catch (err) {
@@ -131,67 +138,78 @@ async function scrapeWithFirecrawl(url, apiKey) {
 }
 
 /**
- * Search MBG-related articles using Tavily and Exa with fallback
- * @param {object} env - Worker environment with API keys
- * @param {string[]} queries - Search queries
- * @returns {Promise<Array>} Array of article objects
+ * Search MBG articles using Tavily/Exa, then enrich top articles with Firecrawl
  */
 export async function searchMBGArticles(env, queries) {
   const allArticles = [];
-
-  // Get API keys from env (Cloudflare secrets) or fallback
   const tavilyKey = env.TAVILY_API_KEY;
   const exaKey = env.EXA_API_KEY;
+  const firecrawlKey = env.FIRECRAWL_API_KEY;
 
+  // Phase 1: Search via Tavily/Exa
   for (const query of queries) {
     let results = null;
-
-    // Try Tavily first
     if (tavilyKey) {
       results = await searchTavily(query, tavilyKey);
       if (results?.length) {
-        console.log(`[SEARCH] Tavily "${query}": ${results.length} results`);
+        console.log(`[SEARCH] Tavily "${query}": ${results.length}`);
         allArticles.push(...results);
-        await delay(500);
+        await delay(300);
         continue;
       }
     }
-
-    // Fallback to Exa
     if (exaKey) {
       results = await searchExa(query, exaKey);
       if (results?.length) {
-        console.log(`[SEARCH] Exa "${query}": ${results.length} results`);
+        console.log(`[SEARCH] Exa "${query}": ${results.length}`);
         allArticles.push(...results);
-        await delay(500);
+        await delay(300);
         continue;
       }
     }
+    await delay(300);
+  }
 
-    console.warn(`[SEARCH] No results for "${query}" from any provider`);
-    await delay(500);
+  // Phase 2: Enrich top articles with Firecrawl for full content + dates
+  if (firecrawlKey && allArticles.length > 0) {
+    // Pick articles with poisoning/keracunan keywords that need victim counts
+    const toEnrich = allArticles
+      .filter(a => {
+        const t = (a.title + ' ' + a.summary).toLowerCase();
+        return t.includes('keracunan') || t.includes('poisoning') || t.includes('korban') ||
+               t.includes('kasus') || t.includes('dirawat') || t.includes('victim');
+      })
+      .slice(0, 5); // Max 5 Firecrawl calls
+
+    for (const article of toEnrich) {
+      try {
+        const enriched = await scrapeWithFirecrawl(article.url, firecrawlKey);
+        if (enriched) {
+          // Merge enriched data - prefer Firecrawl's content and date
+          if (enriched.content && enriched.content.length > 100) {
+            article.summary = enriched.content.slice(0, 800);
+          }
+          if (enriched.date) {
+            article.date = enriched.date;
+          }
+          if (enriched.description && !article.summary) {
+            article.summary = enriched.description;
+          }
+          article.enriched = true;
+          console.log(`[FIRECRAWL] Enriched: ${article.title.slice(0, 50)}...`);
+        }
+        await delay(500);
+      } catch (err) {
+        console.warn(`[FIRECRAWL] Enrich failed: ${err.message}`);
+      }
+    }
   }
 
   return allArticles;
 }
 
-/**
- * Enrich an article with full content using Firecrawl
- * @param {object} env - Worker environment
- * @param {string} url - Article URL
- * @returns {Promise<string|null>} Full article content or null
- */
-export async function enrichWithFirecrawl(env, url) {
-  const firecrawlKey = env.FIRECRAWL_API_KEY;
-  if (!firecrawlKey || !url) return null;
+export { scrapeWithFirecrawl };
 
-  const result = await scrapeWithFirecrawl(url, firecrawlKey);
-  return result?.content || null;
-}
-
-/**
- * Extract domain from URL for source attribution
- */
 function extractDomain(url) {
   try {
     const u = new URL(url);
