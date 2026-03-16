@@ -6,7 +6,7 @@
  * Articles are transformed into incident records with category detection.
  */
 
-const MIN_DATE = '2026-01-01';
+const MIN_DATE = '2024-01-01';
 
 // Search queries to try on news sites
 const SEARCH_QUERIES = [
@@ -15,6 +15,11 @@ const SEARCH_QUERIES = [
   'sppg program mbg',
   'mbg sekolah keracunan',
   'makan bergizi gratis insiden',
+  'sppg ditutup',
+  'sppg dibuka',
+  'sppg beroperasi',
+  'sppg sementara',
+  'makan bergizi gratis anggaran',
 ];
 
 /**
@@ -118,7 +123,7 @@ async function scrapeAntaraSearch(url, query) {
     // Determine category
     const combined = (title + ' ' + desc).toLowerCase();
     const tag = detectTag(combined);
-    const location = extractLocation(title, desc);
+    const loc = extractLocation(title, desc);
 
     articles.push({
       title: title.slice(0, 300),
@@ -127,7 +132,9 @@ async function scrapeAntaraSearch(url, query) {
       source: 'Antara',
       date: parsedDate || new Date().toISOString().slice(0, 10),
       tag,
-      location,
+      location: loc.city,
+      lat: loc.lat,
+      lng: loc.lng,
     });
   }
 
@@ -169,7 +176,7 @@ async function scrapeKompasSearch(url, query) {
 
     const combined = (title + ' ' + desc).toLowerCase();
     const tag = detectTag(combined);
-    const location = extractLocation(title, desc);
+    const loc = extractLocation(title, desc);
 
     articles.push({
       title: title.slice(0, 300),
@@ -178,7 +185,9 @@ async function scrapeKompasSearch(url, query) {
       source: 'Kompas',
       date: parsedDate || new Date().toISOString().slice(0, 10),
       tag,
-      location,
+      location: loc.city,
+      lat: loc.lat,
+      lng: loc.lng,
     });
   }
 
@@ -218,7 +227,7 @@ async function scrapeDetikSearch(url, query) {
 
     const combined = title.toLowerCase();
     const tag = detectTag(combined);
-    const location = extractLocation(title, '');
+    const loc = extractLocation(title, '');
 
     articles.push({
       title: title.slice(0, 300),
@@ -227,7 +236,9 @@ async function scrapeDetikSearch(url, query) {
       source: 'Detik',
       date: parsedDate || new Date().toISOString().slice(0, 10),
       tag,
-      location,
+      location: loc.city,
+      lat: loc.lat,
+      lng: loc.lng,
     });
   }
 
@@ -323,6 +334,9 @@ function parseRelativeDate(text) {
  */
 function detectTag(text) {
   if (text.includes('keracunan') || text.includes('racun') || text.includes('keranjingan')) return 'keracunan';
+  if (text.includes('ditutup sementara') || text.includes('dihentikan sementara') || text.includes('tutup sementara')) return 'sppg_temp_closed';
+  if (text.includes('ditutup') || text.includes('dihentikan') || text.includes('tutup permanen') || text.includes('dicabut izin')) return 'sppg_closed';
+  if (text.includes('dibuka') || text.includes('beroperasi') || text.includes('diresmikan') || text.includes('dioperasikan') || text.includes('baru beroperasi')) return 'sppg_opened';
   if (text.includes('sppg') || text.includes('dapur sekolah') || text.includes('dapur mbg')) return 'sppg';
   if (text.includes('kecelakaan') || text.includes('tabrak') || text.includes('terbalik') || text.includes('terguling')) return 'kecelakaan';
   if (text.includes('tewas') || text.includes('meninggal') || text.includes('korban jiwa')) return 'tewas';
@@ -330,30 +344,88 @@ function detectTag(text) {
 }
 
 /**
- * Extract location from article text
+ * City coordinates lookup for Indonesian cities
+ */
+const CITY_COORDS = {
+  'jakarta': [-6.2088, 106.8456], 'surabaya': [-7.2575, 112.7521],
+  'bandung': [-6.9175, 107.6191], 'medan': [3.5952, 98.6722],
+  'semarang': [-6.9666, 110.4196], 'makassar': [-5.1477, 119.4327],
+  'palembang': [-2.9761, 104.7754], 'depok': [-6.4025, 106.7942],
+  'tangerang': [-6.1783, 106.6319], 'bekasi': [-6.2383, 106.9756],
+  'bogor': [-6.5971, 106.8060], 'malang': [-7.9666, 112.6326],
+  'yogyakarta': [-7.7956, 110.3695], 'solo': [-7.5698, 110.8285],
+  'denpasar': [-8.6705, 115.2126], 'balikpapan': [-1.2654, 116.8312],
+  'samarinda': [-0.4948, 117.1436], 'pontianak': [-0.0263, 109.3425],
+  'banjarmasin': [-3.3186, 114.5944], 'manado': [1.4748, 124.8421],
+  'padang': [-0.9471, 100.4172], 'pekanbaru': [0.5071, 101.4478],
+  'jambi': [-1.6101, 103.6131], 'lampung': [-5.4531, 105.2618],
+  'serang': [-6.1103, 106.1639], 'cirebon': [-6.7320, 108.5523],
+  'tasikmalaya': [-7.3279, 108.2203], 'gorontalo': [0.5435, 123.0568],
+  'palu': [-0.8917, 119.8707], 'kendari': [-3.9675, 122.5156],
+  'mataram': [-8.5833, 116.1167], 'kupang': [-10.1772, 123.6070],
+  'ambon': [-3.6954, 128.1814], 'jayapura': [-2.5489, 140.7134],
+  'magetan': [-7.6502, 111.3607], 'sukoharjo': [-7.6833, 110.8333],
+  'gresik': [-7.1539, 112.6561], 'situbondo': [-7.7066, 114.0096],
+  'cianjur': [-6.8193, 107.1399], 'sidoarjo': [-7.4478, 112.7183],
+  'lombok': [-8.5653, 116.3515], 'sulawesi selatan': [-3.6688, 119.9741],
+  'sulsel': [-3.6688, 119.9741], 'jawa timur': [-7.5361, 112.2384],
+  'jawa barat': [-6.9175, 107.6191], 'jawa tengah': [-7.1510, 110.1403],
+  'sumatera utara': [2.1154, 99.5451], 'sumut': [2.1154, 99.5451],
+  'bali': [-8.4095, 115.1889], 'ntb': [-8.5653, 116.3515],
+  'kalimantan timur': [0.5333, 116.4167], 'kaltim': [0.5333, 116.4167],
+  'sulawesi tenggara': [-3.9675, 122.5156], 'sultra': [-3.9675, 122.5156],
+  'ntt': [-10.1772, 123.6070], 'aceh': [5.5483, 95.3238],
+  'sumatera barat': [-0.7399, 100.8000], 'sumbar': [-0.7399, 100.8000],
+  'riau': [0.5071, 101.4478], 'kalimantan selatan': [-3.0926, 115.2838],
+  'kalsel': [-3.0926, 115.2838], 'maluku': [-3.6954, 128.1814],
+  'papua': [-4.0000, 138.0000], 'sulawesi utara': [1.4748, 124.8421],
+  'sulut': [1.4748, 124.8421], 'lebak': [-6.5644, 106.2522],
+  'cilegon': [-6.0025, 106.0131], 'brebes': [-6.8800, 109.0500],
+  'tegal': [-6.8694, 109.1402], 'purwokerto': [-7.4248, 109.2344],
+  'wonogiri': [-7.8167, 110.9333], 'karanganyar': [-7.6000, 110.9500],
+  'boyolali': [-7.5333, 110.6000], 'klaten': [-7.7000, 110.6000],
+  'kudus': [-6.8000, 110.8333], 'pati': [-6.7500, 111.0333],
+  'tuban': [-6.9000, 112.0500], 'lamongan': [-7.1167, 112.4167],
+  'mojokerto': [-7.4722, 112.4336], 'jombang': [-7.5453, 112.2300],
+  'kediri': [-7.8167, 112.0167], 'blitar': [-8.1000, 112.1500],
+  'tulungagung': [-8.0667, 111.9000], 'trenggalek': [-8.0500, 111.7167],
+  'ponorogo': [-7.8667, 111.4833], 'pacitan': [-8.2000, 111.1000],
+  'madiun': [-7.6333, 111.5333], 'ngawi': [-7.4000, 111.4500],
+  'bojonegoro': [-7.1500, 111.8833], 'nganjuk': [-7.6000, 111.9000],
+  'lombok tengah': [-8.7000, 116.2667], 'lombok timur': [-8.5500, 116.5500],
+  'lombok barat': [-8.6500, 116.1000], 'sumbawa': [-8.5000, 117.5000],
+};
+
+/**
+ * Extract location from article text - returns { city, lat, lng }
  */
 function extractLocation(title, desc) {
   const text = title + ' ' + desc;
+  const textLower = text.toLowerCase();
 
-  const cities = [
-    'Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Makassar',
-    'Palembang', 'Depok', 'Tangerang', 'Bekasi', 'Bogor', 'Malang',
-    'Yogyakarta', 'Solo', 'Denpasar', 'Balikpapan', 'Samarinda',
-    'Pontianak', 'Banjarmasin', 'Manado', 'Padang', 'Pekanbaru',
-    'Jambi', 'Lampung', 'Serang', 'Cirebon', 'Tasikmalaya', 'Gorontalo',
-    'Palu', 'Kendari', 'Mataram', 'Kupang', 'Ambon', 'Jayapura',
-    'Magetan', 'Sukoharjo', 'Gresik', 'Situbondo', 'Cianjur', 'Sidoarjo',
-  ];
-
-  for (const city of cities) {
-    if (text.includes(city)) return city;
+  // Check known cities (longest match first)
+  const sortedKeys = Object.keys(CITY_COORDS).sort((a, b) => b.length - a.length);
+  for (const city of sortedKeys) {
+    if (textLower.includes(city)) {
+      const [lat, lng] = CITY_COORDS[city];
+      // Capitalize city name
+      const name = city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { city: name, lat, lng };
+    }
   }
 
   // Try "di [City]" pattern
   const locMatch = text.match(/(?:di|di Kota|di Kabupaten)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
-  if (locMatch) return locMatch[1];
+  if (locMatch) {
+    const name = locMatch[1];
+    const key = name.toLowerCase();
+    if (CITY_COORDS[key]) {
+      return { city: name, lat: CITY_COORDS[key][0], lng: CITY_COORDS[key][1] };
+    }
+    return { city: name, lat: null, lng: null };
+  }
 
-  return 'Indonesia';
+  return { city: 'Indonesia', lat: null, lng: null };
 }
 
 /**

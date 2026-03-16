@@ -53,8 +53,8 @@ export async function handleCron(env) {
         `).bind(
           tag,
           article.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
-          null, // lat — news articles don't have coordinates
-          null, // lng
+          article.lat || null,
+          article.lng || null,
           article.title,
           location,
           victims,

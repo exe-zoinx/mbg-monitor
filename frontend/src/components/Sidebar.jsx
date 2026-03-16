@@ -201,7 +201,7 @@ export default function Sidebar({
               lineHeight: 1.4,
               color: filterCat === cat ? '#fff' : undefined,
             }}>
-              {cat === 'all' ? stats.total : cat === 'keracunan' ? stats.keracunan : cat === 'sppg' ? stats.sppg : cat === 'kecelakaan' ? stats.kecelakaan : cat === 'tewas' ? stats.tewas : stats.mbg}
+              {cat === 'all' ? stats.total : stats[cat] || 0}
             </span>
           </button>
         ))}

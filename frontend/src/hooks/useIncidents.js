@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import { BASELINE } from '../lib/constants';
 
 export function useIncidents(data) {
   const [activeId, setActiveId] = useState(null);
@@ -7,14 +6,8 @@ export function useIncidents(data) {
   const [search, setSearch] = useState('');
 
   const incidents = useMemo(() => {
-    if (!data?.incidents?.length) return [...BASELINE];
-
-    const existing = new Set(BASELINE.map(b => `${b.date}|${b.loc.slice(0, 8)}`));
-    const newInc = data.incidents
-      .filter(r => !existing.has(`${r.date}|${(r.loc || '').slice(0, 8)}`))
-      .map((r, i) => ({ ...r, id: 9000 + i, victims: r.victims || 0 }));
-
-    return [...BASELINE, ...newInc];
+    if (!data?.incidents?.length) return [];
+    return data.incidents.map((r, i) => ({ ...r, id: r.id || 9000 + i, victims: r.victims || 0 }));
   }, [data]);
 
   const filtered = useMemo(() => {
@@ -25,7 +18,7 @@ export function useIncidents(data) {
         if (!q) return true;
         return (
           i.title.toLowerCase().includes(q) ||
-          i.loc.toLowerCase().includes(q) ||
+          (i.loc || '').toLowerCase().includes(q) ||
           (i.note || '').toLowerCase().includes(q)
         );
       })
@@ -43,11 +36,14 @@ export function useIncidents(data) {
       total: incidents.length,
       victims: totalVictims,
       keracunan: cats.keracunan || 0,
-      other: (cats.sppg || 0) + (cats.kecelakaan || 0) + (cats.tewas || 0) + (cats.lainnya || 0),
-      sppg: cats.sppg || 0,
+      sppg: (cats.sppg || 0) + (cats.sppg_opened || 0) + (cats.sppg_temp_closed || 0) + (cats.sppg_closed || 0),
+      sppg_opened: cats.sppg_opened || 0,
+      sppg_temp_closed: cats.sppg_temp_closed || 0,
+      sppg_closed: cats.sppg_closed || 0,
       kecelakaan: cats.kecelakaan || 0,
       tewas: cats.tewas || 0,
       mbg: cats.mbg || 0,
+      other: (cats.lainnya || 0),
     };
   }, [incidents]);
 
