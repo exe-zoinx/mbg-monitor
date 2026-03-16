@@ -21,17 +21,14 @@ const API_QUERIES = [
   'keracunan MBG siswa sekolah makan bergizi gratis',
   'SPPG ditutup makan bergizi gratis Indonesia',
   'laporan keluhan orang tua makan bergizi gratis',
-  'kritik MBG dibungkam sensor Indonesia',
-  'MBG anggaran korupsi pengadaan makanan sekolah',
-  'demonstrasi protes makan bergizi gratis',
+  'site:tempo.co OR site:kompas.com MBG keracunan',
+  'site:liputan6.com OR site:detik.com makan bergizi gratis',
   'food poisoning Indonesia free school meals program',
-  'SPPG kitchen closed opened MBG Indonesia',
 ];
 
-// Direct HTML scraping queries (Antara, Kompas, Detik)
+// Direct HTML scraping queries
 const HTML_QUERIES = [
   'keracunan mbg',
-  'sppg ditutup',
   'makan bergizi gratis',
 ];
 
@@ -140,16 +137,20 @@ export async function scrapeAll(env) {
 function isRelevantMBG(title, summary) {
   const text = (title + ' ' + summary).toLowerCase();
 
-  // MUST mention MBG or related terms
-  const mbgTerms = ['mbg', 'makan bergizi gratis', 'sppg', 'dapur sekolah', 'makanan sekolah', 'program makan'];
+  // MUST mention MBG or related terms (Indonesian + English)
+  const mbgTerms = [
+    'mbg', 'makan bergizi gratis', 'sppg', 'dapur sekolah', 'makanan sekolah', 'program makan',
+    'free school meal', 'free meal program', 'free nutritious meal', 'indonesia meal', 'school lunch',
+    'food poisoning indonesia', 'prabowo meal', 'president meal program',
+  ];
   const hasMBG = mbgTerms.some(t => text.includes(t));
   if (!hasMBG) return false;
 
-  // EXCLUDE non-Indonesian MBG content (Tavily/Exa may return international results)
+  // EXCLUDE non-Indonesian MBG content
   const excludeTerms = ['trading', 'crypto', 'bitcoin', 'saham', 'stock', 'nasdaq', 'wall street', 'forex'];
   if (excludeTerms.some(t => text.includes(t))) return false;
 
-  // Check topic relevance
+  // Check topic relevance (Indonesian + English)
   const topics = [
     'keracunan', 'racun', 'sakit', 'dirawat', 'rawat inap', 'puskesmas', 'rumah sakit', 'korban',
     'sppg', 'ditutup', 'dibuka', 'beroperasi', 'dihentikan', 'perizinan', 'sanksi',
@@ -160,40 +161,81 @@ function isRelevantMBG(title, summary) {
     'mark up', 'korupsi', 'suap', 'pengadaan', 'vendor',
     'meninggal', 'tewas', 'korban jiwa',
     'bergizi', 'gratis', 'insiden', 'dapur', 'distribusi', 'pangan',
+    // English terms for international coverage
+    'poisoning', 'illness', 'hospital', 'sick', 'student', 'children', 'victim',
+    'contamination', 'outbreak', 'protest', 'report', 'complaint', 'investigation',
+    'shut down', 'closed', 'opened', 'budget', 'corruption', 'scandal',
   ];
   return topics.some(t => text.includes(t));
 }
 
 /**
  * Extract victim count from article text
+ * CRITICAL: Must avoid false positives like "22 SPPG" (count of kitchens, not victims)
  */
 function extractVictims(title, desc) {
   const text = title + ' ' + desc;
+  let maxVictims = 0;
 
-  // Exact numbers: "45 siswa", "112 orang", "28 murid"
-  const patterns = [
-    [ /(\d+)\s*(?:siswa|murid|anak|pelajar|santri|korban|pasien|terdampak|dirawat|dilarikan)/i, 1 ],
-    [ /(\d+)\s*(?:orang|warga|ibu hamil|balita)/i, 1 ],
-    [ /(?:sebanyak|lebih dari|sedikitnya|sekitar|hingga)\s*(\d+)/i, 1 ],
+  // EXCLUDE false positives: numbers followed by SPPG/dapur/vendor (counts of facilities, not victims)
+  const falsePositive = /(\d+)\s*(?:sppg|dapur|vendor|sekolah|kantor|instansi)/i;
+  const hasFalsePositive = falsePositive.test(text);
+
+  // Pattern 1: "X siswa/murid/anak dirawat/dilarikan/sakit/keracunan" (high confidence)
+  const highConf = [
+    /(\d+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga)\s*(?:dirawat|dilarikan|sakit|keracunan|terdampak|meninggal|tewas)/i,
+    /(\d+)\s*(?:siswa|murid|anak|pelajar|santri|balita|warga)\s*(?:yang|terpaksa|mengalami)/i,
+    /(?:dirawat|dilarikan|dibawa)\s*(?:ke\s*(?:rs|puskesmas|rumah sakit))?\s*(?:sebanyak|sekitar|hingga|mencapai)?\s*(\d+)/i,
+    /(?:menimpa|mengakibatkan|menyebabkan|membuat)\s*(\d+)\s*(?:siswa|murid|anak|orang|warga)/i,
   ];
 
-  let maxVictims = 0;
-  for (const [p, group] of patterns) {
+  for (const p of highConf) {
     const m = text.match(p);
     if (m) {
-      const n = parseInt(m[group]);
+      const n = parseInt(m[1]);
       if (n > maxVictims && n < 10000) maxVictims = n;
     }
   }
 
-  // Approximate counts from Indonesian
+  // Pattern 2: "korban/pasien/terdampak mencapai X" or "sebanyak X orang"
+  if (maxVictims === 0) {
+    const mediumConf = [
+      /(?:korban|pasien|terdampak)\s*(?:mencapai|berjumlah|sebanyak|sekitar|hingga)\s*(\d+)/i,
+      /(?:sebanyak|sekitar|hingga|mencapai|lebih dari|sedikitnya)\s*(\d+)\s*(?:orang|korban|pasien|terdampak|warga)/i,
+      /(\d+)\s*(?:korban|pasien|terdampak|warga)\s*(?:berhasil|sudah|telah|masih)/i,
+    ];
+
+    for (const p of mediumConf) {
+      const m = text.match(p);
+      if (m) {
+        const n = parseInt(m[1]);
+        if (n > maxVictims && n < 10000) maxVictims = n;
+      }
+    }
+  }
+
+  // Pattern 3: "X siswa/murid/anak" only if NOT followed by facility words (SPPG/dapur)
+  if (maxVictims === 0 && !hasFalsePositive) {
+    const lowConf = [
+      /(\d+)\s*(?:siswa|murid|anak|pelajar)\s*(?:di |yang |dan |,)/i,
+      /(\d+)\s*(?:orang|warga)\s*(?:di |yang |dan |,)/i,
+    ];
+    for (const p of lowConf) {
+      const m = text.match(p);
+      if (m) {
+        const n = parseInt(m[1]);
+        if (n > maxVictims && n < 10000) maxVictims = n;
+      }
+    }
+  }
+
+  // Pattern 4: Approximate counts
   if (maxVictims === 0) {
     const approx = [
+      [ /ribuan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 2000 ],
       [ /ratusan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 200 ],
       [ /puluhan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 50 ],
       [ /belasan\s*(?:siswa|murid|anak|korban|orang|pasien)/i, 15 ],
-      [ /beberapa\s*(?:siswa|murid|anak|korban|orang)/i, 5 ],
-      [ /massal/i, 30 ],
     ];
     for (const [p, est] of approx) {
       if (p.test(text)) {
@@ -455,6 +497,105 @@ async function scrapeTempoSearch(url, query) {
       summary: desc.slice(0, 500),
       url: articleUrl,
       source: 'Tempo',
+      date: parsedDate || new Date().toISOString().slice(0, 10),
+      tag,
+      location: loc.city,
+      lat: loc.lat,
+      lng: loc.lng,
+      victims,
+    });
+  }
+  return articles;
+}
+
+/**
+ * Scrape Liputan6 search results
+ */
+async function scrapeLiputan6Search(url) {
+  const articles = [];
+  const html = await fetchHTML(url);
+  if (!html) return articles;
+
+  // Liputan6 search result cards
+  const articleRegex = /<article[^>]*>([\s\S]*?)<\/article>/g;
+  let match;
+
+  while ((match = articleRegex.exec(html)) !== null) {
+    const chunk = match[0];
+
+    const linkMatch = chunk.match(/<a\s+[^>]*href="(https:\/\/www\.liputan6\.com\/[^"]*)"[^>]*>/);
+    if (!linkMatch) continue;
+    const articleUrl = linkMatch[1];
+
+    const titleMatch = chunk.match(/<h\d[^>]*>([\s\S]*?)<\/h\d>/);
+    const title = titleMatch ? decodeEntities(titleMatch[1].replace(/<[^>]+>/g, '').trim()) : '';
+    if (!title || title.length < 10) continue;
+
+    const dateMatch = chunk.match(/<time[^>]*>([^<]+)<\/time>/);
+    const parsedDate = dateMatch ? parseRelativeDate(dateMatch[1].trim()) : null;
+    if (parsedDate && parsedDate < MIN_DATE) continue;
+
+    const descMatch = chunk.match(/<p[^>]*class="[^"]*summary[^"]*"[^>]*>([\s\S]*?)<\/p>/);
+    const desc = descMatch ? decodeEntities(descMatch[1].replace(/<[^>]+>/g, '').trim()) : '';
+
+    const combined = (title + ' ' + desc).toLowerCase();
+    const tag = detectTag(combined);
+    const loc = extractLocation(title, desc);
+    const victims = extractVictims(title, desc);
+
+    articles.push({
+      title: title.slice(0, 300),
+      summary: desc.slice(0, 500),
+      url: articleUrl,
+      source: 'Liputan6',
+      date: parsedDate || new Date().toISOString().slice(0, 10),
+      tag,
+      location: loc.city,
+      lat: loc.lat,
+      lng: loc.lng,
+      victims,
+    });
+  }
+  return articles;
+}
+
+/**
+ * Scrape Suara.com search results
+ */
+async function scrapeSuaraSearch(url) {
+  const articles = [];
+  const html = await fetchHTML(url);
+  if (!html) return articles;
+
+  // Suara.com search results
+  const articleRegex = /<div[^>]*class="[^"]*list[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
+  let match;
+
+  while ((match = articleRegex.exec(html)) !== null) {
+    const chunk = match[0];
+
+    const linkMatch = chunk.match(/<a\s+[^>]*href="(https:\/\/www\.suara\.com\/[^"]*)"[^>]*>/);
+    if (!linkMatch) continue;
+    const articleUrl = linkMatch[1];
+
+    const titleMatch = chunk.match(/<h\d[^>]*>([\s\S]*?)<\/h\d>/);
+    const title = titleMatch ? decodeEntities(titleMatch[1].replace(/<[^>]+>/g, '').trim()) : '';
+    if (!title || title.length < 10) continue;
+
+    const dateMatch = chunk.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+    const parsedDate = dateMatch ? parseRelativeDate(dateMatch[1]) : null;
+    if (parsedDate && parsedDate < MIN_DATE) continue;
+
+    const combined = title.toLowerCase();
+    const tag = detectTag(combined);
+    const loc = extractLocation(title, '');
+    const victims = extractVictims(title, '');
+
+    articles.push({
+      title: title.slice(0, 300),
+      summary: '',
+      url: articleUrl,
+      source: 'Suara',
       date: parsedDate || new Date().toISOString().slice(0, 10),
       tag,
       location: loc.city,

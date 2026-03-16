@@ -25,9 +25,12 @@ export default function App() {
     const hrs = data.meta?.refreshed_at
       ? (Date.now() - new Date(data.meta.refreshed_at)) / 36e5
       : 999;
-    if (hrs < 12) return { cls: 'g', text: fmtAgo(data.meta.refreshed_at) };
-    if (hrs < 48) return { cls: 'a', text: fmtAgo(data.meta.refreshed_at) };
-    if (data.meta?.refreshed_at) return { cls: 'r', text: fmtAgo(data.meta.refreshed_at) };
+    const lastSync = data.meta?.refreshed_at
+      ? new Date(data.meta.refreshed_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })
+      : null;
+    if (hrs < 12) return { cls: 'g', text: lastSync || 'OK' };
+    if (hrs < 48) return { cls: 'a', text: lastSync || 'Stale' };
+    if (data.meta?.refreshed_at) return { cls: 'r', text: lastSync || 'Lama' };
     return { cls: '', text: 'DB live' };
   })();
 

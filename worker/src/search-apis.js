@@ -5,6 +5,14 @@
  * Each API is tried in order; if one fails, the next is used.
  */
 
+// Indonesian news domains for Tavily filtering
+const ID_NEWS_DOMAINS = [
+  'kompas.com', 'detik.com', 'antaranews.com', 'tempo.co', 'tribunnews.com',
+  'cnnindonesia.com', 'liputan6.com', 'suara.com', 'tirto.id', 'kumparan.com',
+  'republika.co.id', 'okezone.com', 'sindonews.com', 'merdeka.com', 'jpnn.com',
+  'viva.co.id', 'beritasatu.com', 'nasional.kompas.com', 'jabar.tribunnews.com',
+];
+
 // Tavily Search API
 async function searchTavily(query, apiKey, opts = {}) {
   try {
