@@ -219,19 +219,8 @@ export default function Sidebar({
               key={inc.id}
               inc={inc}
               isActive={activeId === inc.id}
-              onClick={() => {
-                // If incident has article URL, open it in new tab
-                const url = safeUrl(inc.url);
-                if (url) {
-                  window.open(url, '_blank', 'noopener,noreferrer');
-                } else if (inc.lat && inc.lng) {
-                  // If has coordinates, focus on map
-                  focusInc(inc.id);
-                }
-                if (typeof window !== 'undefined' && window.innerWidth <= 640) {
-                  setSidebarOpen(false);
-                }
-              }}
+              focusInc={focusInc}
+              onClick={() => {}}
             />
           ))
         )}
@@ -324,14 +313,21 @@ function StatsRow({ stats }) {
   );
 }
 
-function FeedItem({ inc, isActive, onClick }) {
+function FeedItem({ inc, isActive, onClick, focusInc }) {
   const c = COL[inc.cat] || COL.lainnya;
   const hasArticle = !!safeUrl(inc.url);
   const hasCoords = inc.lat && inc.lng;
 
   return (
     <div
-      onClick={onClick}
+      onClick={() => {
+        if (inc.lat && inc.lng) {
+          focusInc(inc.id);
+        }
+        if (typeof window !== 'undefined' && window.innerWidth <= 640) {
+          // handled by parent
+        }
+      }}
       style={{
         display: 'flex',
         gap: 10,
@@ -356,9 +352,6 @@ function FeedItem({ inc, isActive, onClick }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'var(--tx)' }}>
           {inc.title}
-          {hasArticle && (
-            <span style={{ fontSize: 9, marginLeft: 4, color: 'var(--mu)' }}>🔗</span>
-          )}
         </div>
         <div style={{ display: 'flex', gap: 5, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
           <span style={{
@@ -394,6 +387,27 @@ function FeedItem({ inc, isActive, onClick }) {
             <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', fontStyle: 'italic' }}>
               {inc.source}
             </span>
+          )}
+          {hasArticle && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(safeUrl(inc.url), '_blank', 'noopener,noreferrer');
+              }}
+              style={{
+                fontFamily: 'var(--mo)',
+                fontSize: 9,
+                padding: '1px 6px',
+                borderRadius: 3,
+                border: '1px solid var(--bd)',
+                background: 'var(--sf2)',
+                color: 'var(--blu)',
+                cursor: 'pointer',
+                lineHeight: 1.4,
+              }}
+            >
+              ↗ Buka
+            </button>
           )}
         </div>
         {/* Show note/summary for incidents without coordinates (from news) */}

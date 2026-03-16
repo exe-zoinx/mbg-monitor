@@ -65,15 +65,17 @@ export async function scrapeAll(env) {
     }
   }
 
-  // Deduplicate by URL
+  // Deduplicate by URL and enforce mandatory URL requirement
   const seen = new Set();
   const unique = allArticles.filter(a => {
-    if (!a.url || seen.has(a.url)) return false;
+    // MANDATORY: skip articles without a valid source URL
+    if (!a.url || !a.url.startsWith('http')) return false;
+    if (seen.has(a.url)) return false;
     seen.add(a.url);
     return true;
   });
 
-  console.log(`[SCRAPER] Total: ${unique.length} unique articles from ${allArticles.length} raw`);
+  console.log(`[SCRAPER] Total: ${unique.length} unique articles (with URLs) from ${allArticles.length} raw`);
   return unique;
 }
 

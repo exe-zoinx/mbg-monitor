@@ -29,6 +29,8 @@ export async function handleCron(env) {
         // AI summarization (optional — only if API key available)
         let summary = article.summary || '';
         let tag = article.tag || 'mbg';
+        let victims = 0;
+        let location = article.location || 'Indonesia';
 
         if (env.AI_API_KEY && article.title) {
           try {
@@ -36,6 +38,8 @@ export async function handleCron(env) {
             if (aiResult) {
               summary = aiResult.summary || summary;
               tag = aiResult.tag || tag;
+              victims = aiResult.victims || 0;
+              location = aiResult.location || location;
             }
           } catch (aiErr) {
             console.warn('[CRON] AI summarization failed:', aiErr.message);
@@ -52,11 +56,11 @@ export async function handleCron(env) {
           null, // lat — news articles don't have coordinates
           null, // lng
           article.title,
-          article.location || 'Indonesia',
-          0, // victims — unknown from article
+          location,
+          victims,
           summary,
           article.source || 'Unknown',
-          article.url || '',
+          article.url,
           0, // is_baseline: 0 = from scraper
         ).run();
 
