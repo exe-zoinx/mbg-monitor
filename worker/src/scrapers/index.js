@@ -2,54 +2,82 @@
  * MBG News Scraper
  *
  * Scrapes Indonesian news sites for MBG (Makan Bergizi Gratis) incidents.
+ * Uses Tavily/Exa search APIs + direct HTML scraping (Antara, Kompas, Detik).
+ * Firecrawl used for full article content extraction when needed.
  * Focus areas:
  *   - MBG poisoning / keracunan
- *   - MBG incidents (budget, quality, logistics)
  *   - SPPG open / close / temporary close
  *   - Student / journalist / parent reports
  *   - Government silencing MBG content
- * Uses direct HTML scraping of news site search pages.
+ *   - Budget / corruption
  */
+
+import { searchMBGArticles, enrichWithFirecrawl } from '../search-apis.js';
 
 const MIN_DATE = '2024-01-01';
 
-// Search queries — focused on specific topics (limited for Worker CPU limits)
-const SEARCH_QUERIES = [
-  'keracunan makanan sekolah',
+// Tavily/Exa search queries (Indonesian + English for broader coverage)
+const API_QUERIES = [
+  'keracunan MBG siswa sekolah makan bergizi gratis',
+  'SPPG ditutup makan bergizi gratis Indonesia',
+  'laporan keluhan orang tua makan bergizi gratis',
+  'kritik MBG dibungkam sensor Indonesia',
+  'MBG anggaran korupsi pengadaan makanan sekolah',
+  'demonstrasi protes makan bergizi gratis',
+  'food poisoning Indonesia free school meals program',
+  'SPPG kitchen closed opened MBG Indonesia',
+];
+
+// Direct HTML scraping queries (Antara, Kompas, Detik)
+const HTML_QUERIES = [
   'keracunan mbg',
   'sppg ditutup',
-  'sppg dibuka',
-  'mbg makan bergizi gratis',
-  'kritik mbg dibungkam',
-  'laporan orang tua mbg',
+  'makan bergizi gratis',
 ];
 
 /**
  * Scrape all sources — returns articles transformed into incident records
+ * Uses Tavily/Exa APIs for broad coverage + direct HTML scraping for depth
  */
 export async function scrapeAll(env) {
   const allArticles = [];
 
-  // Source: Antara
-  for (const query of SEARCH_QUERIES) {
+  // Phase 1: Tavily/Exa search APIs (broad coverage, better relevance)
+  const apiArticles = await searchMBGArticles(env, API_QUERIES);
+  for (const a of apiArticles) {
+    allArticles.push({
+      title: (a.title || '').slice(0, 300),
+      summary: (a.summary || '').slice(0, 500),
+      url: a.url,
+      source: a.source || 'Web',
+      date: a.date || new Date().toISOString().slice(0, 10),
+      tag: detectTag((a.title + ' ' + a.summary).toLowerCase()),
+      ...extractLocationAndCoords(a.title, a.summary),
+    });
+  }
+  console.log(`[SCRAPER] Phase 1 (APIs): ${apiArticles.length} articles`);
+
+  // Phase 2: Direct HTML scraping (Antara, Kompas, Detik)
+  // Antara
+  for (const query of HTML_QUERIES) {
     try {
       const encoded = encodeURIComponent(query);
       const url = `https://www.antaranews.com/search?q=${encoded}`;
-      const articles = await scrapeAntaraSearch(url, query);
+      const articles = await scrapeAntaraSearch(url);
       if (articles.length) console.log(`[SCRAPER] Antara "${query}": ${articles.length}`);
       allArticles.push(...articles);
       await delay(800);
     } catch (err) {
-      console.warn(`[SCRAPER] Antara failed "${query}":`, err.message);
+      console.warn(`[SCRAPER] Antara failed:`, err.message);
     }
   }
 
-  // Source: Kompas
-  for (const query of ['keracunan mbg', 'sppg ditutup', 'makan bergizi gratis']) {
+  // Kompas
+  for (const query of HTML_QUERIES) {
     try {
       const encoded = encodeURIComponent(query);
       const url = `https://search.kompas.com/search/?q=${encoded}&sort=date`;
-      const articles = await scrapeKompasSearch(url, query);
+      const articles = await scrapeKompasSearch(url);
       if (articles.length) console.log(`[SCRAPER] Kompas "${query}": ${articles.length}`);
       allArticles.push(...articles);
       await delay(800);
@@ -58,12 +86,12 @@ export async function scrapeAll(env) {
     }
   }
 
-  // Source: Detik
-  for (const query of ['keracunan mbg', 'sppg ditutup', 'makan bergizi gratis']) {
+  // Detik
+  for (const query of HTML_QUERIES) {
     try {
       const encoded = encodeURIComponent(query);
       const url = `https://www.detik.com/search/searchall?query=${encoded}&sortby=time`;
-      const articles = await scrapeDetikSearch(url, query);
+      const articles = await scrapeDetikSearch(url);
       if (articles.length) console.log(`[SCRAPER] Detik "${query}": ${articles.length}`);
       allArticles.push(...articles);
       await delay(800);
@@ -72,7 +100,9 @@ export async function scrapeAll(env) {
     }
   }
 
-  // Deduplicate by URL and enforce mandatory URL + relevance
+  console.log(`[SCRAPER] Phase 2 (HTML): total raw = ${allArticles.length}`);
+
+  // Deduplicate, filter relevance, enforce URL
   const seen = new Set();
   const unique = allArticles.filter(a => {
     if (!a.url || !a.url.startsWith('http')) return false;
@@ -82,7 +112,25 @@ export async function scrapeAll(env) {
     return true;
   });
 
-  console.log(`[SCRAPER] Total: ${unique.length} relevant articles from ${allArticles.length} raw`);
+  // Phase 3: Enrich top keracunan articles with full content via Firecrawl
+  if (env.FIRECRAWL_API_KEY) {
+    const toEnrich = unique.filter(a => a.tag === 'keracunan' && a.summary.length < 100).slice(0, 3);
+    for (const article of toEnrich) {
+      try {
+        const content = await enrichWithFirecrawl(env, article.url);
+        if (content && content.length > article.summary.length) {
+          article.summary = content.slice(0, 500);
+          // Re-extract victims from fuller content
+          const newVictims = extractVictims(article.title, article.summary);
+          if (newVictims > article.victims) article.victims = newVictims;
+        }
+      } catch (err) {
+        console.warn(`[SCRAPER] Firecrawl enrichment failed:`, err.message);
+      }
+    }
+  }
+
+  console.log(`[SCRAPER] Final: ${unique.length} relevant articles`);
   return unique;
 }
 
@@ -92,27 +140,26 @@ export async function scrapeAll(env) {
 function isRelevantMBG(title, summary) {
   const text = (title + ' ' + summary).toLowerCase();
 
-  // Must mention MBG or related terms
+  // MUST mention MBG or related terms
   const mbgTerms = ['mbg', 'makan bergizi gratis', 'sppg', 'dapur sekolah', 'makanan sekolah', 'program makan'];
   const hasMBG = mbgTerms.some(t => text.includes(t));
   if (!hasMBG) return false;
 
+  // EXCLUDE non-Indonesian MBG content (Tavily/Exa may return international results)
+  const excludeTerms = ['trading', 'crypto', 'bitcoin', 'saham', 'stock', 'nasdaq', 'wall street', 'forex'];
+  if (excludeTerms.some(t => text.includes(t))) return false;
+
   // Check topic relevance
   const topics = [
-    // Poisoning
     'keracunan', 'racun', 'sakit', 'dirawat', 'rawat inap', 'puskesmas', 'rumah sakit', 'korban',
-    // SPPG ops
     'sppg', 'ditutup', 'dibuka', 'beroperasi', 'dihentikan', 'perizinan', 'sanksi',
-    // Reports
     'laporan', 'keluhan', 'komplain', 'protes', 'demonstrasi', 'unjuk rasa', 'investigasi',
     'orang tua', 'siswa', 'murid', 'jurnalis', 'wartawan',
-    // Silencing
-    'dihapus', 'dibungkam', 'sensor', 'diblokir', 'ancaman', 'intimidasi', 'laporan polisi',
-    // Quality / budget
+    'dihapus', 'dibungkam', 'sensor', 'diblokir', 'ancaman', 'intimidasi',
     'kadaluarsa', 'basi', 'tidak layak', 'kotor', 'sanitasi', 'higienis', 'anggaran',
     'mark up', 'korupsi', 'suap', 'pengadaan', 'vendor',
-    // Deaths
-    'meninggal', 'tewas', 'korban jiwa', 'meninggal dunia',
+    'meninggal', 'tewas', 'korban jiwa',
+    'bergizi', 'gratis', 'insiden', 'dapur', 'distribusi', 'pangan',
   ];
   return topics.some(t => text.includes(t));
 }
@@ -157,6 +204,19 @@ function extractVictims(title, desc) {
   }
 
   return maxVictims;
+}
+
+/**
+ * Helper: extract location + coords + victims for API results
+ */
+function extractLocationAndCoords(title, desc) {
+  const loc = extractLocation(title, desc);
+  return {
+    location: loc.city,
+    lat: loc.lat,
+    lng: loc.lng,
+    victims: extractVictims(title, desc),
+  };
 }
 
 /**
