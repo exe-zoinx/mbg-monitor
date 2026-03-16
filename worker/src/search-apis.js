@@ -170,40 +170,8 @@ export async function searchMBGArticles(env, queries) {
     await delay(300);
   }
 
-  // Phase 2: Enrich top articles with Firecrawl for full content + dates
-  if (firecrawlKey && allArticles.length > 0) {
-    // Pick articles with poisoning/keracunan keywords that need victim counts
-    const toEnrich = allArticles
-      .filter(a => {
-        const t = (a.title + ' ' + a.summary).toLowerCase();
-        return t.includes('keracunan') || t.includes('poisoning') || t.includes('korban') ||
-               t.includes('kasus') || t.includes('dirawat') || t.includes('victim');
-      })
-      .slice(0, 3); // Max 3 Firecrawl calls (worker CPU limit)
-
-    for (const article of toEnrich) {
-      try {
-        const enriched = await scrapeWithFirecrawl(article.url, firecrawlKey);
-        if (enriched) {
-          // Merge enriched data - prefer Firecrawl's content and date
-          if (enriched.content && enriched.content.length > 100) {
-            article.summary = enriched.content.slice(0, 800);
-          }
-          if (enriched.date) {
-            article.date = enriched.date;
-          }
-          if (enriched.description && !article.summary) {
-            article.summary = enriched.description;
-          }
-          article.enriched = true;
-          console.log(`[FIRECRAWL] Enriched: ${article.title.slice(0, 50)}...`);
-        }
-        await delay(500);
-      } catch (err) {
-        console.warn(`[FIRECRAWL] Enrich failed: ${err.message}`);
-      }
-    }
-  }
+  // Firecrawl enrichment disabled for main crawl (too slow for worker CPU limits)
+  // Use separate /enrich endpoint for Firecrawl if needed
 
   return allArticles;
 }
