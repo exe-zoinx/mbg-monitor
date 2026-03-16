@@ -7,6 +7,9 @@ export const COL = {
   sppg_closed: '#f85149',
   kecelakaan: '#d29922',
   tewas: '#bc8cff',
+  silencing: '#da3633',
+  laporan: '#8b949e',
+  anggaran: '#d29922',
   mbg: '#f0883e',
   lainnya: '#7d8590',
 };
@@ -19,11 +22,14 @@ export const TLBL = {
   sppg_closed: 'SPPG Ditutup',
   kecelakaan: 'Kecelakaan',
   tewas: 'Korban Jiwa',
+  silencing: 'Sensor/Bungkam',
+  laporan: 'Laporan',
+  anggaran: 'Anggaran',
   mbg: 'MBG',
   lainnya: 'Lainnya',
 };
 
-export const CATEGORIES = ['all', 'keracunan', 'sppg', 'sppg_opened', 'sppg_temp_closed', 'sppg_closed', 'kecelakaan', 'tewas', 'mbg'];
+export const CATEGORIES = ['all', 'keracunan', 'sppg', 'sppg_opened', 'sppg_temp_closed', 'sppg_closed', 'silencing', 'laporan', 'anggaran', 'kecelakaan', 'tewas', 'mbg'];
 
 export const CAT_SHORT = {
   all: 'Semua',
@@ -32,6 +38,9 @@ export const CAT_SHORT = {
   sppg_opened: 'Buka',
   sppg_temp_closed: 'Tutup ⏸',
   sppg_closed: 'Tutup ✕',
+  silencing: 'Sensor',
+  laporan: 'Lapor',
+  anggaran: 'Anggrn',
   kecelakaan: 'KLL',
   tewas: 'Tewas',
   mbg: 'MBG',

@@ -29,7 +29,7 @@ export async function handleCron(env) {
         // AI summarization (optional — only if API key available)
         let summary = article.summary || '';
         let tag = article.tag || 'mbg';
-        let victims = 0;
+        let victims = article.victims || 0;
         let location = article.location || 'Indonesia';
 
         if (env.AI_API_KEY && article.title) {
@@ -38,8 +38,8 @@ export async function handleCron(env) {
             if (aiResult) {
               summary = aiResult.summary || summary;
               tag = aiResult.tag || tag;
-              victims = aiResult.victims || 0;
-              location = aiResult.location || location;
+              if (!victims && aiResult.victims) victims = aiResult.victims;
+              if (aiResult.location && aiResult.location !== 'Indonesia') location = aiResult.location;
             }
           } catch (aiErr) {
             console.warn('[CRON] AI summarization failed:', aiErr.message);
