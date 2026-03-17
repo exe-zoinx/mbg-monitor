@@ -1,5 +1,5 @@
 import { handleCron, deduplicateArticles } from './cron.js';
-import { scrapeAll, scrapeDateRangeArchive } from './scrapers/index.js';
+import { scrapeAll } from './scrapers/index.js';
 import { classifyArticlesBatch, classifyArticle, heuristicClassify } from './ai-classify.js';
 import { deepSearchKeracunanMBG } from './search-apis.js';
 
@@ -415,7 +415,7 @@ async function truncateAndRefetch(env) {
   let incidentsAdded = 0;
 
   try {
-    console.log('[REFETCH] Starting truncate + re-fetch...');
+    console.log('[REFETCH] Starting truncate + re-fetch (search-API-only)...');
 
     // Step 1: Truncate all tables
     await env.DB.prepare('DELETE FROM incidents').run();
@@ -423,37 +423,16 @@ async function truncateAndRefetch(env) {
     await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
     console.log('[REFETCH] All tables truncated');
 
-    // Step 2: Run deep search, current scrape, and archive scrape all in parallel
-    console.log('[REFETCH] Fetching historical articles, scraping current sources, and archiving...');
-    const [deepArticles, scrapedArticles, archiveArticles] = await Promise.all([
-      deepSearchKeracunanMBG(env).catch(err => {
-        console.error('[REFETCH] Deep search failed:', err.message);
-        return [];
-      }),
-      scrapeAll(env).catch(err => {
-        console.error('[REFETCH] Scrape failed:', err.message);
-        return [];
-      }),
-      scrapeDateRangeArchive(env, '2024-10-01', TODAY()).catch(err => {
-        console.error('[REFETCH] Archive scrape failed:', err.message);
-        return [];
-      }),
-    ]);
-    console.log(`[REFETCH] Deep search: ${deepArticles.length}, Scraped: ${scrapedArticles.length}, Archive: ${archiveArticles.length} articles`);
+    // Step 2: Search via Tavily/Exa only (fast API calls, no direct scraping)
+    console.log('[REFETCH] Running deep search via search APIs...');
+    const deepResults = await deepSearchKeracunanMBG(env).catch(err => {
+      console.error('[REFETCH] Deep search failed:', err.message);
+      return [];
+    });
+    console.log(`[REFETCH] Deep search returned ${deepResults.length} articles`);
 
-    // Step 3: Merge articles from all sources
-    const seenUrls = new Set();
-    const allArticles = [];
-    for (const article of [...deepArticles, ...scrapedArticles, ...archiveArticles]) {
-      if (article.url && !seenUrls.has(article.url)) {
-        seenUrls.add(article.url);
-        allArticles.push(article);
-      }
-    }
-    console.log(`[REFETCH] ${allArticles.length} unique articles after URL merge`);
-
-    if (allArticles.length === 0) {
-      console.log('[REFETCH] No articles to process');
+    if (deepResults.length === 0) {
+      console.log('[REFETCH] No articles from search APIs');
       if (env.mbg_kv) {
         await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
           status: 'completed',
@@ -465,28 +444,15 @@ async function truncateAndRefetch(env) {
       return;
     }
 
-    // Step 4: AI classification — use heuristic pre-filter then batch classify
-    const INCIDENT_KEYWORDS = ['keracunan', 'korban', 'dirawat', 'dilarikan', 'racun', 'keracu', 'diare', 'mual', 'muntah'];
-    const SKIP_KEYWORDS = ['hoaks', 'insentif', 'standar sppg', 'pengawasan', 'dinas kesehatan', 'regulasi', 'sop'];
-
-    const likelyIncidents = [];
-    for (const article of allArticles) {
-      const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
-      if (SKIP_KEYWORDS.some(kw => text.includes(kw))) continue;
-      likelyIncidents.push(article);
-    }
-    console.log(`[REFETCH] ${likelyIncidents.length} articles after pre-filter`);
-
-    // AI classify up to 10
-    const toClassify = likelyIncidents.slice(0, 10);
+    // Step 3: AI classify the search results
     let incidentArticles = [];
 
-    if (toClassify.length > 0 && env.AI) {
-      console.log(`[REFETCH] AI classifying ${toClassify.length} articles...`);
-      const classifications = await classifyArticlesBatch(env, toClassify);
+    if (env.AI) {
+      console.log(`[REFETCH] AI classifying ${deepResults.length} articles...`);
+      const classifications = await classifyArticlesBatch(env, deepResults);
 
-      for (let i = 0; i < toClassify.length && i < classifications.length; i++) {
-        const article = toClassify[i];
+      for (let i = 0; i < deepResults.length && i < classifications.length; i++) {
+        const article = deepResults[i];
         const classification = classifications[i];
 
         if (!classification.is_incident) continue;
@@ -504,18 +470,19 @@ async function truncateAndRefetch(env) {
       }
     }
 
-    // Add remaining likely incidents with heuristic
-    const remaining = likelyIncidents.slice(10);
-    for (const article of remaining) {
-      const titleLower = (article.title || '').toLowerCase();
-      if (titleLower.includes('keracunan') && !titleLower.includes('hoaks') && !titleLower.includes('sembuh')) {
-        incidentArticles.push(article);
+    // Heuristic: also include articles with keracunan + MBG/SPPG keywords
+    for (const article of deepResults) {
+      const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
+      if (text.includes('keracunan') && (text.includes('mbg') || text.includes('sppg') || text.includes('makan bergizi'))) {
+        if (!incidentArticles.find(a => a.url === article.url)) {
+          incidentArticles.push(article);
+        }
       }
     }
-    console.log(`[REFETCH] ${incidentArticles.length} incidents after classification`);
+    console.log(`[REFETCH] ${incidentArticles.length} incidents after classification + heuristic`);
 
     if (incidentArticles.length === 0) {
-      console.log('[REFETCH] No incidents after classification');
+      console.log('[REFETCH] No incidents found');
       if (env.mbg_kv) {
         await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
           status: 'completed',
@@ -527,14 +494,14 @@ async function truncateAndRefetch(env) {
       return;
     }
 
-    // Step 5: Semantic dedup (DB is empty after truncate, so only batch-level dedup applies)
-    const dedupedArticles = deduplicateArticles(incidentArticles, []);
-    console.log(`[REFETCH] ${dedupedArticles.length} articles after semantic dedup`);
+    // Step 4: Deduplicate (fuzzy)
+    const unique = deduplicateArticles(incidentArticles, []);
+    console.log(`[REFETCH] ${unique.length} articles after dedup`);
 
-    // Step 6: Batch insert
+    // Step 5: Batch insert
     const BATCH_SIZE = 10;
-    for (let i = 0; i < dedupedArticles.length; i += BATCH_SIZE) {
-      const batch = dedupedArticles.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+      const batch = unique.slice(i, i + BATCH_SIZE);
       const stmts = batch.map(article =>
         env.DB.prepare(`
           INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
@@ -587,7 +554,7 @@ async function truncateAndRefetch(env) {
 
     console.log(`[REFETCH] Inserted ${incidentsAdded} incidents`);
 
-    // Step 7: Update stats
+    // Step 6: Update stats
     try {
       const stats = await env.DB.prepare(
         'SELECT COUNT(*) as count, SUM(victims) as total FROM incidents WHERE victims > 0'
@@ -613,14 +580,14 @@ async function truncateAndRefetch(env) {
       await env.DB.prepare(`
         INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
         VALUES (?, ?, ?, ?, ?, ?)
-      `).bind(duration, incidentsAdded, incidentsAdded, 1, 'truncate-refetch', 'ai-classify-v1').run();
+      `).bind(duration, incidentsAdded, incidentsAdded, 1, 'truncate-refetch-search-api', 'ai-classify-v1').run();
     } catch (e) {}
 
     // Update KV meta
     if (env.mbg_kv) {
       await env.mbg_kv.put('mbg:meta', JSON.stringify({
         refreshed_at: new Date().toISOString(),
-        provider: 'truncate-refetch',
+        provider: 'truncate-refetch-search-api',
         model: 'ai-classify-v1',
       }));
     }

@@ -245,6 +245,11 @@ export async function deepSearchKeracunanMBG(env) {
   const tavilyKey = env.TAVILY_API_KEY;
   const exaKey = env.EXA_API_KEY;
 
+  if (!tavilyKey && !exaKey) {
+    console.warn('[DEEP] WARNING: No Tavily or Exa API keys configured. Deep search will return empty results.');
+    return [];
+  }
+
   // Core keyword queries for keracunan MBG
   const queries = [
     'keracunan MBG',
@@ -274,7 +279,7 @@ export async function deepSearchKeracunanMBG(env) {
   ];
 
   for (const win of windows) {
-    for (const query of queries.slice(0, 3)) { // Top 3 queries per window
+    for (const query of queries) {
       try {
         if (tavilyKey) {
           const results = await searchTavily(query, tavilyKey, {
