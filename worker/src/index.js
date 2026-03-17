@@ -157,12 +157,14 @@ export default {
         }, 200, corsHeaders);
       }
 
-      // POST /truncate-and-refetch — truncate then re-fetch all data from 2024-today (protected)
+      // POST /truncate-and-refetch — truncate then re-fetch all data from 2024-today (protected, synchronous)
       if (url.pathname === '/truncate-and-refetch' && request.method === 'POST') {
         const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!secret || !timingSafeEqual(secret, env.CRON_SECRET || '')) {
           return json({ error: 'Unauthorized' }, 401, corsHeaders);
         }
+
+        const start = Date.now();
 
         if (env.mbg_kv) {
           await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
@@ -171,9 +173,147 @@ export default {
           }));
         }
 
-        ctx.waitUntil(truncateAndRefetch(env));
+        try {
+          // Step 1: Truncate
+          await env.DB.prepare('DELETE FROM incidents').run();
+          await env.DB.prepare('DELETE FROM stats_snapshot').run().catch(() => {});
+          await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
 
-        return json({ ok: true, message: 'Truncated and re-fetch started' }, 200, corsHeaders);
+          // Step 2: Deep search via search APIs
+          const deepResults = await deepSearchKeracunanMBG(env).catch(err => {
+            console.error('[REFETCH] Deep search failed:', err.message);
+            return [];
+          });
+
+          if (deepResults.length === 0) {
+            if (env.mbg_kv) {
+              await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                incidents_added: 0,
+                duration_ms: Date.now() - start,
+              }));
+            }
+            return json({ ok: true, message: 'Completed with 0 incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
+          }
+
+          // Step 3: Heuristic filter
+          const incidentArticles = [];
+          for (const article of deepResults) {
+            const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
+            if (text.includes('keracunan') && (text.includes('mbg') || text.includes('sppg') || text.includes('makan bergizi'))) {
+              if (!incidentArticles.find(a => a.url === article.url)) {
+                incidentArticles.push(article);
+              }
+            }
+          }
+
+          if (incidentArticles.length === 0) {
+            if (env.mbg_kv) {
+              await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                incidents_added: 0,
+                duration_ms: Date.now() - start,
+              }));
+            }
+            return json({ ok: true, message: 'Completed with 0 matching incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
+          }
+
+          // Step 4: Dedup and insert
+          const unique = deduplicateArticles(incidentArticles, []);
+          let incidentsAdded = 0;
+          const BATCH_SIZE = 10;
+          for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+            const batch = unique.slice(i, i + BATCH_SIZE);
+            const stmts = batch.map(article =>
+              env.DB.prepare(`
+                INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `).bind(
+                article.tag || 'keracunan',
+                article.date || new Date().toISOString().slice(0, 10),
+                article.lat || null,
+                article.lng || null,
+                article.title,
+                article.location || 'Indonesia',
+                article.victims || 0,
+                article.summary || '',
+                article.source || 'Unknown',
+                article.url,
+                0,
+              )
+            );
+            try {
+              await env.DB.batch(stmts);
+              incidentsAdded += batch.length;
+            } catch (batchErr) {
+              for (const article of batch) {
+                try {
+                  await env.DB.prepare(`
+                    INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `).bind(
+                    article.tag || 'keracunan',
+                    article.date || new Date().toISOString().slice(0, 10),
+                    article.lat || null,
+                    article.lng || null,
+                    article.title,
+                    article.location || 'Indonesia',
+                    article.victims || 0,
+                    article.summary || '',
+                    article.source || 'Unknown',
+                    article.url,
+                    0,
+                  ).run();
+                  incidentsAdded++;
+                } catch (e) {}
+              }
+            }
+          }
+
+          const duration = Date.now() - start;
+
+          // Log crawl
+          try {
+            await env.DB.prepare(`
+              INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `).bind(duration, incidentsAdded, incidentsAdded, 1, 'truncate-refetch-search-api', 'heuristic-v1').run();
+          } catch (e) {}
+
+          if (env.mbg_kv) {
+            await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              incidents_added: incidentsAdded,
+              duration_ms: duration,
+            }));
+            await env.mbg_kv.put('mbg:meta', JSON.stringify({
+              refreshed_at: new Date().toISOString(),
+              provider: 'truncate-refetch-search-api',
+              model: 'heuristic-v1',
+            }));
+          }
+
+          return json({
+            ok: true,
+            message: `Completed: ${incidentsAdded} incidents in ${duration}ms`,
+            incidents_added: incidentsAdded,
+            duration_ms: duration,
+          }, 200, corsHeaders);
+
+        } catch (err) {
+          console.error('[REFETCH] Failed:', err);
+          if (env.mbg_kv) {
+            await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+              status: 'error',
+              error: err.message,
+              completed_at: new Date().toISOString(),
+            })).catch(() => {});
+          }
+          return json({ error: 'Refetch failed', message: err.message }, 500, corsHeaders);
+        }
       }
 
       // GET /status — health check
@@ -409,188 +549,6 @@ export default {
     }
   },
 };
-
-async function truncateAndRefetch(env) {
-  const start = Date.now();
-  let incidentsAdded = 0;
-
-  try {
-    console.log('[REFETCH] Starting truncate + re-fetch (search-API-only)...');
-
-    // Step 1: Truncate all tables
-    await env.DB.prepare('DELETE FROM incidents').run();
-    await env.DB.prepare('DELETE FROM stats_snapshot').run().catch(() => {});
-    await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
-    console.log('[REFETCH] All tables truncated');
-
-    // Step 2: Search via Tavily/Exa only (fast API calls, no direct scraping)
-    console.log('[REFETCH] Running deep search via search APIs...');
-    const deepResults = await deepSearchKeracunanMBG(env).catch(err => {
-      console.error('[REFETCH] Deep search failed:', err.message);
-      return [];
-    });
-    console.log(`[REFETCH] Deep search returned ${deepResults.length} articles`);
-
-    if (deepResults.length === 0) {
-      console.log('[REFETCH] No articles from search APIs');
-      if (env.mbg_kv) {
-        await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          incidents_added: 0,
-          duration_ms: Date.now() - start,
-        }));
-      }
-      return;
-    }
-
-    // Step 3: Heuristic classification only (skip AI to stay within worker time limits)
-    let incidentArticles = [];
-
-    for (const article of deepResults) {
-      const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
-      if (text.includes('keracunan') && (text.includes('mbg') || text.includes('sppg') || text.includes('makan bergizi'))) {
-        if (!incidentArticles.find(a => a.url === article.url)) {
-          incidentArticles.push(article);
-        }
-      }
-    }
-    console.log(`[REFETCH] ${incidentArticles.length} incidents after classification + heuristic`);
-
-    if (incidentArticles.length === 0) {
-      console.log('[REFETCH] No incidents found');
-      if (env.mbg_kv) {
-        await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          incidents_added: 0,
-          duration_ms: Date.now() - start,
-        }));
-      }
-      return;
-    }
-
-    // Step 4: Deduplicate (fuzzy)
-    const unique = deduplicateArticles(incidentArticles, []);
-    console.log(`[REFETCH] ${unique.length} articles after dedup`);
-
-    // Step 5: Batch insert
-    const BATCH_SIZE = 10;
-    for (let i = 0; i < unique.length; i += BATCH_SIZE) {
-      const batch = unique.slice(i, i + BATCH_SIZE);
-      const stmts = batch.map(article =>
-        env.DB.prepare(`
-          INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
-          article.tag || 'keracunan',
-          article.date || new Date().toISOString().slice(0, 10),
-          article.lat || null,
-          article.lng || null,
-          article.title,
-          article.location || 'Indonesia',
-          article.victims || 0,
-          article.summary || '',
-          article.source || 'Unknown',
-          article.url,
-          0,
-        )
-      );
-
-      try {
-        await env.DB.batch(stmts);
-        incidentsAdded += batch.length;
-      } catch (batchErr) {
-        console.warn(`[REFETCH] Batch insert failed, trying individual:`, batchErr.message);
-        for (const article of batch) {
-          try {
-            await env.DB.prepare(`
-              INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `).bind(
-              article.tag || 'keracunan',
-              article.date || new Date().toISOString().slice(0, 10),
-              article.lat || null,
-              article.lng || null,
-              article.title,
-              article.location || 'Indonesia',
-              article.victims || 0,
-              article.summary || '',
-              article.source || 'Unknown',
-              article.url,
-              0,
-            ).run();
-            incidentsAdded++;
-          } catch (insertErr) {
-            console.warn('[REFETCH] Failed to insert:', insertErr.message);
-          }
-        }
-      }
-    }
-
-    console.log(`[REFETCH] Inserted ${incidentsAdded} incidents`);
-
-    // Step 6: Update stats
-    try {
-      const stats = await env.DB.prepare(
-        'SELECT COUNT(*) as count, SUM(victims) as total FROM incidents WHERE victims > 0'
-      ).first().catch(() => null);
-
-      if (stats?.total > 0) {
-        await env.DB.prepare(`
-          INSERT INTO stats_snapshot (poisoning_incidents, total_victims, victims_note)
-          VALUES (?, ?, ?)
-        `).bind(
-          stats.count,
-          stats.total,
-          `Re-fetch: ${stats.count} incidents with ${stats.total} total victims`,
-        ).run();
-      }
-    } catch (statsErr) {
-      console.warn('[REFETCH] Stats update failed:', statsErr.message);
-    }
-
-    // Log crawl
-    const duration = Date.now() - start;
-    try {
-      await env.DB.prepare(`
-        INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).bind(duration, incidentsAdded, incidentsAdded, 1, 'truncate-refetch-search-api', 'ai-classify-v1').run();
-    } catch (e) {}
-
-    // Update KV meta
-    if (env.mbg_kv) {
-      await env.mbg_kv.put('mbg:meta', JSON.stringify({
-        refreshed_at: new Date().toISOString(),
-        provider: 'truncate-refetch-search-api',
-        model: 'ai-classify-v1',
-      }));
-    }
-
-    // Update refetch status to completed
-    if (env.mbg_kv) {
-      await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        incidents_added: incidentsAdded,
-        duration_ms: duration,
-      }));
-    }
-
-    console.log(`[REFETCH] Complete: ${incidentsAdded} incidents in ${duration}ms`);
-
-  } catch (err) {
-    console.error('[REFETCH] Failed:', err);
-    if (env.mbg_kv) {
-      await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
-        status: 'error',
-        error: err.message,
-        completed_at: new Date().toISOString(),
-      })).catch(() => {});
-    }
-  }
-}
 
 function json(data, status = 200, extra = {}) {
   return new Response(JSON.stringify(data), {
