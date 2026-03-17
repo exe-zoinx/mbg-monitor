@@ -176,6 +176,97 @@ export async function scrapeAll(env) {
     } catch (err) { console.warn(`[Tirto] "${query}":`, err.message); }
   }
 
+  // SOURCE 9: Suara (suara.com) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Suara scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeSuaraSearch(query);
+      if (articles.length) console.log(`[Suara] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Suara] "${query}":`, err.message); }
+  }
+
+  // SOURCE 10: Okezone (okezone.com) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Okezone scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeOkezoneSearch(query);
+      if (articles.length) console.log(`[Okezone] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Okezone] "${query}":`, err.message); }
+  }
+
+  // SOURCE 11: Sindonews (sindonews.com) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Sindonews scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeSindoSearch(query);
+      if (articles.length) console.log(`[Sindonews] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Sindonews] "${query}":`, err.message); }
+  }
+
+  // SOURCE 12: Kumparan (kumparan.com) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Kumparan scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeKumparanSearch(query);
+      if (articles.length) console.log(`[Kumparan] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Kumparan] "${query}":`, err.message); }
+  }
+
+  // SOURCE 13: Republika (republika.co.id) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Republika scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeRepublikaSearch(query);
+      if (articles.length) console.log(`[Republika] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Republika] "${query}":`, err.message); }
+  }
+
+  // SOURCE 14: Viva (viva.co.id) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Viva scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeVivaSearch(query);
+      if (articles.length) console.log(`[Viva] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Viva] "${query}":`, err.message); }
+  }
+
+  // SOURCE 15: Merdeka (merdeka.com) — search HTML + article page fetching
+  console.log('[SCRAPE] Starting Merdeka scrapers...');
+  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+    try {
+      const articles = await scrapeMerdekaSearch(query);
+      if (articles.length) console.log(`[Merdeka] "${query}": ${articles.length}`);
+      for (const a of articles) {
+        if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
+      }
+      await delay(500);
+    } catch (err) { console.warn(`[Merdeka] "${query}":`, err.message); }
+  }
+
   console.log(`[TOTAL RAW] ${allArticles.length} articles from all sources`);
 
   // Final filtering
@@ -534,6 +625,41 @@ function extractArticleBody(html, source) {
     'Tirto': [
       /<div\s+class="[^"]*article-body[^"]*">([\s\S]*?)<\/div>/,
       /<div\s+class="[^"]*art-content[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Suara': [
+      /<div\s+class="[^"]*detail-desc[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*read__content[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Okezone': [
+      /<div\s+class="[^"]*read__content[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*detail-content[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Sindonews': [
+      /<div\s+class="[^"]*detail-desc[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*read__content[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Kumparan': [
+      /<div\s+class="[^"]*qa-story-content[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+data-qa-id="story-body"[^>]*>([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Republika': [
+      /<div\s+class="[^"]*read-artikel[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*artikel-body[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Viva': [
+      /<div\s+class="[^"]*news-content[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*detail-content[^"]*">([\s\S]*?)<\/div>/,
+      /<article[^>]*>([\s\S]*?)<\/article>/,
+    ],
+    'Merdeka': [
+      /<div\s+class="[^"]*mdk-body-content[^"]*">([\s\S]*?)<\/div>/,
+      /<div\s+class="[^"]*col-md-8[^"]*">([\s\S]*?)<\/div>/,
       /<article[^>]*>([\s\S]*?)<\/article>/,
     ],
   };
@@ -991,6 +1117,391 @@ async function scrapeTirtoSearch(query) {
           summary: content.slice(0, 3000),
           url,
           source: 'Tirto',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== SUARA — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeSuaraSearch(query) {
+  const articles = [];
+  const searchUrl = `https://www.suara.com/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?suara\.com\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/tag/') && !url.includes('/search') && !url.includes('/topic/')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*Suara\.com.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Suara');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Suara',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== OKEZONE — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeOkezoneSearch(query) {
+  const articles = [];
+  const searchUrl = `https://search.okezone.com/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?okezone\.com\/read\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url)) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*Okezone.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Okezone');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Okezone',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== SINDONEWS — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeSindoSearch(query) {
+  const articles = [];
+  const searchUrl = `https://search.sindonews.com/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?sindonews\.com\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/tag/') && !url.includes('/search')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*SINDOnews.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Sindonews');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Sindonews',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== KUMPARAN — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeKumparanSearch(query) {
+  const articles = [];
+  const searchUrl = `https://kumparan.com/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?kumparan\.com\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/search') && !url.includes('/tag/') && !url.includes('/topic/')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*\|\s*Kumparan.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Kumparan');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Kumparan',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== REPUBLIKA — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeRepublikaSearch(query) {
+  const articles = [];
+  const searchUrl = `https://republika.co.id/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?republika\.co\.id\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/search') && !url.includes('/tag/')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*Republika.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Republika');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Republika',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== VIVA — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeVivaSearch(query) {
+  const articles = [];
+  const searchUrl = `https://www.viva.co.id/search?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?viva\.co\.id\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/search') && !url.includes('/tag/')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*VIVA.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Viva');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Viva',
+          date: parseRelativeDate(dateText) || TODAY(),
+          tag: detectTag(combined),
+          location: loc.city,
+          lat: loc.lat,
+          lng: loc.lng,
+          victims: extractVictims(title, content),
+        });
+
+        await delay(400);
+      } catch (err) { /* skip failed article */ }
+    }
+  }
+
+  return articles;
+}
+
+/* ===== MERDEKA — SEARCH + ARTICLE FETCHING ===== */
+
+async function scrapeMerdekaSearch(query) {
+  const articles = [];
+  const searchUrl = `https://www.merdeka.com/search/?q=${encodeURIComponent(query)}`;
+  const html = await fetchHTML(searchUrl);
+  if (!html) return articles;
+
+  const urlRegex = /href="(https?:\/\/(?:www\.)?merdeka\.com\/[^"]+)"/g;
+  const seen = new Set();
+  let m;
+  while ((m = urlRegex.exec(html)) !== null) {
+    const url = m[1].split('?')[0].split('#')[0];
+    if (!seen.has(url) && !url.includes('/search') && !url.includes('/tag/')) {
+      seen.add(url);
+
+      try {
+        const articleHtml = await fetchHTML(url);
+        if (!articleHtml) continue;
+
+        let title = '';
+        const titleMatch = articleHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || articleHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) title = decodeEntities(titleMatch[1].replace(/\s*-\s*Merdeka\.com.*$/i, '').trim());
+
+        if (!title || title.length < 10) continue;
+
+        const content = extractArticleBody(articleHtml, 'Merdeka');
+        const combined = (title + ' ' + content).toLowerCase();
+        const loc = extractLocation(title, content);
+
+        let dateText = null;
+        const dateMatch = articleHtml.match(/<time[^>]*>([^<]+)<\/time>/) || articleHtml.match(/(\d{1,2}\s+\w+\s+\d{4})/);
+        if (dateMatch) dateText = dateMatch[1].trim();
+
+        articles.push({
+          title: title.slice(0, 300),
+          summary: content.slice(0, 3000),
+          url,
+          source: 'Merdeka',
           date: parseRelativeDate(dateText) || TODAY(),
           tag: detectTag(combined),
           location: loc.city,

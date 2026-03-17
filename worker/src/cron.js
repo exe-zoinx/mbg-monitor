@@ -29,73 +29,209 @@ const LOCATION_ALIASES = {
 
 /**
  * Normalize a location string to a canonical form for dedup comparison.
+ * Strips kabupaten/kota/kab prefixes and maps known aliases.
  */
 function normalizeLocation(loc) {
   if (!loc || loc === 'Indonesia') return '';
   let normalized = loc.toLowerCase().trim();
+
+  // Strip kabupaten/kota/kab prefixes to extract the base region name
+  const stripped = normalized
+    .replace(/^kabupaten\s+/, '')
+    .replace(/^kab\.\s*/, '')
+    .replace(/^kota\s+/, '')
+    .trim();
+
+  // Check full match against aliases first (original and stripped)
   if (LOCATION_ALIASES[normalized]) return LOCATION_ALIASES[normalized];
+  if (LOCATION_ALIASES[stripped]) return LOCATION_ALIASES[stripped];
+
+  // Check substring match — prefer stripped form for comparison
+  for (const [alias, canonical] of Object.entries(LOCATION_ALIASES)) {
+    if (normalized.includes(alias) || stripped.includes(alias)) return canonical;
+  }
+
+  // Return stripped form so "Kab. Bandung" and "Kota Bandung" both become "bandung"
+  return stripped || normalized;
+}
+
+/**
+ * Extract the parent region from a location string.
+ * e.g. "Jakarta Selatan" → "jakarta", "Kab. Bandung Barat" → "bandung"
+ */
+function extractParentRegion(loc) {
+  if (!loc) return '';
+  const normalized = loc.toLowerCase().trim();
+
+  // Check if any alias key is a substring of the location
   for (const [alias, canonical] of Object.entries(LOCATION_ALIASES)) {
     if (normalized.includes(alias)) return canonical;
   }
-  return normalized;
+
+  // Strip administrative prefixes and return base
+  const stripped = normalized
+    .replace(/^kabupaten\s+/, '')
+    .replace(/^kab\.\s*/, '')
+    .replace(/^kota\s+/, '')
+    .trim();
+
+  return stripped;
 }
 
 /**
- * Generate a semantic signature for an article/incident.
- * Format: "date|victims|normalized_location"
+ * Parse a date string into a Date object (UTC midnight).
  */
-function articleSignature(article) {
-  const date = (article.date || '').slice(0, 10);
-  const victims = article.victims || 0;
-  const loc = normalizeLocation(article.location);
-  return `${date}|${victims}|${loc}`;
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr.slice(0, 10) + 'T00:00:00Z');
+  return isNaN(d.getTime()) ? null : d;
 }
 
 /**
- * Semantic deduplication — filters articles that describe incidents already
+ * Check if two articles describe the same incident using fuzzy matching.
+ *
+ * Two articles are fuzzy duplicates if ALL of these match:
+ * 1. Date: |dateA - dateB| ≤ 2 days
+ * 2. Victims: Both > 0 and within ±20%, OR both = 0
+ * 3. Location: Normalized locations match, or one is parent/substring of the other
+ */
+function isFuzzyDuplicate(articleA, articleB) {
+  // 1. Date check: within ±2 days
+  const dateA = parseDate(articleA.date);
+  const dateB = parseDate(articleB.date);
+  if (!dateA || !dateB) return false;
+
+  const diffMs = Math.abs(dateA.getTime() - dateB.getTime());
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  if (diffDays > 2) return false;
+
+  // 2. Victim count check: within ±20%, or both zero
+  const vA = articleA.victims || 0;
+  const vB = articleB.victims || 0;
+
+  if (vA === 0 && vB === 0) {
+    // Both zero — can't use victim count as signal, pass through
+  } else if (vA === 0 || vB === 0) {
+    // One has victims, the other doesn't — not a confident match
+    return false;
+  } else {
+    const maxV = Math.max(vA, vB);
+    if (Math.abs(vA - vB) / maxV > 0.20) return false;
+  }
+
+  // 3. Location check: normalized match or parent/substring relationship
+  const locA = normalizeLocation(articleA.location);
+  const locB = normalizeLocation(articleB.location);
+
+  if (!locA || !locB) return false;
+
+  if (locA === locB) return true;
+
+  // Check parent region relationship
+  const parentA = extractParentRegion(articleA.location);
+  const parentB = extractParentRegion(articleB.location);
+
+  if (parentA && parentB && parentA === parentB) return true;
+
+  // Check substring containment (e.g. "bandung barat" contains "bandung")
+  if (locA.includes(locB) || locB.includes(locA)) return true;
+
+  return false;
+}
+
+/**
+ * Merge articleB into articleA, keeping the best content from each.
+ */
+function mergeArticles(articleA, articleB) {
+  const merged = { ...articleA };
+
+  // Keep the longer summary/note
+  const noteA = articleA.summary || articleA.note || '';
+  const noteB = articleB.summary || articleB.note || '';
+  if (noteB.length > noteA.length) {
+    if (articleB.summary) merged.summary = articleB.summary;
+    if (articleB.note) merged.note = articleB.note;
+  }
+
+  // Keep URL from the article with more victim info
+  const vA = articleA.victims || 0;
+  const vB = articleB.victims || 0;
+  if (vB > vA && articleB.url) {
+    merged.url = articleB.url;
+  }
+
+  // Keep the higher victim count
+  if (vB > vA) {
+    merged.victims = vB;
+  }
+
+  // Combine sources if different
+  const srcA = articleA.source || '';
+  const srcB = articleB.source || '';
+  if (srcB && srcB !== srcA) {
+    merged.source = srcA ? `${srcA}, ${srcB}` : srcB;
+  }
+
+  return merged;
+}
+
+/**
+ * Fuzzy deduplication — filters articles that describe incidents already
  * in the database or that duplicate other articles in the same batch.
  *
- * Matches on: same date + same victim count + same normalized location.
- * When two batch articles match, keeps the one with more content (longer summary).
+ * Uses pairwise comparison with tolerances:
+ * - Date window: ±2 days
+ * - Victim count: ±20%
+ * - Location: normalized/parent region matching
+ *
+ * When two articles match, merges them (keeps longer summary, combines sources).
  */
 export function deduplicateArticles(articles, existingIncidents) {
-  const existingSigs = new Set();
-  for (const inc of existingIncidents) {
-    const date = (inc.date || '').slice(0, 10);
-    const victims = inc.victims || 0;
-    const loc = normalizeLocation(inc.loc);
-    existingSigs.add(`${date}|${victims}|${loc}`);
-  }
+  // Normalize existing incidents into article-like objects for comparison
+  const existingAsArticles = (existingIncidents || []).map(inc => ({
+    date: inc.date,
+    victims: inc.victims || 0,
+    location: inc.loc || inc.location || '',
+  }));
 
-  const batchSigs = new Map();
-  const keep = new Array(articles.length).fill(true);
+  // Build accepted list with pairwise fuzzy comparison
+  const accepted = [];
+  let fuzzyDupesRemoved = 0;
 
-  for (let i = 0; i < articles.length; i++) {
-    const sig = articleSignature(articles[i]);
+  for (const article of articles) {
+    let isDuplicate = false;
 
-    if (sig && existingSigs.has(sig)) {
-      keep[i] = false;
-      continue;
-    }
-
-    if (!sig || sig === '|0|') continue;
-
-    if (batchSigs.has(sig)) {
-      const prevIdx = batchSigs.get(sig);
-      const prevLen = (articles[prevIdx].summary || '').length;
-      const currLen = (articles[i].summary || '').length;
-      if (currLen > prevLen) {
-        keep[prevIdx] = false;
-        batchSigs.set(sig, i);
-      } else {
-        keep[i] = false;
+    for (let j = 0; j < accepted.length; j++) {
+      if (isFuzzyDuplicate(article, accepted[j])) {
+        accepted[j] = mergeArticles(accepted[j], article);
+        isDuplicate = true;
+        fuzzyDupesRemoved++;
+        break;
       }
-    } else {
-      batchSigs.set(sig, i);
+    }
+
+    if (isDuplicate) continue;
+
+    // Check against existing incidents in DB
+    let matchesExisting = false;
+    for (const existing of existingAsArticles) {
+      if (isFuzzyDuplicate(article, existing)) {
+        matchesExisting = true;
+        fuzzyDupesRemoved++;
+        break;
+      }
+    }
+
+    if (!matchesExisting) {
+      accepted.push(article);
     }
   }
 
-  return articles.filter((_, i) => keep[i]);
+  if (fuzzyDupesRemoved > 0) {
+    console.log(`[CRON] Fuzzy dedup removed ${fuzzyDupesRemoved} duplicate(s)`);
+  }
+
+  return accepted;
 }
 
 export async function handleCron(env) {
