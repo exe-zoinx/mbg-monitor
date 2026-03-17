@@ -94,3 +94,67 @@ html, body, #root {
   font-family: var(--mo) !important;
   font-size: 11px !important;
 }
+
+/* Mobile backdrop overlay */
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mobile-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch target minimum size */
+@media (max-width: 640px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Desktop sidebar: relative positioning with fixed width */
+@media (min-width: 641px) {
+  .sidebar-root {
+    position: relative !important;
+    width: var(--sw) !important;
+    min-width: var(--sw) !important;
+    transform: none !important;
+    z-index: 1000 !important;
+  }
+  .sidebar-close-btn {
+    display: none !important;
+  }
+}
+
+/* Tablet breakpoint */
+@media (min-width: 641px) and (max-width: 768px) {
+  :root {
+    --sw: 300px;
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 640px) {
+  :root {
+    --sw: 100vw;
+  }
+
+  .sidebar-close-btn {
+    display: flex !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 40px) !important;
+    min-width: 200px !important;
+  }
+  .leaflet-popup-content {
+    min-width: auto !important;
+    max-width: calc(100vw - 60px) !important;
+  }
+}

@@ -14,6 +14,10 @@ database_id   = "b7bedb49-d8df-4cb8-85e9-b52ce03478ba"
 binding = "mbg_kv"
 id      = "c41e9797e4634a03bb192a32cd712f21"
 
+# Workers AI — for article classification
+[ai]
+binding = "AI"
+
 # Cron Trigger — every 2 hours
 [triggers]
 crons = ["0 */2 * * *"]
@@ -21,3 +25,9 @@ crons = ["0 */2 * * *"]
 # Secrets — set via CLI:
 #   wrangler secret put AI_API_KEY --config worker/wrangler.toml
 #   wrangler secret put CRON_SECRET --config worker/wrangler.toml
+#
+# Optional — for JS-rendered sources (Kompas, Detik, Tempo, etc.):
+#   wrangler secret put LIGHTPANDA_TOKEN --config worker/wrangler.toml
+#     OR
+#   wrangler secret put BROWSER_WS_URL --config worker/wrangler.toml
+#     (e.g. wss://euwest.cloud.lightpanda.io/ws?token=YOUR_TOKEN)

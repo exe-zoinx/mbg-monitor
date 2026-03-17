@@ -1,6 +1,7 @@
-import { handleCron } from './cron.js';
+import { handleCron, deduplicateArticles } from './cron.js';
 import { scrapeAll } from './scrapers/index.js';
-import { summarizeWithAI } from './ai.js';
+import { classifyArticlesBatch, classifyArticle, heuristicClassify } from './ai-classify.js';
+import { deepSearchKeracunanMBG } from './search-apis.js';
 
 export default {
   // Cron Trigger handler
@@ -24,14 +25,151 @@ export default {
     }
 
     try {
-      // POST /trigger — manual cron trigger (protected)
+      // POST /trigger — manual cron trigger (background, protected)
       if (url.pathname === '/trigger' && request.method === 'POST') {
         const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!secret || !timingSafeEqual(secret, env.CRON_SECRET || '')) {
           return json({ error: 'Unauthorized' }, 401, corsHeaders);
         }
         ctx.waitUntil(handleCron(env));
-        return json({ ok: true, message: 'Crawl triggered' }, 200, corsHeaders);
+        return json({ ok: true, message: 'Crawl triggered (background)' }, 200, corsHeaders);
+      }
+
+      // POST /crawl — run crawl synchronously and return results (protected)
+      if (url.pathname === '/crawl' && request.method === 'POST') {
+        const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
+        if (!secret || !timingSafeEqual(secret, env.CRON_SECRET || '')) {
+          return json({ error: 'Unauthorized' }, 401, corsHeaders);
+        }
+
+        const start = Date.now();
+        const articles = await scrapeAll(env);
+        const classifications = await classifyArticlesBatch(env, articles);
+
+        const incidents = [];
+        const skipped = [];
+
+        for (let i = 0; i < articles.length; i++) {
+          const article = articles[i];
+          const classification = i < classifications.length ? classifications[i] : heuristicClassify(article);
+
+          if (!classification.is_incident) {
+            skipped.push({ title: article.title?.slice(0, 80), category: classification.category, reasoning: classification.reasoning });
+            continue;
+          }
+
+          // Use AI victims/location if better
+          if (classification.victims > 0 && !article.victims) article.victims = classification.victims;
+          if (classification.location && (!article.location || article.location === 'Indonesia')) article.location = classification.location;
+
+          incidents.push({
+            ...article,
+            ai_category: classification.category,
+            ai_reasoning: classification.reasoning,
+          });
+        }
+
+        // Dedup and insert
+        const existingUrls = new Set();
+        try {
+          const rows = await env.DB.prepare('SELECT url FROM incidents').all();
+          for (const row of rows.results || []) existingUrls.add(row.url);
+        } catch (e) {}
+
+        let inserted = 0;
+        const insertErrors = [];
+        for (const article of incidents) {
+          if (!article.url || existingUrls.has(article.url)) continue;
+          try {
+            await env.DB.prepare(`
+              INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              article.tag || 'keracunan',
+              article.date || new Date().toISOString().slice(0, 10),
+              article.lat || null,
+              article.lng || null,
+              article.title,
+              article.location || 'Indonesia',
+              article.victims || 0,
+              article.summary || '',
+              article.source || 'Unknown',
+              article.url,
+              0,
+            ).run();
+            inserted++;
+          } catch (err) {
+            insertErrors.push({ title: article.title?.slice(0, 60), error: err.message });
+          }
+        }
+
+        const duration = Date.now() - start;
+
+        // Log crawl
+        try {
+          await env.DB.prepare(`
+            INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `).bind(duration, inserted, inserted, 1, 'ai-scraper-sync', 'ai-classify-v1').run();
+        } catch (e) {}
+
+        return json({
+          ok: true,
+          duration_ms: duration,
+          total_scraped: articles.length,
+          total_classified: classifications.length,
+          actual_incidents: incidents.length,
+          filtered_out: skipped.length,
+          inserted,
+          insert_errors: insertErrors.length,
+          incidents: incidents.map(a => ({
+            title: a.title?.slice(0, 80),
+            source: a.source,
+            victims: a.victims,
+            location: a.location,
+            category: a.ai_category,
+            reasoning: a.ai_reasoning,
+            url: a.url,
+          })),
+          skipped: skipped.slice(0, 10),
+        }, 200, corsHeaders);
+      }
+
+      // POST /truncate — clear ALL incidents (protected)
+      if (url.pathname === '/truncate' && request.method === 'POST') {
+        const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
+        if (!secret || !timingSafeEqual(secret, env.CRON_SECRET || '')) {
+          return json({ error: 'Unauthorized' }, 401, corsHeaders);
+        }
+
+        const result = await env.DB.prepare('DELETE FROM incidents').run();
+        await env.DB.prepare('DELETE FROM stats_snapshot').run().catch(() => {});
+        await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
+
+        return json({
+          ok: true,
+          deleted: result.meta?.changes || 0,
+          message: 'All incidents cleared',
+        }, 200, corsHeaders);
+      }
+
+      // POST /truncate-and-refetch — truncate then re-fetch all data from 2024-today (protected)
+      if (url.pathname === '/truncate-and-refetch' && request.method === 'POST') {
+        const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
+        if (!secret || !timingSafeEqual(secret, env.CRON_SECRET || '')) {
+          return json({ error: 'Unauthorized' }, 401, corsHeaders);
+        }
+
+        if (env.mbg_kv) {
+          await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+            status: 'in_progress',
+            started_at: new Date().toISOString(),
+          }));
+        }
+
+        ctx.waitUntil(truncateAndRefetch(env));
+
+        return json({ ok: true, message: 'Truncated and re-fetch started' }, 200, corsHeaders);
       }
 
       // GET /status — health check
@@ -40,11 +178,30 @@ export default {
           'SELECT * FROM crawl_log ORDER BY id DESC LIMIT 1'
         ).first().catch(() => null);
 
+        const incidentCount = await env.DB.prepare(
+          'SELECT COUNT(*) as count FROM incidents'
+        ).first().catch(() => null);
+
+        const victimsCount = await env.DB.prepare(
+          'SELECT SUM(victims) as total FROM incidents WHERE victims > 0'
+        ).first().catch(() => null);
+
+        let refetchStatus = null;
+        if (env.mbg_kv) {
+          try {
+            const raw = await env.mbg_kv.get('mbg:refetch_status');
+            if (raw) refetchStatus = JSON.parse(raw);
+          } catch (e) {}
+        }
+
         return json({
           ok: true,
           status: 'healthy',
           last_crawl: lastCrawl,
+          total_incidents: incidentCount?.count || 0,
+          total_victims: victimsCount?.total || 0,
           cron_schedule: '0 */2 * * *',
+          refetch_status: refetchStatus,
         }, 200, corsHeaders);
       }
 
@@ -53,25 +210,24 @@ export default {
         const limit = parseInt(url.searchParams.get('limit') || '30', 10);
         const source = url.searchParams.get('source');
 
-        let query = 'SELECT * FROM news ORDER BY date DESC, id DESC LIMIT ?';
+        let query = 'SELECT * FROM incidents ORDER BY date DESC, id DESC LIMIT ?';
         const params = [limit];
 
         if (source) {
-          query = 'SELECT * FROM news WHERE source = ? ORDER BY date DESC, id DESC LIMIT ?';
+          query = 'SELECT * FROM incidents WHERE source = ? ORDER BY date DESC, id DESC LIMIT ?';
           params.unshift(source);
         }
 
         const result = await env.DB.prepare(query).bind(...params).all();
-        return json({ ok: true, news: result.results || [] }, 200, corsHeaders);
+        return json({ ok: true, incidents: result.results || [] }, 200, corsHeaders);
       }
 
-      // GET /debug — test scraping
+      // GET /debug — test scraping for Antara
       if (url.pathname === '/debug') {
         const results = {};
 
-        // Test Antara fetch and parse
         try {
-          const antaraRes = await fetch('https://www.antaranews.com/search?q=mbg', {
+          const antaraRes = await fetch('https://www.antaranews.com/search?q=keracunan+mbg', {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
               'Accept': 'text/html',
@@ -79,7 +235,6 @@ export default {
           });
           const antaraHtml = await antaraRes.text();
 
-          // Test the regex patterns
           const cardRegex = /<div\s+class="card__post\s+card__post-list\s+card__post__transition\s+mt-30">([\s\S]*?)(?=<div\s+class="card__post\s+card__post-list\s+card__post__transition\s+mt-30">|<div\s+class="pagination-area">|<\/main>)/g;
           let cardMatch;
           let count = 0;
@@ -93,7 +248,6 @@ export default {
               sampleArticles.push({
                 url: urlMatch ? urlMatch[1] : null,
                 title: titleMatch ? titleMatch[1] : null,
-                chunkLen: chunk.length,
               });
             }
           }
@@ -101,7 +255,6 @@ export default {
           results.antara = {
             status: antaraRes.status,
             htmlLength: antaraHtml.length,
-            hasCardPost: antaraHtml.includes('card__post'),
             articlesFound: count,
             sampleArticles,
           };
@@ -119,46 +272,112 @@ export default {
           return json({
             ok: true,
             count: articles.length,
-            articles: articles.slice(0, 5),
+            with_victims: articles.filter(a => a.victims > 0).length,
+            articles: articles.slice(0, 15).map(a => ({
+              title: a.title,
+              source: a.source,
+              date: a.date,
+              victims: a.victims,
+              location: a.location,
+              tag: a.tag,
+              url: a.url,
+              summary_length: a.summary?.length || 0,
+            })),
           }, 200, corsHeaders);
         } catch (err) {
           return json({ error: err.message, stack: err.stack }, 500, corsHeaders);
         }
       }
 
-      // GET /test-insert — test full scrape + insert flow
-      if (url.pathname === '/test-insert') {
+      // GET /test-classify — scrape and classify articles with AI
+      if (url.pathname === '/test-classify') {
         try {
           const articles = await scrapeAll(env);
-          const results = [];
+          const classifications = await classifyArticlesBatch(env, articles.slice(0, 10));
+          
+          const results = articles.slice(0, 10).map((a, i) => ({
+            title: a.title?.slice(0, 80),
+            source: a.source,
+            url: a.url,
+            victims: a.victims,
+            classification: classifications[i] || { error: 'no classification' },
+          }));
 
-          for (const article of articles.slice(0, 3)) {
+          const incidents = results.filter(r => r.classification.is_incident);
+          const skipped = results.filter(r => !r.classification.is_incident);
+
+          return json({
+            ok: true,
+            total_scraped: articles.length,
+            classified: results.length,
+            actual_incidents: incidents.length,
+            filtered_out: skipped.length,
+            incidents,
+            filtered: skipped,
+          }, 200, corsHeaders);
+        } catch (err) {
+          return json({ error: err.message, stack: err.stack }, 500, corsHeaders);
+        }
+      }
+
+      // POST /deep-search — run comprehensive historical search for keracunan MBG (protected)
+      if (url.pathname === '/deep-search' && request.method === 'POST') {
+        const secret = url.searchParams.get('secret') || request.headers.get('Authorization')?.replace('Bearer ', '');
+        if (!secret || !timingSafeEqual(secret, env.REFRESH_SECRET || env.CRON_SECRET || '')) {
+          return json({ error: 'Unauthorized' }, 401, corsHeaders);
+        }
+
+        try {
+          const start = Date.now();
+          const articles = await deepSearchKeracunanMBG(env);
+
+          // Dedup against existing URLs
+          const existingUrls = new Set();
+          try {
+            const rows = await env.DB.prepare('SELECT url FROM incidents').all();
+            for (const row of rows.results || []) existingUrls.add(row.url);
+          } catch (e) {}
+
+          let inserted = 0;
+          const insertErrors = [];
+          for (const article of articles) {
+            if (!article.url || existingUrls.has(article.url)) continue;
             try {
-              const tag = article.tag || 'mbg';
-              const insertResult = await env.DB.prepare(`
+              await env.DB.prepare(`
                 INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `).bind(
-                tag,
-                article.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
-                null, null,
+                'keracunan',
+                article.date || new Date().toISOString().slice(0, 10),
+                article.lat || null,
+                article.lng || null,
                 article.title,
-                article.location || 'Indonesia',
+                'Indonesia',
                 0,
                 article.summary || '',
                 article.source || 'Unknown',
-                article.url || '',
+                article.url,
                 0,
               ).run();
-              results.push({ title: article.title, success: true, meta: insertResult.meta });
+              inserted++;
             } catch (err) {
-              results.push({ title: article.title, error: err.message });
+              insertErrors.push({ title: article.title?.slice(0, 60), error: err.message });
             }
           }
 
-          return json({ ok: true, totalArticles: articles.length, insertResults: results }, 200, corsHeaders);
+          const duration = Date.now() - start;
+
+          return json({
+            ok: true,
+            duration_ms: duration,
+            total_articles: articles.length,
+            new_articles: inserted,
+            duplicates_skipped: articles.length - inserted - insertErrors.length,
+            insert_errors: insertErrors.length,
+            errors: insertErrors.slice(0, 10),
+          }, 200, corsHeaders);
         } catch (err) {
-          return json({ error: err.message, stack: err.stack }, 500, corsHeaders);
+          return json({ error: 'Deep search failed', message: err.message }, 500, corsHeaders);
         }
       }
 
@@ -166,10 +385,18 @@ export default {
       return json({
         ok: true,
         name: 'mbg-monitor-cron',
+        version: 'v7-heuristic-v2',
         endpoints: {
           'POST /trigger': 'Manual crawl trigger (requires ?secret=)',
+          'POST /crawl': 'Run synchronous crawl (requires ?secret=)',
+          'POST /deep-search': 'Comprehensive historical keracunan search (requires ?secret=)',
+          'POST /truncate': 'Clear ALL incidents (requires ?secret=)',
+          'POST /truncate-and-refetch': 'Truncate then re-fetch all data from 2024-today (requires ?secret=)',
           'GET /status': 'Health check',
           'GET /news': 'Latest news (?limit=30&source=)',
+          'GET /test-scrape': 'Test scraper output (raw articles)',
+          'GET /test-classify': 'Test AI classification on scraped articles',
+          'GET /debug': 'Test Antara HTML structure',
         },
       }, 200, corsHeaders);
 
@@ -178,6 +405,241 @@ export default {
     }
   },
 };
+
+async function truncateAndRefetch(env) {
+  const start = Date.now();
+  let incidentsAdded = 0;
+
+  try {
+    console.log('[REFETCH] Starting truncate + re-fetch...');
+
+    // Step 1: Truncate all tables
+    await env.DB.prepare('DELETE FROM incidents').run();
+    await env.DB.prepare('DELETE FROM stats_snapshot').run().catch(() => {});
+    await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
+    console.log('[REFETCH] All tables truncated');
+
+    // Step 2: Run deep search for historical articles + scrape current articles in parallel
+    console.log('[REFETCH] Fetching historical articles and scraping current sources...');
+    const [deepArticles, scrapedArticles] = await Promise.all([
+      deepSearchKeracunanMBG(env).catch(err => {
+        console.error('[REFETCH] Deep search failed:', err.message);
+        return [];
+      }),
+      scrapeAll(env).catch(err => {
+        console.error('[REFETCH] Scrape failed:', err.message);
+        return [];
+      }),
+    ]);
+    console.log(`[REFETCH] Deep search: ${deepArticles.length} articles, Scraped: ${scrapedArticles.length} articles`);
+
+    // Step 3: Merge articles from both sources
+    const seenUrls = new Set();
+    const allArticles = [];
+    for (const article of [...deepArticles, ...scrapedArticles]) {
+      if (article.url && !seenUrls.has(article.url)) {
+        seenUrls.add(article.url);
+        allArticles.push(article);
+      }
+    }
+    console.log(`[REFETCH] ${allArticles.length} unique articles after URL merge`);
+
+    if (allArticles.length === 0) {
+      console.log('[REFETCH] No articles to process');
+      if (env.mbg_kv) {
+        await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          incidents_added: 0,
+          duration_ms: Date.now() - start,
+        }));
+      }
+      return;
+    }
+
+    // Step 4: AI classification — use heuristic pre-filter then batch classify
+    const INCIDENT_KEYWORDS = ['keracunan', 'korban', 'dirawat', 'dilarikan', 'racun', 'keracu', 'diare', 'mual', 'muntah'];
+    const SKIP_KEYWORDS = ['hoaks', 'insentif', 'standar sppg', 'pengawasan', 'dinas kesehatan', 'regulasi', 'sop'];
+
+    const likelyIncidents = [];
+    for (const article of allArticles) {
+      const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
+      if (SKIP_KEYWORDS.some(kw => text.includes(kw))) continue;
+      likelyIncidents.push(article);
+    }
+    console.log(`[REFETCH] ${likelyIncidents.length} articles after pre-filter`);
+
+    // AI classify up to 10
+    const toClassify = likelyIncidents.slice(0, 10);
+    let incidentArticles = [];
+
+    if (toClassify.length > 0 && env.AI) {
+      console.log(`[REFETCH] AI classifying ${toClassify.length} articles...`);
+      const classifications = await classifyArticlesBatch(env, toClassify);
+
+      for (let i = 0; i < toClassify.length && i < classifications.length; i++) {
+        const article = toClassify[i];
+        const classification = classifications[i];
+
+        if (!classification.is_incident) continue;
+
+        if (classification.victims > 0 && !article.victims) article.victims = classification.victims;
+        if (classification.location && (!article.location || article.location === 'Indonesia')) {
+          article.location = classification.location;
+        }
+
+        incidentArticles.push({
+          ...article,
+          ai_category: classification.category,
+          ai_reasoning: classification.reasoning,
+        });
+      }
+    }
+
+    // Add remaining likely incidents with heuristic
+    const remaining = likelyIncidents.slice(10);
+    for (const article of remaining) {
+      const titleLower = (article.title || '').toLowerCase();
+      if (titleLower.includes('keracunan') && !titleLower.includes('hoaks') && !titleLower.includes('sembuh')) {
+        incidentArticles.push(article);
+      }
+    }
+    console.log(`[REFETCH] ${incidentArticles.length} incidents after classification`);
+
+    if (incidentArticles.length === 0) {
+      console.log('[REFETCH] No incidents after classification');
+      if (env.mbg_kv) {
+        await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          incidents_added: 0,
+          duration_ms: Date.now() - start,
+        }));
+      }
+      return;
+    }
+
+    // Step 5: Semantic dedup (DB is empty after truncate, so only batch-level dedup applies)
+    const dedupedArticles = deduplicateArticles(incidentArticles, []);
+    console.log(`[REFETCH] ${dedupedArticles.length} articles after semantic dedup`);
+
+    // Step 6: Batch insert
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < dedupedArticles.length; i += BATCH_SIZE) {
+      const batch = dedupedArticles.slice(i, i + BATCH_SIZE);
+      const stmts = batch.map(article =>
+        env.DB.prepare(`
+          INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          article.tag || 'keracunan',
+          article.date || new Date().toISOString().slice(0, 10),
+          article.lat || null,
+          article.lng || null,
+          article.title,
+          article.location || 'Indonesia',
+          article.victims || 0,
+          article.summary || '',
+          article.source || 'Unknown',
+          article.url,
+          0,
+        )
+      );
+
+      try {
+        await env.DB.batch(stmts);
+        incidentsAdded += batch.length;
+      } catch (batchErr) {
+        console.warn(`[REFETCH] Batch insert failed, trying individual:`, batchErr.message);
+        for (const article of batch) {
+          try {
+            await env.DB.prepare(`
+              INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              article.tag || 'keracunan',
+              article.date || new Date().toISOString().slice(0, 10),
+              article.lat || null,
+              article.lng || null,
+              article.title,
+              article.location || 'Indonesia',
+              article.victims || 0,
+              article.summary || '',
+              article.source || 'Unknown',
+              article.url,
+              0,
+            ).run();
+            incidentsAdded++;
+          } catch (insertErr) {
+            console.warn('[REFETCH] Failed to insert:', insertErr.message);
+          }
+        }
+      }
+    }
+
+    console.log(`[REFETCH] Inserted ${incidentsAdded} incidents`);
+
+    // Step 7: Update stats
+    try {
+      const stats = await env.DB.prepare(
+        'SELECT COUNT(*) as count, SUM(victims) as total FROM incidents WHERE victims > 0'
+      ).first().catch(() => null);
+
+      if (stats?.total > 0) {
+        await env.DB.prepare(`
+          INSERT INTO stats_snapshot (poisoning_incidents, total_victims, victims_note)
+          VALUES (?, ?, ?)
+        `).bind(
+          stats.count,
+          stats.total,
+          `Re-fetch: ${stats.count} incidents with ${stats.total} total victims`,
+        ).run();
+      }
+    } catch (statsErr) {
+      console.warn('[REFETCH] Stats update failed:', statsErr.message);
+    }
+
+    // Log crawl
+    const duration = Date.now() - start;
+    try {
+      await env.DB.prepare(`
+        INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(duration, incidentsAdded, incidentsAdded, 1, 'truncate-refetch', 'ai-classify-v1').run();
+    } catch (e) {}
+
+    // Update KV meta
+    if (env.mbg_kv) {
+      await env.mbg_kv.put('mbg:meta', JSON.stringify({
+        refreshed_at: new Date().toISOString(),
+        provider: 'truncate-refetch',
+        model: 'ai-classify-v1',
+      }));
+    }
+
+    // Update refetch status to completed
+    if (env.mbg_kv) {
+      await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        incidents_added: incidentsAdded,
+        duration_ms: duration,
+      }));
+    }
+
+    console.log(`[REFETCH] Complete: ${incidentsAdded} incidents in ${duration}ms`);
+
+  } catch (err) {
+    console.error('[REFETCH] Failed:', err);
+    if (env.mbg_kv) {
+      await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
+        status: 'error',
+        error: err.message,
+        completed_at: new Date().toISOString(),
+      })).catch(() => {});
+    }
+  }
+}
 
 function json(data, status = 200, extra = {}) {
   return new Response(JSON.stringify(data), {

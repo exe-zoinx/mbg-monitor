@@ -102,7 +102,9 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         borderRadius: 8,
         padding: '9px 14px',
         backdropFilter: 'blur(10px)',
-      }}>
+      }}
+        className="map-title"
+      >
         <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
           🇮🇩 Peta Insiden MBG — Indonesia
         </h2>
@@ -139,21 +141,53 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       }}
         className="map-legend"
       >
-        <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
-          Jenis Insiden
-        </div>
-        {Object.entries(TLBL).filter(([k]) => k !== 'lainnya').map(([key, label]) => (
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5, fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--tx)' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: COL[key], flexShrink: 0 }} />
-            {label}
+        <div className="map-legend-inner">
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
+            Jenis Insiden
           </div>
-        ))}
+          {Object.entries(TLBL).filter(([k]) => k !== 'lainnya').map(([key, label]) => (
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5, fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--tx)' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: COL[key], flexShrink: 0 }} />
+              {label}
+            </div>
+          ))}
+        </div>
       </div>
 
       <style>{`
         @media (max-width: 640px) {
-          .map-overlays { display: none !important; }
-          .map-legend { display: none !important; }
+          .map-title {
+            padding: 6px 10px !important;
+          }
+          .map-title h2 {
+            font-size: 11px !important;
+          }
+          .map-title p {
+            font-size: 8px !important;
+          }
+          .map-overlays {
+            top: 60px !important;
+            right: 8px !important;
+            gap: 4px !important;
+          }
+          .map-overlays > div {
+            padding: 6px 10px !important;
+          }
+          .map-overlays .overlay-value {
+            font-size: 14px !important;
+          }
+          .map-overlays .overlay-label {
+            font-size: 7px !important;
+          }
+          .map-legend {
+            bottom: 80px !important;
+            right: 8px !important;
+            max-width: calc(100vw - 16px) !important;
+            padding: 6px 8px !important;
+          }
+          .map-legend-inner {
+            padding: 0 !important;
+          }
         }
       `}</style>
     </>
@@ -174,8 +208,8 @@ function OverlayPanel({ color, value, label }) {
     }}>
       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
       <div>
-        <div style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, color }}>{value}</div>
-        <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', lineHeight: 1.3 }}>
+        <div className="overlay-value" style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, color }}>{value}</div>
+        <div className="overlay-label" style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', lineHeight: 1.3 }}>
           {label.map((l, i) => <span key={i}>{l}<br /></span>)}
         </div>
       </div>

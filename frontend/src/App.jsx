@@ -35,7 +35,20 @@ export default function App() {
   })();
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
+      {/* Mobile backdrop */}
+      <div
+        className="mobile-backdrop"
+        style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 999,
+          opacity: sidebarOpen ? 1 : 0,
+          pointerEvents: sidebarOpen ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease'
+        }}
+        onClick={() => setSidebarOpen(false)}
+      />
       <Sidebar
         incidents={incidents}
         filtered={filtered}
@@ -65,17 +78,17 @@ export default function App() {
             position: 'absolute',
             bottom: 76,
             left: 14,
-            zIndex: 600,
+            zIndex: 1001,
             background: 'var(--sf)',
             border: '1px solid var(--bd2)',
             borderRadius: 8,
-            padding: '8px 12px',
+            padding: '12px 16px',
             fontFamily: 'var(--mo)',
-            fontSize: 11,
+            fontSize: 13,
             color: 'var(--tx)',
             cursor: 'pointer',
           }}
-          className="mobile-sidebar-btn"
+          className="mobile-sidebar-btn touch-target"
         >
           ☰ Daftar
         </button>

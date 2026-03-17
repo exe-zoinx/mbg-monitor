@@ -29,26 +29,22 @@ export default function Sidebar({
 
   return (
     <aside
+      className="sidebar-root"
       style={{
-        width: 'var(--sw)',
-        minWidth: 'var(--sw)',
+        width: '100vw',
+        minWidth: '100vw',
         height: '100vh',
         background: 'var(--sf)',
         borderRight: '1px solid var(--bd)',
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 1000,
+        zIndex: 2000,
         overflow: 'hidden',
-        ...(typeof window !== 'undefined' && window.innerWidth <= 640
-          ? {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              zIndex: 2000,
-              transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-              transition: 'transform 0.24s',
-            }
-          : {}),
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.24s',
       }}
     >
       {/* Topbar */}
@@ -64,6 +60,29 @@ export default function Sidebar({
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen && setSidebarOpen(false)}
+            aria-label="Tutup sidebar"
+            style={{
+              display: 'none',
+              width: 44,
+              height: 44,
+              minWidth: 44,
+              minHeight: 44,
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'none',
+              border: 'none',
+              color: 'var(--tx)',
+              fontSize: 22,
+              cursor: 'pointer',
+              borderRadius: 8,
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
           <div style={{
             width: 28,
             height: 28,
@@ -150,9 +169,10 @@ export default function Sidebar({
             background: 'var(--sf2)',
             border: '1px solid var(--bd)',
             borderRadius: 7,
-            padding: '7px 11px',
+            padding: '11px 14px',
             fontFamily: 'var(--mo)',
-            fontSize: 11,
+            fontSize: 13,
+            minHeight: 44,
             color: 'var(--tx)',
             outline: 'none',
           }}
@@ -173,9 +193,9 @@ export default function Sidebar({
             style={{
               flex: 1,
               minWidth: 50,
-              padding: '8px 3px',
+              padding: '14px 6px',
               fontFamily: 'var(--mo)',
-              fontSize: 8,
+              fontSize: 11,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
               color: filterCat === cat ? 'var(--tx)' : 'var(--mu)',
@@ -187,6 +207,7 @@ export default function Sidebar({
               borderBottomStyle: 'solid',
               borderBottomColor: filterCat === cat ? 'var(--red)' : 'transparent',
               whiteSpace: 'nowrap',
+              minHeight: 44,
             }}
           >
             {CAT_SHORT[cat]}{' '}
@@ -196,7 +217,7 @@ export default function Sidebar({
               border: `1px solid ${filterCat === cat ? 'var(--red)' : 'var(--bd)'}`,
               borderRadius: 6,
               padding: '0 4px',
-              fontSize: 8,
+              fontSize: 10,
               marginLeft: 2,
               lineHeight: 1.4,
               color: filterCat === cat ? '#fff' : undefined,
@@ -208,7 +229,7 @@ export default function Sidebar({
       </div>
 
       {/* Feed — single unified list of all incidents */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {filtered.length === 0 ? (
           <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--mu)', fontFamily: 'var(--mo)', fontSize: 11 }}>
             Tidak ada insiden ditemukan
@@ -238,7 +259,7 @@ export default function Sidebar({
       }}>
         <div style={{
           fontFamily: 'var(--mo)',
-          fontSize: 8,
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: '0.1em',
           color: 'var(--red)',
@@ -254,22 +275,22 @@ export default function Sidebar({
         </div>
         <div style={{ overflow: 'hidden', flex: 1 }}>
           <div style={{ display: 'flex', animation: 'sc 42s linear infinite', whiteSpace: 'nowrap' }}>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               MBG diluncurkan 6 Jan 2025 · Rp 71T anggaran · Target 82,9 juta penerima ·
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               MBG diluncurkan 6 Jan 2025 · Rp 71T anggaran · Target 82,9 juta penerima ·
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·
             </span>
           </div>
@@ -298,13 +319,13 @@ function StatsRow({ stats }) {
     }}>
       {items.map((item, i) => (
         <div key={i} style={{ background: 'var(--sf)', padding: '10px 14px' }}>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
             {item.label}
           </div>
           <div style={{ fontFamily: 'var(--mo)', fontSize: 24, fontWeight: 700, lineHeight: 1, color: item.color }}>
             {item.value}
           </div>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
             {item.sub}
           </div>
         </div>
@@ -323,9 +344,6 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
       onClick={() => {
         if (inc.lat && inc.lng) {
           focusInc(inc.id);
-        }
-        if (typeof window !== 'undefined' && window.innerWidth <= 640) {
-          // handled by parent
         }
       }}
       style={{
@@ -356,7 +374,7 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
         <div style={{ display: 'flex', gap: 5, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
           <span style={{
             fontFamily: 'var(--mo)',
-            fontSize: 8,
+            fontSize: 10,
             borderRadius: 3,
             padding: '1px 5px',
             textTransform: 'uppercase',
@@ -396,14 +414,16 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
               }}
               style={{
                 fontFamily: 'var(--mo)',
-                fontSize: 9,
-                padding: '1px 6px',
+                fontSize: 12,
+                padding: '6px 10px',
                 borderRadius: 3,
                 border: '1px solid var(--bd)',
                 background: 'var(--sf2)',
                 color: 'var(--blu)',
                 cursor: 'pointer',
                 lineHeight: 1.4,
+                minHeight: 28,
+                minWidth: 44,
               }}
             >
               ↗ Buka

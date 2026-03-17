@@ -7,6 +7,7 @@
  */
 export async function onRequestGet(ctx) {
   const { DB, MBG_KV } = ctx.env;
+  const url = new URL(ctx.request.url);
 
   if (!DB) {
     return json({ error: 'D1_NOT_BOUND', message: 'D1 not configured. See README.' }, 503);
@@ -21,15 +22,37 @@ export async function onRequestGet(ctx) {
     } catch { /* non-fatal */ }
   }
 
+  // Optional date range filtering
+  const dateFrom = url.searchParams.get('from');
+  const dateTo = url.searchParams.get('to');
+
   try {
+    // Build incident query with optional date filters
+    let incidentQuery = `
+      SELECT id, cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline
+      FROM incidents
+    `;
+    const params = [];
+    const conditions = [];
+
+    if (dateFrom) {
+      conditions.push('date >= ?');
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      conditions.push('date <= ?');
+      params.push(dateTo);
+    }
+
+    if (conditions.length > 0) {
+      incidentQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    incidentQuery += ' ORDER BY date DESC LIMIT 2000';
+
     // Run all queries in parallel — catch errors for tables that may not exist yet
     const [incRes, statsRes] = await Promise.all([
-      DB.prepare(`
-        SELECT id, cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline
-        FROM incidents
-        ORDER BY date DESC
-        LIMIT 500
-      `).all().catch(() => ({ results: [] })),
+      DB.prepare(incidentQuery).bind(...params).all().catch(() => ({ results: [] })),
 
       DB.prepare(`
         SELECT poisoning_incidents, total_victims, victims_note, budget_spent_t, budget_note, captured_at

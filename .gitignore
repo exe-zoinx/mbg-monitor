@@ -35,3 +35,4 @@ logs/
 .dev.vars
 .env
 *.log
+.opencode

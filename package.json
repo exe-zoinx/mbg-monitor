@@ -14,6 +14,7 @@
     "worker:secret": "wrangler secret put --config worker/wrangler.toml"
   },
   "dependencies": {
+    "@lightpanda/browser": "^1.2.0",
     "@tanstack/react-query": "^5.90.21",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
