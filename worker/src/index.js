@@ -423,9 +423,9 @@ async function truncateAndRefetch(env) {
     await env.DB.prepare('DELETE FROM crawl_log').run().catch(() => {});
     console.log('[REFETCH] All tables truncated');
 
-    // Step 2: Run deep search for historical articles + scrape current articles in parallel
-    console.log('[REFETCH] Fetching historical articles and scraping current sources...');
-    const [deepArticles, scrapedArticles] = await Promise.all([
+    // Step 2: Run deep search, current scrape, and archive scrape all in parallel
+    console.log('[REFETCH] Fetching historical articles, scraping current sources, and archiving...');
+    const [deepArticles, scrapedArticles, archiveArticles] = await Promise.all([
       deepSearchKeracunanMBG(env).catch(err => {
         console.error('[REFETCH] Deep search failed:', err.message);
         return [];
@@ -434,15 +434,12 @@ async function truncateAndRefetch(env) {
         console.error('[REFETCH] Scrape failed:', err.message);
         return [];
       }),
+      scrapeDateRangeArchive(env, '2024-10-01', TODAY()).catch(err => {
+        console.error('[REFETCH] Archive scrape failed:', err.message);
+        return [];
+      }),
     ]);
-    console.log(`[REFETCH] Deep search: ${deepArticles.length} articles, Scraped: ${scrapedArticles.length} articles`);
-
-    // Also fetch archive articles from pilot program period to today
-    const archiveArticles = await scrapeDateRangeArchive(env, '2024-10-01', TODAY()).catch(err => {
-      console.error('[REFETCH] Archive scrape failed:', err.message);
-      return [];
-    });
-    console.log(`[REFETCH] Archive scraped: ${archiveArticles.length} articles`);
+    console.log(`[REFETCH] Deep search: ${deepArticles.length}, Scraped: ${scrapedArticles.length}, Archive: ${archiveArticles.length} articles`);
 
     // Step 3: Merge articles from all sources
     const seenUrls = new Set();

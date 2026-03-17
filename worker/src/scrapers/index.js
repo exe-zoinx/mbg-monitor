@@ -547,18 +547,26 @@ function parseRelativeDate(text) {
 
 async function fetchHTML(url) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
       },
-      cf: { cacheTtl: 300 },
+      cf: { cacheTtl: 300, cacheEverything: true },
       redirect: 'follow',
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     return await res.text();
-  } catch (err) { return null; }
+  } catch (err) {
+    if (err.name === 'AbortError') console.log('[FETCH] Timeout:', url);
+    else console.log('[FETCH] Error:', url, err.message);
+    return null;
+  }
 }
 
 function extractDomain(url) { try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; } }
@@ -1669,8 +1677,6 @@ async function scrapeAntaraSearch(url, fetchContent = true, opts = {}) {
 const ARCHIVE_QUERIES = [
   'keracunan MBG',
   'keracunan makan bergizi gratis',
-  'MBG keracunan korban',
-  'keracunan makanan sekolah',
 ];
 
 export async function scrapeDateRangeArchive(env, startDate, endDate) {
@@ -1678,8 +1684,17 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
   const seen = new Set();
   _articleFetches = 0;
 
-  const quarters = generateQuarterlyWindows(startDate, endDate);
+  // 6 targeted quarters — only periods likely to have MBG incidents
+  const quarters = [
+    { start: '2024-10-01', end: '2024-12-31', label: 'Q4 2024 (pilot)' },
+    { start: '2025-01-01', end: '2025-03-31', label: 'Q1 2025 (launch)' },
+    { start: '2025-04-01', end: '2025-06-30', label: 'Q2 2025' },
+    { start: '2025-07-01', end: '2025-09-30', label: 'Q3 2025' },
+    { start: '2025-10-01', end: '2025-12-31', label: 'Q4 2025' },
+    { start: '2026-01-01', end: '2026-03-31', label: 'Q1 2026' },
+  ];
 
+  // Only sources that support date-range URL parameters
   for (const quarter of quarters) {
     log(`[Archive] Searching ${quarter.label}: ${quarter.start} to ${quarter.end}`);
 
@@ -1694,7 +1709,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
         for (const a of articles) {
           if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
         }
-        await delay(500);
+        await delay(300);
       } catch (err) { console.warn(`[Archive][Antara] "${query}" ${quarter.label}:`, err.message); }
 
       // Kompas — date param in URL
@@ -1709,7 +1724,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
               seen.add(url);
               allArticles.push(article);
             }
-            await delay(400);
+            await delay(300);
           } catch (err) { /* skip */ }
         }
         await delay(300);
@@ -1722,7 +1737,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
         for (const a of articles) {
           if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
         }
-        await delay(500);
+        await delay(300);
       } catch (err) { console.warn(`[Archive][Detik] "${query}" ${quarter.label}:`, err.message); }
 
       // Tempo — datestart/dateend params
@@ -1732,7 +1747,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
         for (const a of articles) {
           if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
         }
-        await delay(500);
+        await delay(300);
       } catch (err) { console.warn(`[Archive][Tempo] "${query}" ${quarter.label}:`, err.message); }
 
       // CNN Indonesia — date_from/date_to params
@@ -1742,108 +1757,8 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
         for (const a of articles) {
           if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
         }
-        await delay(500);
+        await delay(300);
       } catch (err) { console.warn(`[Archive][CNN Indonesia] "${query}" ${quarter.label}:`, err.message); }
-
-      // Liputan6 — no date params, filter by parsed date
-      try {
-        const articles = await scrapeLiputan6Search(query, qOpts);
-        if (articles.length) log(`[Archive][Liputan6] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Liputan6] "${query}" ${quarter.label}:`, err.message); }
-
-      // Tribun — filter by parsed date
-      try {
-        const articles = await scrapeTribunSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Tribun] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Tribun] "${query}" ${quarter.label}:`, err.message); }
-
-      // Tirto — filter by parsed date
-      try {
-        const articles = await scrapeTirtoSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Tirto] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Tirto] "${query}" ${quarter.label}:`, err.message); }
-
-      // Suara — filter by parsed date
-      try {
-        const articles = await scrapeSuaraSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Suara] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Suara] "${query}" ${quarter.label}:`, err.message); }
-
-      // Okezone — filter by parsed date
-      try {
-        const articles = await scrapeOkezoneSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Okezone] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Okezone] "${query}" ${quarter.label}:`, err.message); }
-
-      // Sindonews — filter by parsed date
-      try {
-        const articles = await scrapeSindoSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Sindonews] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Sindonews] "${query}" ${quarter.label}:`, err.message); }
-
-      // Kumparan — filter by parsed date
-      try {
-        const articles = await scrapeKumparanSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Kumparan] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Kumparan] "${query}" ${quarter.label}:`, err.message); }
-
-      // Republika — filter by parsed date
-      try {
-        const articles = await scrapeRepublikaSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Republika] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Republika] "${query}" ${quarter.label}:`, err.message); }
-
-      // Viva — filter by parsed date
-      try {
-        const articles = await scrapeVivaSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Viva] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Viva] "${query}" ${quarter.label}:`, err.message); }
-
-      // Merdeka — filter by parsed date
-      try {
-        const articles = await scrapeMerdekaSearch(query, qOpts);
-        if (articles.length) log(`[Archive][Merdeka] "${query}" ${quarter.label}: ${articles.length}`);
-        for (const a of articles) {
-          if (!seen.has(a.url)) { seen.add(a.url); allArticles.push(a); }
-        }
-        await delay(500);
-      } catch (err) { console.warn(`[Archive][Merdeka] "${query}" ${quarter.label}:`, err.message); }
 
       await delay(300);
     }
