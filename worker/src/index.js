@@ -444,33 +444,9 @@ async function truncateAndRefetch(env) {
       return;
     }
 
-    // Step 3: AI classify the search results
+    // Step 3: Heuristic classification only (skip AI to stay within worker time limits)
     let incidentArticles = [];
 
-    if (env.AI) {
-      console.log(`[REFETCH] AI classifying ${deepResults.length} articles...`);
-      const classifications = await classifyArticlesBatch(env, deepResults);
-
-      for (let i = 0; i < deepResults.length && i < classifications.length; i++) {
-        const article = deepResults[i];
-        const classification = classifications[i];
-
-        if (!classification.is_incident) continue;
-
-        if (classification.victims > 0 && !article.victims) article.victims = classification.victims;
-        if (classification.location && (!article.location || article.location === 'Indonesia')) {
-          article.location = classification.location;
-        }
-
-        incidentArticles.push({
-          ...article,
-          ai_category: classification.category,
-          ai_reasoning: classification.reasoning,
-        });
-      }
-    }
-
-    // Heuristic: also include articles with keracunan + MBG/SPPG keywords
     for (const article of deepResults) {
       const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
       if (text.includes('keracunan') && (text.includes('mbg') || text.includes('sppg') || text.includes('makan bergizi'))) {

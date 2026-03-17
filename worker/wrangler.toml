@@ -24,6 +24,7 @@ crons = ["0 */2 * * *"]
 
 # Uncomment if on Workers Paid plan to extend execution time:
 # [limits]
+# cpu_ms = 30000
 # wall_time = 600  # 10 minutes
 
 # Secrets — set via CLI:
