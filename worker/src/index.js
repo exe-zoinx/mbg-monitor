@@ -197,31 +197,8 @@ export default {
             return json({ ok: true, message: 'Completed with 0 incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
           }
 
-          // Step 3: Heuristic filter
-          const incidentArticles = [];
-          for (const article of deepResults) {
-            const text = ((article.title || '') + ' ' + (article.summary || '')).toLowerCase();
-            if (text.includes('keracunan') && (text.includes('mbg') || text.includes('sppg') || text.includes('makan bergizi'))) {
-              if (!incidentArticles.find(a => a.url === article.url)) {
-                incidentArticles.push(article);
-              }
-            }
-          }
-
-          if (incidentArticles.length === 0) {
-            if (env.mbg_kv) {
-              await env.mbg_kv.put('mbg:refetch_status', JSON.stringify({
-                status: 'completed',
-                completed_at: new Date().toISOString(),
-                incidents_added: 0,
-                duration_ms: Date.now() - start,
-              }));
-            }
-            return json({ ok: true, message: 'Completed with 0 matching incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
-          }
-
-          // Step 4: Dedup and insert
-          const unique = deduplicateArticles(incidentArticles, []);
+          // Step 3: Dedup and insert (deep search already targets MBG keracunan queries)
+          const unique = deduplicateArticles(deepResults, []);
           let incidentsAdded = 0;
           const BATCH_SIZE = 10;
           for (let i = 0; i < unique.length; i += BATCH_SIZE) {
