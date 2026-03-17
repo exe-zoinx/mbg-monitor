@@ -1,7 +1,11 @@
 import { handleCron, deduplicateArticles } from './cron.js';
-import { scrapeAll } from './scrapers/index.js';
+import { scrapeAll, scrapeDateRangeArchive } from './scrapers/index.js';
 import { classifyArticlesBatch, classifyArticle, heuristicClassify } from './ai-classify.js';
 import { deepSearchKeracunanMBG } from './search-apis.js';
+
+function TODAY() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default {
   // Cron Trigger handler
@@ -433,10 +437,17 @@ async function truncateAndRefetch(env) {
     ]);
     console.log(`[REFETCH] Deep search: ${deepArticles.length} articles, Scraped: ${scrapedArticles.length} articles`);
 
-    // Step 3: Merge articles from both sources
+    // Also fetch archive articles from pilot program period to today
+    const archiveArticles = await scrapeDateRangeArchive(env, '2024-10-01', TODAY()).catch(err => {
+      console.error('[REFETCH] Archive scrape failed:', err.message);
+      return [];
+    });
+    console.log(`[REFETCH] Archive scraped: ${archiveArticles.length} articles`);
+
+    // Step 3: Merge articles from all sources
     const seenUrls = new Set();
     const allArticles = [];
-    for (const article of [...deepArticles, ...scrapedArticles]) {
+    for (const article of [...deepArticles, ...scrapedArticles, ...archiveArticles]) {
       if (article.url && !seenUrls.has(article.url)) {
         seenUrls.add(article.url);
         allArticles.push(article);

@@ -1,5 +1,9 @@
-import { scrapeAll } from './scrapers/index.js';
+import { scrapeAll, scrapeDateRangeArchive } from './scrapers/index.js';
 import { classifyArticlesBatch } from './ai-classify.js';
+
+function TODAY() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 // Keywords that indicate non-incident articles (skip AI classification)
 const SKIP_KEYWORDS = ['hoaks', 'insentif', 'standar sppg', 'pengawasan', 'dinas kesehatan', 'regulasi', 'sop'];
@@ -247,7 +251,12 @@ export async function handleCron(env) {
     const articles = await scrapeAll(env);
     console.log(`[CRON] Scraped ${articles.length} articles`);
 
-    if (articles.length === 0) {
+    // Also fetch archive articles from pilot program period to today
+    const archiveArticles = await scrapeDateRangeArchive(env, '2024-10-01', TODAY());
+    console.log(`[CRON] Archive scraped ${archiveArticles.length} articles`);
+    const allArticles = [...articles, ...archiveArticles];
+
+    if (allArticles.length === 0) {
       console.log('[CRON] No articles found, skipping');
       await logCrawl(env, start, 0, 0, true, 'no-articles');
       return;
@@ -257,7 +266,7 @@ export async function handleCron(env) {
     const likelyIncidents = [];
     const likelyNonIncidents = [];
 
-    for (const article of articles) {
+    for (const article of allArticles) {
       const titleLower = (article.title || '').toLowerCase();
       const contentLower = (article.summary || '').toLowerCase();
       const text = titleLower + ' ' + contentLower;
