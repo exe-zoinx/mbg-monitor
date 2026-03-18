@@ -250,7 +250,7 @@ export async function deepSearchKeracunanMBG(env) {
     return [];
   }
 
-  // Core keyword queries for keracunan MBG
+  // Core keyword queries for keracunan MBG — all MUST include "keracunan"
   const queries = [
     'keracunan MBG',
     'keracunan makan bergizi gratis',
@@ -259,10 +259,9 @@ export async function deepSearchKeracunanMBG(env) {
     'keracunan makanan sekolah MBG',
     'sppg keracunan',
     'kasus keracunan makan bergizi gratis',
-    'MBG sakit perut mual',
     'keracunan makanan sekolah diare',
-    'MBG korban dirawat',
     'makan bergizi gratis keracunan',
+    'keracunan makanan sekolah siswa',
   ];
 
   // Date windows: quarterly from 2024-01 to present

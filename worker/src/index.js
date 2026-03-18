@@ -197,12 +197,14 @@ export default {
             return json({ ok: true, message: 'Completed with 0 incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
           }
 
-          // Step 3: Dedup and insert (deep search already targets MBG keracunan queries)
+          // Step 3: Filter for relevance, then dedup and insert
           const unique = deduplicateArticles(deepResults, []);
+          const relevant = unique.filter(a => isRelevantMBGPoisoning(a));
+          console.log(`[REFETCH] ${relevant.length}/${unique.length} articles passed relevance filter`);
           let incidentsAdded = 0;
           const BATCH_SIZE = 10;
-          for (let i = 0; i < unique.length; i += BATCH_SIZE) {
-            const batch = unique.slice(i, i + BATCH_SIZE);
+          for (let i = 0; i < relevant.length; i += BATCH_SIZE) {
+            const batch = relevant.slice(i, i + BATCH_SIZE);
             const stmts = batch.map(article =>
               env.DB.prepare(`
                 INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
@@ -452,6 +454,10 @@ export default {
           const start = Date.now();
           const articles = await deepSearchKeracunanMBG(env);
 
+          // Filter for relevance
+          const relevant = articles.filter(a => isRelevantMBGPoisoning(a));
+          console.log(`[DEEP-SEARCH] ${relevant.length}/${articles.length} articles passed relevance filter`);
+
           // Dedup against existing URLs
           const existingUrls = new Set();
           try {
@@ -461,7 +467,7 @@ export default {
 
           let inserted = 0;
           const insertErrors = [];
-          for (const article of articles) {
+          for (const article of relevant) {
             if (!article.url || existingUrls.has(article.url)) continue;
             try {
               await env.DB.prepare(`
@@ -492,8 +498,9 @@ export default {
             ok: true,
             duration_ms: duration,
             total_articles: articles.length,
+            relevant_articles: relevant.length,
             new_articles: inserted,
-            duplicates_skipped: articles.length - inserted - insertErrors.length,
+            duplicates_skipped: relevant.length - inserted - insertErrors.length,
             insert_errors: insertErrors.length,
             errors: insertErrors.slice(0, 10),
           }, 200, corsHeaders);
@@ -526,6 +533,29 @@ export default {
     }
   },
 };
+
+/**
+ * Relevance filter for MBG poisoning articles.
+ * An article is relevant if:
+ *   - Title or content contains "keracunan" AND at least one of: mbg, makan bergizi gratis, sppg, makanan sekolah, dapur sekolah
+ *   - OR contains "keracunan" AND (sekolah OR siswa OR murid) AND (makanan OR makan)
+ */
+function isRelevantMBGPoisoning(article) {
+  const title = (article.title || '').toLowerCase();
+  const content = (article.summary || article.content || '').toLowerCase();
+  const text = title + ' ' + content;
+
+  const hasKeracunan = /keracunan/.test(text);
+  if (!hasKeracunan) return false;
+
+  // Exclude hoax/debunked articles
+  if (/hoaks|tidak benar|disinformasi|klarifikasi|bantahan/.test(text)) return false;
+
+  const hasMBGDirect = /mbg|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/.test(text);
+  const hasSchoolFood = /sekolah|siswa|murid/.test(text) && /makanan|makan/.test(text);
+
+  return hasMBGDirect || hasSchoolFood;
+}
 
 function json(data, status = 200, extra = {}) {
   return new Response(JSON.stringify(data), {

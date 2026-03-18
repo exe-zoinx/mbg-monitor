@@ -323,9 +323,10 @@ export async function handleCron(env) {
       // No AI binding — use heuristic (from ai-classify module)
       console.log('[CRON] No AI binding, using heuristic classification');
       for (const article of toClassify) {
-        // Simple heuristic: if title has "keracunan" and "MBG" it's likely an incident
+        // Simple heuristic: if title has "keracunan" and MBG-related keyword
         const titleLower = (article.title || '').toLowerCase();
-        if (titleLower.includes('keracunan') && titleLower.includes('mbg') && !titleLower.includes('hoaks')) {
+        const hasMBG = /mbg|sppg|makan bergizi|makanan sekolah/.test(titleLower);
+        if (titleLower.includes('keracunan') && hasMBG && !titleLower.includes('hoaks')) {
           incidentArticles.push(article);
         }
       }
@@ -335,7 +336,10 @@ export async function handleCron(env) {
     const remaining = likelyIncidents.slice(10);
     for (const article of remaining) {
       const titleLower = (article.title || '').toLowerCase();
-      if (titleLower.includes('keracunan') && !titleLower.includes('hoaks') && !titleLower.includes('sembuh')) {
+      const contentLower = (article.summary || '').toLowerCase();
+      const text = titleLower + ' ' + contentLower;
+      const hasMBG = /mbg|sppg|makan bergizi|makanan sekolah/.test(text);
+      if (titleLower.includes('keracunan') && hasMBG && !titleLower.includes('hoaks') && !titleLower.includes('sembuh')) {
         incidentArticles.push(article);
       }
     }

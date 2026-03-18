@@ -238,7 +238,7 @@ export function heuristicClassify(article) {
 
   // Check for INCIDENT indicators - any article mentioning keracunan + MBG/SPPG
   const hasKeracunan = /keracunan/.test(text);
-  const hasMBG = /mbg|sppg|makan bergizi/.test(text);
+  const hasMBG = /mbg|sppg|makan bergizi|makanan sekolah|dapur sekolah/.test(text);
   const hasExclusion = /hoaks|tidak benar|tidak terkait|bukan.*mbg/.test(text);
   
   if (hasKeracunan && hasMBG && !hasExclusion) {

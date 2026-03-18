@@ -414,16 +414,16 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
               }}
               style={{
                 fontFamily: 'var(--mo)',
-                fontSize: 12,
-                padding: '6px 10px',
+                fontSize: 11,
+                padding: '3px 6px',
                 borderRadius: 3,
                 border: '1px solid var(--bd)',
                 background: 'var(--sf2)',
                 color: 'var(--blu)',
                 cursor: 'pointer',
                 lineHeight: 1.4,
-                minHeight: 28,
-                minWidth: 44,
+                minHeight: 22,
+                minWidth: 36,
               }}
             >
               ↗ Buka
