@@ -46,6 +46,9 @@ export const CAT_SHORT = {
   mbg: 'MBG',
 };
 
+// Keywords for identifying MBG-related incidents
+export const MBG_KEYWORDS = ['mbg', 'makan bergizi', 'sppg', 'makanan sekolah', 'dapur sekolah', 'sekolah', 'program makan'];
+
 export function fmtDate(d) {
   if (!d) return '—';
   try {

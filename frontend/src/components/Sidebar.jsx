@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { CATEGORIES, CAT_SHORT, COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
+import { CAT_SHORT, COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
   incidents,
@@ -26,6 +26,9 @@ export default function Sidebar({
   }, [setSearch]);
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  // Filter tabs - show only key categories to avoid overlap
+  const FILTER_CATS = ['all', 'keracunan', 'sppg', 'laporan'];
 
   return (
     <aside
@@ -179,48 +182,49 @@ export default function Sidebar({
         />
       </div>
 
-      {/* Filter tabs */}
+      {/* Filter tabs - horizontal scrollable pill design */}
       <div style={{
         display: 'flex',
+        gap: 8,
+        padding: '10px 12px',
         borderBottom: '1px solid var(--bd)',
         flexShrink: 0,
         overflowX: 'auto',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
       }}>
-        {CATEGORIES.map(cat => (
+        {FILTER_CATS.map(cat => (
           <button
             key={cat}
             onClick={() => setFilterCat(cat)}
             style={{
-              flex: 1,
-              minWidth: 50,
-              padding: '14px 6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 12px',
               fontFamily: 'var(--mo)',
               fontSize: 11,
+              fontWeight: 500,
               letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              color: filterCat === cat ? 'var(--tx)' : 'var(--mu)',
+              color: filterCat === cat ? '#fff' : 'var(--tx)',
               textAlign: 'center',
               cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-              borderBottomWidth: 2,
-              borderBottomStyle: 'solid',
-              borderBottomColor: filterCat === cat ? 'var(--red)' : 'transparent',
-              whiteSpace: 'nowrap',
-              minHeight: 44,
-            }}
-          >
-            {CAT_SHORT[cat]}{' '}
-            <span style={{
-              display: 'inline-block',
               background: filterCat === cat ? 'var(--red)' : 'var(--sf2)',
               border: `1px solid ${filterCat === cat ? 'var(--red)' : 'var(--bd)'}`,
-              borderRadius: 6,
-              padding: '0 4px',
+              borderRadius: 20,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {CAT_SHORT[cat]}
+            <span style={{
+              background: filterCat === cat ? 'rgba(255,255,255,0.25)' : 'var(--bd)',
+              borderRadius: 10,
+              padding: '2px 6px',
               fontSize: 10,
-              marginLeft: 2,
-              lineHeight: 1.4,
-              color: filterCat === cat ? '#fff' : undefined,
+              fontWeight: 600,
+              color: filterCat === cat ? '#fff' : 'var(--mu)',
             }}>
               {cat === 'all' ? stats.total : stats[cat] || 0}
             </span>
@@ -318,14 +322,14 @@ function StatsRow({ stats }) {
       flexShrink: 0,
     }}>
       {items.map((item, i) => (
-        <div key={i} style={{ background: 'var(--sf)', padding: '10px 14px' }}>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
+        <div key={i} style={{ background: 'var(--sf)', padding: '8px 12px' }}>
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
             {item.label}
           </div>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 24, fontWeight: 700, lineHeight: 1, color: item.color }}>
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: item.color }}>
             {item.value}
           </div>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 1 }}>
             {item.sub}
           </div>
         </div>

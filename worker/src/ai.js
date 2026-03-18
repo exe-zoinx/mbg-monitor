@@ -16,7 +16,7 @@ URL: ${article.url}
 Content: ${article.summary || 'No content available'}
 
 Respond with a JSON object containing:
-- "summary": A concise 1-2 sentence summary in Indonesian, focusing on the MBG-related incident details
+- "summary": Ringkasan SATU kalimat dalam Bahasa Indonesia, maksimal 80 karakter. Fokus pada fakta kunci: apa yang terjadi, di mana, berapa korban.
 - "tag": One of: "keracunan" (food poisoning), "sppg" (kitchen/facility issues), "kecelakaan" (accidents), "tewas" (deaths), "mbg" (general MBG news), "lainnya" (other)
 - "severity": "high", "medium", or "low" based on number of victims and impact
 - "victims": Estimated number of victims mentioned (0 if none)
@@ -30,12 +30,12 @@ Respond with a JSON object containing:
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 512,
+          maxOutputTokens: 128,
           responseMimeType: 'application/json',
           responseSchema: {
             type: 'object',
             properties: {
-              summary: { type: 'string' },
+              summary: { type: 'string', description: 'Ringkasan SATU kalimat maksimal 80 karakter dalam Bahasa Indonesia' },
               tag: { type: 'string', enum: ['keracunan', 'sppg', 'kecelakaan', 'tewas', 'mbg', 'lainnya'] },
               severity: { type: 'string', enum: ['high', 'medium', 'low'] },
               victims: { type: 'integer' },

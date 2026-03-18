@@ -125,33 +125,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         className="map-overlays"
       >
         <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
-        <OverlayPanel color="var(--amb)" value={stats.victims.toLocaleString('id-ID')} label={['total', 'korban']} />
-      </div>
-      {/* Legend */}
-      <div style={{
-        position: 'absolute',
-        bottom: 24,
-        right: 14,
-        zIndex: 500,
-        background: 'rgba(9,12,16,0.88)',
-        border: '1px solid var(--bd2)',
-        borderRadius: 8,
-        padding: '10px 13px',
-        backdropFilter: 'blur(10px)',
-      }}
-        className="map-legend"
-      >
-        <div className="map-legend-inner">
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>
-            Jenis Insiden
-          </div>
-          {Object.entries(TLBL).filter(([k]) => k !== 'lainnya').map(([key, label]) => (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5, fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--tx)' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: COL[key], flexShrink: 0 }} />
-              {label}
-            </div>
-          ))}
-        </div>
+        <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
       </div>
 
       <style>{`
@@ -178,15 +152,6 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           }
           .map-overlays .overlay-label {
             font-size: 7px !important;
-          }
-          .map-legend {
-            bottom: 80px !important;
-            right: 8px !important;
-            max-width: calc(100vw - 16px) !important;
-            padding: 6px 8px !important;
-          }
-          .map-legend-inner {
-            padding: 0 !important;
           }
         }
       `}</style>
