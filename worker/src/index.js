@@ -7,6 +7,19 @@ function TODAY() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function truncateNote(text, maxLen = 200) {
+  if (!text) return '';
+  // Remove HTML tags if any
+  const clean = text.replace(/<[^>]*>/g, '').trim();
+  if (clean.length <= maxLen) return clean;
+  // Find last sentence boundary before maxLen
+  const truncated = clean.slice(0, maxLen);
+  const lastPeriod = truncated.lastIndexOf('.');
+  const lastSpace = truncated.lastIndexOf(' ');
+  const cutAt = lastPeriod > maxLen * 0.5 ? lastPeriod + 1 : lastSpace;
+  return truncated.slice(0, cutAt > 0 ? cutAt : maxLen).trim() + '...';
+}
+
 export default {
   // Cron Trigger handler
   async scheduled(event, env, ctx) {
@@ -96,7 +109,7 @@ export default {
               article.title,
               article.location || 'Indonesia',
               article.victims || 0,
-              article.summary || '',
+              truncateNote(article.summary),
               article.source || 'Unknown',
               article.url,
               0,
@@ -222,7 +235,8 @@ export default {
                 article.title,
                 article.location || 'Indonesia',
                 article.victims || 0,
-                article.summary || '',
+                article.victims || 0,
+                truncateNote(article.summary),
                 article.source || 'Unknown',
                 article.url,
                 0,
@@ -245,7 +259,7 @@ export default {
                     article.title,
                     article.location || 'Indonesia',
                     article.victims || 0,
-                    article.summary || '',
+                    truncateNote(article.summary),
                     article.source || 'Unknown',
                     article.url,
                     0,
@@ -493,7 +507,8 @@ export default {
                 article.title,
                 'Indonesia',
                 0,
-                article.summary || '',
+                article.victims || 0,
+                truncateNote(article.summary),
                 article.source || 'Unknown',
                 article.url,
                 0,

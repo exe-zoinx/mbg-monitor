@@ -208,7 +208,7 @@ function popHTML(inc) {
     <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>📍</span><span style="color:var(--tx)">${esc(inc.loc)}</span></div>
     <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>📅</span><span style="color:var(--tx)">${fmtDate(inc.date)}</span></div>
     ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>🚑</span><span style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
-    <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc(inc.note || '')}</div>
+    <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
     <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">📰 ${esc(inc.source || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Baca ↗</a>` : ''}</div>
   </div>`;
 }
