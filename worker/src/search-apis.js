@@ -289,6 +289,27 @@ export async function deepSearchKeracunanMBG(env) {
           if (results?.length) {
             console.log(`[DEEP] Tavily "${query}" [${win.label}]: ${results.length}`);
             allArticles.push(...results);
+          } else if (exaKey) {
+            const exaResults = await searchExa(query, exaKey, {
+              startDate: win.start,
+              endDate: win.end,
+              maxResults: 10,
+            });
+            if (exaResults?.length) {
+              console.log(`[DEEP] Exa "${query}" [${win.label}]: ${exaResults.length}`);
+              allArticles.push(...exaResults);
+            }
+          }
+          await delay(400);
+        } else if (exaKey) {
+          const exaResults = await searchExa(query, exaKey, {
+            startDate: win.start,
+            endDate: win.end,
+            maxResults: 10,
+          });
+          if (exaResults?.length) {
+            console.log(`[DEEP] Exa "${query}" [${win.label}]: ${exaResults.length}`);
+            allArticles.push(...exaResults);
           }
           await delay(400);
         }
@@ -309,11 +330,30 @@ export async function deepSearchKeracunanMBG(env) {
         if (results?.length) {
           console.log(`[DEEP] Tavily "${query}" [all time]: ${results.length}`);
           allArticles.push(...results);
+        } else if (exaKey) {
+          const exaResults = await searchExa(query, exaKey, {
+            startDate: '2024-01-01',
+            maxResults: 10,
+          });
+          if (exaResults?.length) {
+            console.log(`[DEEP] Exa "${query}" [all time]: ${exaResults.length}`);
+            allArticles.push(...exaResults);
+          }
+        }
+        await delay(400);
+      } else if (exaKey) {
+        const exaResults = await searchExa(query, exaKey, {
+          startDate: '2024-01-01',
+          maxResults: 10,
+        });
+        if (exaResults?.length) {
+          console.log(`[DEEP] Exa "${query}" [all time]: ${exaResults.length}`);
+          allArticles.push(...exaResults);
         }
         await delay(400);
       }
     } catch (err) {
-      console.warn(`[DEEP] Tavily error: ${err.message}`);
+      console.warn(`[DEEP] Search error: ${err.message}`);
     }
   }
 

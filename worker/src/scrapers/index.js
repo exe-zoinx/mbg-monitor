@@ -41,6 +41,8 @@ const MAX_ARTICLE_FETCHES = 5; // Max individual article page fetches per crawl
 /**
  * Main scrape function — multi-source using direct HTTP fetch
  */
+export { extractVictims, extractLocation };
+
 export async function scrapeAll(env) {
   const allArticles = [];
   const seen = new Set();

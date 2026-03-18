@@ -1,5 +1,5 @@
 import { handleCron, deduplicateArticles } from './cron.js';
-import { scrapeAll } from './scrapers/index.js';
+import { scrapeAll, extractVictims, extractLocation } from './scrapers/index.js';
 import { classifyArticlesBatch, classifyArticle, heuristicClassify } from './ai-classify.js';
 import { deepSearchKeracunanMBG } from './search-apis.js';
 
@@ -197,8 +197,13 @@ export default {
             return json({ ok: true, message: 'Completed with 0 incidents', duration_ms: Date.now() - start }, 200, corsHeaders);
           }
 
-          // Step 3: Filter for relevance, then dedup and insert
+          // Step 3: Extract victims and location, filter for relevance, then dedup and insert
           const unique = deduplicateArticles(deepResults, []);
+          for (const article of unique) {
+            article.victims = extractVictims(article.title, article.summary || article.note || '');
+            const locData = extractLocation(article.title, article.summary || article.note || '');
+            if (locData) { article.location = locData.city; article.lat = locData.lat; article.lng = locData.lng; }
+          }
           const relevant = unique.filter(a => isRelevantMBGPoisoning(a));
           console.log(`[REFETCH] ${relevant.length}/${unique.length} articles passed relevance filter`);
           let incidentsAdded = 0;
@@ -454,6 +459,13 @@ export default {
           const start = Date.now();
           const articles = await deepSearchKeracunanMBG(env);
 
+          // Extract victims and location before filtering
+          for (const article of articles) {
+            article.victims = extractVictims(article.title, article.summary || article.note || '');
+            const locData = extractLocation(article.title, article.summary || article.note || '');
+            if (locData) { article.location = locData.city; article.lat = locData.lat; article.lng = locData.lng; }
+          }
+
           // Filter for relevance
           const relevant = articles.filter(a => isRelevantMBGPoisoning(a));
           console.log(`[DEEP-SEARCH] ${relevant.length}/${articles.length} articles passed relevance filter`);
@@ -536,25 +548,45 @@ export default {
 
 /**
  * Relevance filter for MBG poisoning articles.
- * An article is relevant if:
- *   - Title or content contains "keracunan" AND at least one of: mbg, makan bergizi gratis, sppg, makanan sekolah, dapur sekolah
- *   - OR contains "keracunan" AND (sekolah OR siswa OR murid) AND (makanan OR makan)
+ * Requires BOTH a poisoning keyword AND an MBG/school context keyword.
+ * Applies negative filters to exclude prevention, positive health, and policy articles.
+ * Only checks title + note (summary) — NOT the full article body which may have boilerplate.
  */
 function isRelevantMBGPoisoning(article) {
   const title = (article.title || '').toLowerCase();
-  const content = (article.summary || article.content || '').toLowerCase();
-  const text = title + ' ' + content;
-
-  const hasKeracunan = /keracunan/.test(text);
-  if (!hasKeracunan) return false;
+  const note = (article.summary || article.note || '').toLowerCase();
+  const text = title + ' ' + note;
 
   // Exclude hoax/debunked articles
   if (/hoaks|tidak benar|disinformasi|klarifikasi|bantahan/.test(text)) return false;
 
-  const hasMBGDirect = /mbg|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/.test(text);
-  const hasSchoolFood = /sekolah|siswa|murid/.test(text) && /makanan|makan/.test(text);
+  // Exclude tag/category pages
+  if (/^tag\s*:/.test(title) || /^kategori\s*:/.test(title)) return false;
 
-  return hasMBGDirect || hasSchoolFood;
+  // Exclude educational/how-to articles about poisoning without incident context
+  if (/penyebab/.test(title) && /keracunan/.test(title) && !/korban|dirawat|siswa|murid|warga|orang/.test(text)) return false;
+  if (/^cara\s/.test(title) && /keracunan/.test(title) && !/korban|dirawat|siswa|murid|warga|orang/.test(text)) return false;
+
+  // Negative filter: reject clearly non-poisoning articles
+  if (/cegah/.test(title) && /penyakit/.test(title)) return false;       // prevention article
+  if (/tingkatkan/.test(title) && /kesehatan/.test(title)) return false; // positive health article
+  if (/akan/.test(title) && !/keracunan/.test(title)) return false;       // policy/future article
+
+  // Negative filter: reject first aid, explanatory, and non-incident articles
+  if (/pertolongan\s+pertama/.test(title)) return false;                  // first aid article
+  if (/cara\s+penanganan/.test(title)) return false;                      // how-to-handle guide
+  if (/^mengapa\s/.test(title)) return false;                             // explanatory "why" article
+  if (/^bahaya/.test(title)) return false;                                // dangers-of article
+  if (/keracunan/.test(title) && /kecubung|metanol|gas/.test(title)) return false; // not food poisoning
+  if (/di\s+berbagai\s+negara/.test(text)) return false;                  // international comparison
+  if (/^pembelajaran\s+dari/.test(title)) return false;                   // lessons-learned article
+
+  // Require: poisoning keyword AND (MBG context OR incident indicator)
+  const hasPoisoning = /keracunan/.test(text);
+  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/.test(text);
+  const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
+
+  return hasPoisoning && (hasMBGContext || hasIncidentIndicator);
 }
 
 function json(data, status = 200, extra = {}) {
