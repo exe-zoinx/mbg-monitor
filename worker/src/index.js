@@ -20,6 +20,45 @@ function truncateNote(text, maxLen = 200) {
   return truncated.slice(0, cutAt > 0 ? cutAt : maxLen).trim() + '...';
 }
 
+async function summarizeWithAI(text, env) {
+  if (!env.AI_API_KEY) {
+    return truncateNote(text);
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.AI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that summarizes news articles in Indonesian.' },
+          { role: 'user', content: `Summarize this article in 1-2 sentences: ${text}` },
+        ],
+        max_tokens: 100,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const summary = data.choices?.[0]?.message?.content?.trim();
+    if (summary) {
+      return summary;
+    }
+  } catch (err) {
+    console.error(`[AI Summarization] Failed: ${err.message}`);
+  }
+
+  return truncateNote(text);
+}
+
 export default {
   // Cron Trigger handler
   async scheduled(event, env, ctx) {
@@ -98,6 +137,7 @@ export default {
         for (const article of incidents) {
           if (!article.url || existingUrls.has(article.url)) continue;
           try {
+            const summary = await summarizeWithAI(article.summary, env);
             await env.DB.prepare(`
               INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -109,7 +149,7 @@ export default {
               article.title,
               article.location || 'Indonesia',
               article.victims || 0,
-              truncateNote(article.summary),
+              summary,
               article.source || 'Unknown',
               article.url,
               0,
@@ -223,8 +263,10 @@ export default {
           const BATCH_SIZE = 10;
           for (let i = 0; i < relevant.length; i += BATCH_SIZE) {
             const batch = relevant.slice(i, i + BATCH_SIZE);
-            const stmts = batch.map(article =>
-              env.DB.prepare(`
+            const stmts = [];
+            for (const article of batch) {
+              const summary = await summarizeWithAI(article.summary, env);
+              stmts.push(env.DB.prepare(`
                 INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `).bind(
@@ -235,19 +277,19 @@ export default {
                 article.title,
                 article.location || 'Indonesia',
                 article.victims || 0,
-                article.victims || 0,
-                truncateNote(article.summary),
+                summary,
                 article.source || 'Unknown',
                 article.url,
                 0,
-              )
-            );
+              ));
+            }
             try {
               await env.DB.batch(stmts);
               incidentsAdded += batch.length;
             } catch (batchErr) {
               for (const article of batch) {
                 try {
+                  const summary = await summarizeWithAI(article.summary, env);
                   await env.DB.prepare(`
                     INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -259,7 +301,7 @@ export default {
                     article.title,
                     article.location || 'Indonesia',
                     article.victims || 0,
-                    truncateNote(article.summary),
+                    summary,
                     article.source || 'Unknown',
                     article.url,
                     0,
@@ -496,6 +538,7 @@ export default {
           for (const article of relevant) {
             if (!article.url || existingUrls.has(article.url)) continue;
             try {
+              const summary = await summarizeWithAI(article.summary, env);
               await env.DB.prepare(`
                 INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -508,7 +551,7 @@ export default {
                 'Indonesia',
                 0,
                 article.victims || 0,
-                truncateNote(article.summary),
+                summary,
                 article.source || 'Unknown',
                 article.url,
                 0,
@@ -598,7 +641,7 @@ function isRelevantMBGPoisoning(article) {
 
   // Require: poisoning keyword AND (MBG context OR incident indicator)
   const hasPoisoning = /keracunan/.test(text);
-  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/.test(text);
+  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(text);
   const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
 
   return hasPoisoning && (hasMBGContext || hasIncidentIndicator);
