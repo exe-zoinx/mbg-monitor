@@ -22,7 +22,7 @@ function truncateNote(text, maxLen = 200) {
 
 async function summarizeWithAI(text, env) {
   if (!env.AI_API_KEY) {
-    return truncateNote(text);
+    return truncateNote(text, 80);
   }
 
   try {
@@ -50,13 +50,13 @@ async function summarizeWithAI(text, env) {
     const data = await response.json();
     const summary = data.choices?.[0]?.message?.content?.trim();
     if (summary) {
-      return summary;
+      return truncateNote(summary, 80);
     }
   } catch (err) {
     console.error(`[AI Summarization] Failed: ${err.message}`);
   }
 
-  return truncateNote(text);
+  return truncateNote(text, 80);
 }
 
 export default {
@@ -639,12 +639,12 @@ function isRelevantMBGPoisoning(article) {
   if (/di\s+berbagai\s+negara/.test(text)) return false;                  // international comparison
   if (/^pembelajaran\s+dari/.test(title)) return false;                   // lessons-learned article
 
-  // Require: poisoning keyword AND (MBG context OR incident indicator)
+  // Require: poisoning keyword AND MBG context
   const hasPoisoning = /keracunan/.test(text);
   const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(text);
   const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
 
-  return hasPoisoning && (hasMBGContext || hasIncidentIndicator);
+  return hasPoisoning && hasMBGContext;
 }
 
 function json(data, status = 200, extra = {}) {
