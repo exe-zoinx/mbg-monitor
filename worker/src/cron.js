@@ -88,9 +88,9 @@ function isRelevantMBGPoisoning(article) {
   if (/di\s+berbagai\s+negara/.test(text)) return false;                  // international comparison
   if (/^pembelajaran\s+dari/.test(title)) return false;                   // lessons-learned article
 
-  // Require: poisoning keyword AND MBG context
+  // Require: poisoning keyword AND MBG context (MBG must be in TITLE only, not body)
   const hasPoisoning = /keracunan/.test(text);
-  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(text);
+  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(title);
   const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
 
   return hasPoisoning && hasMBGContext;
