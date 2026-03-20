@@ -16,3 +16,5 @@ id      = "c41e9797e4634a03bb192a32cd712f21"
 # Secrets — set via CLI:
 #   wrangler pages secret put REFRESH_SECRET
 #   wrangler pages secret put AI_API_KEY
+#   wrangler pages secret put KILO_API_KEY
+#   wrangler pages secret put KILO_MODEL

@@ -1,6 +1,101 @@
 import { scrapeAll, scrapeDateRangeArchive } from './scrapers/index.js';
 import { classifyArticlesBatch } from './ai-classify.js';
 
+// Helper functions for AI summarization and filtering (from index.js)
+function truncateNote(text, maxLen = 80) {
+  if (!text) return '';
+  // Remove HTML tags if any
+  const clean = text.replace(/<[^>]*>/g, '').trim();
+  if (clean.length <= maxLen) return clean;
+  // Find last sentence boundary before maxLen
+  const truncated = clean.slice(0, maxLen);
+  const lastPeriod = truncated.lastIndexOf('.');
+  const lastSpace = truncated.lastIndexOf(' ');
+  const cutAt = lastPeriod > maxLen * 0.5 ? lastPeriod + 1 : lastSpace;
+  return truncated.slice(0, cutAt > 0 ? cutAt : maxLen).trim() + '...';
+}
+
+async function summarizeWithAI(text, env) {
+  if (!env.KILO_API_KEY) {
+    return truncateNote(text, 80);
+  }
+
+  try {
+    const response = await fetch('https://api.kilo.chat/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.KILO_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: env.KILO_MODEL || 'nemotron-3-super-120b-a12b',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that summarizes news articles in Indonesian.' },
+          { role: 'user', content: `Summarize this article in 1-2 sentences: ${text}` },
+        ],
+        max_tokens: 100,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Kilo API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const summary = data.choices?.[0]?.message?.content?.trim();
+    if (summary) {
+      return truncateNote(summary, 80);
+    }
+  } catch (err) {
+    console.error(`[AI Summarization] Failed: ${err.message}`);
+  }
+
+  return truncateNote(text, 80);
+}
+
+/**
+ * Check if article is a relevant MBG poisoning incident.
+ * Applies negative filters to exclude prevention, positive health, and policy articles.
+ * Only checks title + note (summary) — NOT the full article body which may have boilerplate.
+ */
+function isRelevantMBGPoisoning(article) {
+  const title = (article.title || '').toLowerCase();
+  const note = (article.summary || article.note || '').toLowerCase();
+  const text = title + ' ' + note;
+
+  // Exclude hoax/debunked articles
+  if (/hoaks|tidak benar|disinformasi|klarifikasi|bantahan/.test(text)) return false;
+
+  // Exclude tag/category pages
+  if (/^tag\s*:/.test(title) || /^kategori\s*:/.test(title)) return false;
+
+  // Exclude educational/how-to articles about poisoning without incident context
+  if (/penyebab/.test(title) && /keracunan/.test(title) && !/korban|dirawat|siswa|murid|warga|orang/.test(text)) return false;
+  if (/^cara\s/.test(title) && /keracunan/.test(title) && !/korban|dirawat|siswa|murid|warga|orang/.test(text)) return false;
+
+  // Negative filter: reject clearly non-poisoning articles
+  if (/cegah/.test(title) && /penyakit/.test(title)) return false;       // prevention article
+  if (/tingkatkan/.test(title) && /kesehatan/.test(title)) return false; // positive health article
+  if (/akan/.test(title) && !/keracunan/.test(title)) return false;       // policy/future article
+
+  // Negative filter: reject first aid, explanatory, and non-incident articles
+  if (/pertolongan\s+pertama/.test(title)) return false;                  // first aid article
+  if (/cara\s+penanganan/.test(title)) return false;                      // how-to-handle guide
+  if (/^mengapa\s/.test(title)) return false;                             // explanatory "why" article
+  if (/^bahaya/.test(title)) return false;                                // dangers-of article
+  if (/keracunan/.test(title) && /kecubung|metanol|gas/.test(title)) return false; // not food poisoning
+  if (/di\s+berbagai\s+negara/.test(text)) return false;                  // international comparison
+  if (/^pembelajaran\s+dari/.test(title)) return false;                   // lessons-learned article
+
+  // Require: poisoning keyword AND MBG context
+  const hasPoisoning = /keracunan/.test(text);
+  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(text);
+  const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
+
+  return hasPoisoning && hasMBGContext;
+}
+
 function TODAY() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -320,26 +415,19 @@ export async function handleCron(env) {
         });
       }
     } else if (toClassify.length > 0 && !env.AI) {
-      // No AI binding — use heuristic (from ai-classify module)
-      console.log('[CRON] No AI binding, using heuristic classification');
+      // No AI binding — use isRelevantMBGPoisoning filter
+      console.log('[CRON] No AI binding, using isRelevantMBGPoisoning filter');
       for (const article of toClassify) {
-        // Simple heuristic: if title has "keracunan" and MBG-related keyword
-        const titleLower = (article.title || '').toLowerCase();
-        const hasMBG = /mbg|sppg|makan bergizi|makanan sekolah/.test(titleLower);
-        if (titleLower.includes('keracunan') && hasMBG && !titleLower.includes('hoaks')) {
+        if (isRelevantMBGPoisoning(article)) {
           incidentArticles.push(article);
         }
       }
     }
 
-    // Also add remaining likely incidents (beyond AI limit) with simple heuristic
+    // Also add remaining likely incidents (beyond AI limit) with isRelevantMBGPoisoning filter
     const remaining = likelyIncidents.slice(10);
     for (const article of remaining) {
-      const titleLower = (article.title || '').toLowerCase();
-      const contentLower = (article.summary || '').toLowerCase();
-      const text = titleLower + ' ' + contentLower;
-      const hasMBG = /mbg|sppg|makan bergizi|makanan sekolah/.test(text);
-      if (titleLower.includes('keracunan') && hasMBG && !titleLower.includes('hoaks') && !titleLower.includes('sembuh')) {
+      if (isRelevantMBGPoisoning(article)) {
         incidentArticles.push(article);
       }
     }
@@ -388,12 +476,21 @@ export async function handleCron(env) {
 
     console.log(`[CRON] ${newArticles.length} new incidents to insert`);
 
-    // Step 5: Batch insert
+    // Step 5: Batch insert with AI-summarized notes
     if (newArticles.length > 0) {
       const BATCH_SIZE = 10;
       for (let i = 0; i < newArticles.length; i += BATCH_SIZE) {
         const batch = newArticles.slice(i, i + BATCH_SIZE);
-        const stmts = batch.map(article =>
+        
+        // Summarize notes for all articles in batch first
+        const summarizedBatch = await Promise.all(
+          batch.map(async (article) => {
+            const summary = await summarizeWithAI(article.summary || '', env);
+            return { ...article, summary };
+          })
+        );
+
+        const stmts = summarizedBatch.map(article =>
           env.DB.prepare(`
             INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -417,7 +514,7 @@ export async function handleCron(env) {
           incidentsAdded += batch.length;
         } catch (batchErr) {
           console.warn(`[CRON] Batch insert failed, trying individual:`, batchErr.message);
-          for (const article of batch) {
+          for (const article of summarizedBatch) {
             try {
               await env.DB.prepare(`
                 INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)

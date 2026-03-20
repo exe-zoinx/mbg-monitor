@@ -7,7 +7,7 @@ function TODAY() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function truncateNote(text, maxLen = 200) {
+function truncateNote(text, maxLen = 80) {
   if (!text) return '';
   // Remove HTML tags if any
   const clean = text.replace(/<[^>]*>/g, '').trim();
@@ -21,19 +21,19 @@ function truncateNote(text, maxLen = 200) {
 }
 
 async function summarizeWithAI(text, env) {
-  if (!env.AI_API_KEY) {
+  if (!env.KILO_API_KEY) {
     return truncateNote(text, 80);
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.kilo.chat/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.AI_API_KEY}`,
+        'Authorization': `Bearer ${env.KILO_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: env.KILO_MODEL || 'nemotron-3-super-120b-a12b',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that summarizes news articles in Indonesian.' },
           { role: 'user', content: `Summarize this article in 1-2 sentences: ${text}` },
@@ -44,7 +44,7 @@ async function summarizeWithAI(text, env) {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Kilo API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
