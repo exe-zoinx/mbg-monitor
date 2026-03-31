@@ -50,7 +50,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 1: Antara (antaranews.com) — static HTML scraping (primary source)
   console.log('[SCRAPE] Starting Antara scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 3)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const url1 = `https://www.antaranews.com/search?q=${encodeURIComponent(query)}`;
       const articles1 = await scrapeAntaraSearch(url1);
@@ -79,7 +79,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 2: Kompas (kompas.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Kompas scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const urls = await extractKompasUrls(query);
       if (urls.length) console.log(`[Kompas] "${query}": ${urls.length} URLs found`);
@@ -102,7 +102,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 3: Detik (detik.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Detik scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeDetikSearch(query);
       if (articles.length) console.log(`[Detik] "${query}": ${articles.length}`);
@@ -115,7 +115,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 4: Tempo (tempo.co) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Tempo scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeTempoSearch(query);
       if (articles.length) console.log(`[Tempo] "${query}": ${articles.length}`);
@@ -128,7 +128,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 5: Liputan6 (liputan6.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Liputan6 scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeLiputan6Search(query);
       if (articles.length) console.log(`[Liputan6] "${query}": ${articles.length}`);
@@ -141,7 +141,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 6: CNN Indonesia (cnnindonesia.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting CNN Indonesia scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeCNNIndonesiaSearch(query);
       if (articles.length) console.log(`[CNN Indonesia] "${query}": ${articles.length}`);
@@ -154,7 +154,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 7: Tribun (tribunnews.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Tribun scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeTribunSearch(query);
       if (articles.length) console.log(`[Tribun] "${query}": ${articles.length}`);
@@ -167,7 +167,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 8: Tirto (tirto.id) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Tirto scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeTirtoSearch(query);
       if (articles.length) console.log(`[Tirto] "${query}": ${articles.length}`);
@@ -180,7 +180,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 9: Suara (suara.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Suara scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeSuaraSearch(query);
       if (articles.length) console.log(`[Suara] "${query}": ${articles.length}`);
@@ -193,7 +193,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 10: Okezone (okezone.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Okezone scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeOkezoneSearch(query);
       if (articles.length) console.log(`[Okezone] "${query}": ${articles.length}`);
@@ -206,7 +206,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 11: Sindonews (sindonews.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Sindonews scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeSindoSearch(query);
       if (articles.length) console.log(`[Sindonews] "${query}": ${articles.length}`);
@@ -219,7 +219,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 12: Kumparan (kumparan.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Kumparan scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeKumparanSearch(query);
       if (articles.length) console.log(`[Kumparan] "${query}": ${articles.length}`);
@@ -232,7 +232,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 13: Republika (republika.co.id) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Republika scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeRepublikaSearch(query);
       if (articles.length) console.log(`[Republika] "${query}": ${articles.length}`);
@@ -245,7 +245,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 14: Viva (viva.co.id) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Viva scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeVivaSearch(query);
       if (articles.length) console.log(`[Viva] "${query}": ${articles.length}`);
@@ -258,7 +258,7 @@ export async function scrapeAll(env) {
 
   // SOURCE 15: Merdeka (merdeka.com) — search HTML + article page fetching
   console.log('[SCRAPE] Starting Merdeka scrapers...');
-  for (const query of KERACUNAN_QUERIES.slice(0, 2)) {
+  for (const query of KERACUNAN_QUERIES.slice(0, 5)) {
     try {
       const articles = await scrapeMerdekaSearch(query);
       if (articles.length) console.log(`[Merdeka] "${query}": ${articles.length}`);
@@ -344,7 +344,7 @@ function validateDate(dateStr) {
   if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return TODAY();
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const d = new Date(dateStr + 'T00:00:00Z');
-    if (!isNaN(d.getTime()) && d.getFullYear() >= 2024 && d.getFullYear() <= 2026) return dateStr;
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 2024 && d.getFullYear() <= 2027) return dateStr;
   }
   if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
     const d = new Date(dateStr);
@@ -384,6 +384,16 @@ function extractVictims(title, desc) {
     /([\d.,]+)\s*(?:santri|siswi|siswa|murid|anak|warga|pelajar|balita|orang|korban)\s+[\w\s]*?(?:keracunan|dirawat|dilarikan|sakit|diduga|mengalami)/i,
     // TITLE PATTERN: "Picu X [victims] Keracunan"
     /picu\s+([\d.,]+)\s*(?:santri|siswi|siswa|murid|anak|warga|pelajar|orang|korban)/i,
+    // NEW: "bertambah jadi X" (increased to X)
+    /bertambah\s+(?:menjadi|jadi)\s*(?:sebanyak|hingga|mencapai)?\s*([\d.,]+)/i,
+    // NEW: "lebih dari X orang"
+    /lebih\s+dari\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien)/i,
+    // NEW: "sedikitnya X orang" (at least X people)
+    /sedikitnya\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien)/i,
+    // NEW: "hingga X orang" (up to X people)
+    /hingga\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien|terdampak)/i,
+    // NEW: "sekitar X orang" (approximately X people)
+    /sekitar\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien|terdampak)/i,
   ];
   for (const p of explicitPatterns) {
     const m = text.match(p);
@@ -430,9 +440,9 @@ function extractVictims(title, desc) {
 
   // PATTERN 5: Approximate fallback
   if (maxVictims === 0) {
-    if (/ratusan\s*(?:siswa|murid|anak|korban|orang|pelajar)/i.test(text)) maxVictims = 200;
-    else if (/puluhan\s*(?:siswa|murid|anak|korban|orang|pelajar)/i.test(text)) maxVictims = 50;
-    else if (/belasan\s*(?:siswa|murid|anak|korban|pelajar)/i.test(text)) maxVictims = 15;
+    if (/ratusan\s*(?:siswa|murid|anak|korban|orang|pelajar|santri|warga|terdampak)/i.test(text)) maxVictims = 200;
+    else if (/puluhan\s*(?:siswa|murid|anak|korban|orang|pelajar|santri|warga|terdampak)/i.test(text)) maxVictims = 50;
+    else if (/belasan\s*(?:siswa|murid|anak|korban|pelajar|santri|warga|terdampak)/i.test(text)) maxVictims = 15;
   }
 
   return maxVictims;
@@ -1679,6 +1689,8 @@ async function scrapeAntaraSearch(url, fetchContent = true, opts = {}) {
 const ARCHIVE_QUERIES = [
   'keracunan MBG',
   'keracunan makan bergizi gratis',
+  'keracunan MBG siswa',
+  'keracunan makanan sekolah',
 ];
 
 export async function scrapeDateRangeArchive(env, startDate, endDate) {
@@ -1694,6 +1706,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
     { start: '2025-07-01', end: '2025-09-30', label: 'Q3 2025' },
     { start: '2025-10-01', end: '2025-12-31', label: 'Q4 2025' },
     { start: '2026-01-01', end: '2026-03-31', label: 'Q1 2026' },
+    { start: '2026-04-01', end: '2026-06-30', label: 'Q2 2026' },
   ];
 
   // Only sources that support date-range URL parameters
@@ -1718,7 +1731,7 @@ export async function scrapeDateRangeArchive(env, startDate, endDate) {
       try {
         const urls = await extractKompasUrls(query, qOpts);
         if (urls.length) log(`[Archive][Kompas] "${query}" ${quarter.label}: ${urls.length} URLs`);
-        for (const url of urls.slice(0, 2)) {
+        for (const url of urls.slice(0, 5)) {
           if (seen.has(url)) continue;
           try {
             const article = await fetchKompasArticle(url);

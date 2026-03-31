@@ -628,23 +628,24 @@ function isRelevantMBGPoisoning(article) {
   // Negative filter: reject clearly non-poisoning articles
   if (/cegah/.test(title) && /penyakit/.test(title)) return false;       // prevention article
   if (/tingkatkan/.test(title) && /kesehatan/.test(title)) return false; // positive health article
-  if (/akan/.test(title) && !/keracunan/.test(title)) return false;       // policy/future article
 
   // Negative filter: reject first aid, explanatory, and non-incident articles
   if (/pertolongan\s+pertama/.test(title)) return false;                  // first aid article
   if (/cara\s+penanganan/.test(title)) return false;                      // how-to-handle guide
-  if (/^mengapa\s/.test(title)) return false;                             // explanatory "why" article
-  if (/^bahaya/.test(title)) return false;                                // dangers-of article
   if (/keracunan/.test(title) && /kecubung|metanol|gas/.test(title)) return false; // not food poisoning
   if (/di\s+berbagai\s+negara/.test(text)) return false;                  // international comparison
   if (/^pembelajaran\s+dari/.test(title)) return false;                   // lessons-learned article
 
-  // Require: poisoning keyword AND MBG context (MBG must be in TITLE only, not body)
+  // Require: poisoning keyword
   const hasPoisoning = /keracunan/.test(text);
-  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|makanan sekolah|dapur sekolah/i.test(title);
-  const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak/.test(text);
 
-  return hasPoisoning && hasMBGContext;
+  // MBG context: check BOTH title AND summary/body (many articles have MBG in body, not title)
+  const hasMBGContext = /mbg|makan bergizi|makan bergizi gratis|sppg|program makan/i.test(text);
+
+  // Incident indicator: victim keywords suggesting an actual event
+  const hasIncidentIndicator = /korban|dirawat|siswa|murid|warga|orang|massal|sekolah|dilarikan|pasien|terdampak|rumah sakit|puskesmas|rawat inap/i.test(text);
+
+  return hasPoisoning && hasMBGContext && hasIncidentIndicator;
 }
 
 function json(data, status = 200, extra = {}) {
