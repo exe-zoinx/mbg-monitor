@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-03-19T07:52:00.751Z",
+  "libraries": {
+    "openai": {
+      "files": [
+        {
+          "filename": "chat-completions-summarization.md",
+          "topic": "chat completions for text summarization",
+          "tech_stack": "general",
+          "fetched": "2026-03-19T07:52:00.751Z",
+          "source": "Context7 API"
+        }
+      ]
+    }
+  }
+}

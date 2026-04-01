@@ -1,0 +1,21 @@
+{
+  "id": "mbg-monitor-worker-update",
+  "name": "MBG Monitor Worker Update",
+  "status": "active",
+  "objective": "Update MBG Monitor worker to modify isRelevantMBGPoisoning function and add AI summarization for note field with fallback",
+  "context_files": [
+    ".opencode/context/core/standards/code-quality.md"
+  ],
+  "reference_files": [
+    "/home/anon/Projects/yjk23h4212/mbg-monitor/worker/src/index.js"
+  ],
+  "exit_criteria": [
+    "Updated index.js with changes",
+    "Preserve existing functionality",
+    "Add logging for AI failures"
+  ],
+  "subtask_count": 3,
+  "completed_count": 0,
+  "created_at": "2026-03-19T07:45:00.000Z",
+  "completed_at": null
+}

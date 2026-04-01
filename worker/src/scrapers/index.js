@@ -360,9 +360,17 @@ function extractVictims(title, desc) {
   let maxVictims = 0;
   const parseNum = s => parseInt(String(s).replace(/[.,]/g, ''), 10) || 0;
 
+  // PRIORITY: If title has a number + keyword, use that first (body may have conflicting numbers)
+  const titleOnly = title || '';
+  const titleNumMatch = titleOnly.match(/([\d.,]+)\s*(?:santri|siswi|siswa|murid|anak|warga|pelajar|balita|orang|korban)/i);
+  if (titleNumMatch) {
+    const n = parseNum(titleNumMatch[1]);
+    if (n > 0 && n < 50000) maxVictims = n;
+  }
+
   // PATTERN 1: Explicit victim counts with context
   const explicitPatterns = [
-    // "total X orang/korban/siswa"
+    // "total X orang/korban/siswa/warga"
     /(?:total|jumlah|ada)\s+(?:sebanyak|sekitar|hingga|mencapai|berjumlah)?\s*([\d.,]+)\s*(?:orang|korban|siswa|murid|anak|pelajar|pasien|warga|terdampak)/i,
     // "X orang/korban/siswa ... dirawat/dilarikan/keracunan"
     /([\d.,]+)\s*(?:orang|korban|siswa|murid|anak|pelajar|santri|balita|warga|pasien|terdampak)\s*(?:dirawat|dilarikan|dibawa|sakit|keracunan|mengalami|meninggal|tewas|positif)/i,
@@ -394,6 +402,10 @@ function extractVictims(title, desc) {
     /hingga\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien|terdampak)/i,
     // NEW: "sekitar X orang" (approximately X people)
     /sekitar\s+([\d.,]+)\s*(?:orang|korban|siswa|murid|warga|pasien|terdampak)/i,
+    // NEW: "dari total X warga/orang" or "total X warga yang tercatat"
+    /(?:dari\s+)?total\s+([\d.,]+)\s*(?:warga|orang|korban|siswa|murid|anak|pelajar|terdampak)/i,
+    // NEW: "X pelajar/warga/siswa" followed by any context (not requiring action verb)
+    /([\d.,]+)\s*(?:pelajar|warga|siswa|murid|anak|santri)\s+(?:kb|sd|smp|sma|di |dari |yang |usai )/i,
   ];
   for (const p of explicitPatterns) {
     const m = text.match(p);
@@ -511,14 +523,38 @@ const CITY_COORDS = {
   'manokwari': [-0.8614, 134.0620], 'lombok tengah': [-8.7000, 116.2833],
   'sumbawa': [-8.6500, 117.4167], 'banggai': [-1.1167, 122.8833],
   'pamekasan': [-7.1569, 113.4746],
+  'tomohon': [1.3333, 124.8333], 'kudus': [-6.8050, 110.8400],
+  'ketapang': [-1.8500, 109.9833], 'grobogan': [-7.0300, 110.9300],
+  'cimahi': [-6.8722, 107.5420], 'agam': [-0.2500, 100.1667],
+  'polman': [-3.1000, 119.1500], 'menggala': [-4.4667, 105.2333],
+  'muaro bungo': [-1.5000, 101.8667], 'banggai kepulauan': [-1.7000, 123.5000],
+  'majene': [-3.5500, 118.9667], 'simpenan': [-7.0167, 106.5500],
+  'sengeti': [-1.6167, 103.5667], 'cikalongkulon': [-6.7167, 107.1500],
+  'timor tengah utara': [-9.4500, 124.5000], 'ttu': [-9.4500, 124.5000],
+  'enrekang': [-3.5667, 119.7833], 'sukabumi': [-6.9175, 106.9300],
+  'manggarai barat': [-8.6500, 119.8833], 'aceh selatan': [-3.1500, 97.3500],
+  'pemalang': [-6.9000, 109.3833],
   'cangkringan': [-7.6667, 110.4500], 'cilodong': [-6.4025, 106.7942],
   'cilimus': [-6.9833, 108.4833], 'koja': [-6.1149, 106.8787],
   'kalibata': [-6.2530, 106.8540], 'coblong': [-6.8950, 107.6100],
 };
 
 function extractLocation(title, desc) {
+  const titleLower = (title || '').toLowerCase();
   const text = (title + ' ' + desc).toLowerCase();
   const sortedKeys = Object.keys(CITY_COORDS).sort((a, b) => b.length - a.length);
+
+  // PRIORITY: Check title first — title locations are more reliable than body locations
+  // (body may mention unrelated cities like "Bali" or "Pamekasan" in boilerplate)
+  for (const city of sortedKeys) {
+    if (titleLower.includes(city)) {
+      const [lat, lng] = CITY_COORDS[city];
+      const name = city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { city: name, lat, lng };
+    }
+  }
+
+  // Fallback: check full text
   for (const city of sortedKeys) {
     if (text.includes(city)) {
       const [lat, lng] = CITY_COORDS[city];

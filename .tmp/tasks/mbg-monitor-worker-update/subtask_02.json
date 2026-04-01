@@ -1,0 +1,27 @@
+{
+  "id": "mbg-monitor-worker-update-02",
+  "seq": "02",
+  "title": "Add AI summarization helper function with AI_API_KEY env var and fallback to truncateNote",
+  "status": "in_progress",
+  "depends_on": ["01"],
+  "parallel": false,
+  "context_files": [
+    ".opencode/context/core/standards/code-quality.md"
+  ],
+  "reference_files": [
+    "/home/anon/Projects/yjk23h4212/mbg-monitor/worker/src/index.js"
+  ],
+  "acceptance_criteria": [
+    "AI summarization function added",
+    "Uses AI_API_KEY env var",
+    "Fallbacks to truncateNote on failure",
+    "Logs AI failures"
+  ],
+  "deliverables": [
+    "New AI summarization function in index.js"
+  ],
+  "agent_id": "coder-agent",
+  "started_at": "2026-03-19T07:50:00Z",
+  "completed_at": "2026-03-19T07:51:00Z",
+  "completion_summary": "Added summarizeWithAI function with OpenAI integration, AI_API_KEY env var, fallback to truncateNote, and error logging"
+}
