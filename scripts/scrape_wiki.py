@@ -14,7 +14,6 @@ WIKI_PAGE = "Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
 API_URL   = "https://id.wikipedia.org/w/api.php"
 
 # ── Geo lookup ─────────────────────────────────────────────────────────────────
-# Indonesian cities → (lat, lng)
 CITY_COORDS = {
     'jakarta': (-6.2088, 106.8456), 'dki jakarta': (-6.2088, 106.8456),
     'jawa timur': (-7.5, 112.5), 'jatim': (-7.5, 112.5),
@@ -108,6 +107,106 @@ CITY_COORDS = {
     'blora': (-7.0231, 111.4029), 'grobogan': (-7.05, 110.9),
 }
 
+# ── Outlet name lookup ─────────────────────────────────────────────────────────
+OUTLET_NAMES = {
+    'kompas.com': 'Kompas.com',
+    'regional.kompas.com': 'Kompas.com',
+    'detik.com': 'Detik.com',
+    'detiknews.com': 'Detik.com',
+    'news.detik.com': 'Detik.com',
+    'cnnindonesia.com': 'CNN Indonesia',
+    'www.cnnindonesia.com': 'CNN Indonesia',
+    'tribunnews.com': 'Tribunnews.com',
+    'www.tribunnews.com': 'Tribunnews.com',
+    'tribun-jabar.com': 'Tribunnews.com',
+    'tribun-timur.com': 'Tribunnews.com',
+    'tribunbali.com': 'Tribunnews.com',
+    'tribunpekanbaru.com': 'Tribunnews.com',
+    'tribunpontianak.com': 'Tribunnews.com',
+    'tribunmedan.com': 'Tribunnews.com',
+    'tribunpadang.com': 'Tribunnews.com',
+    'tribunsolo.com': 'Tribunnews.com',
+    'tribunbogor.com': 'Tribunnews.com',
+    'tribundepok.com': 'Tribunnews.com',
+    'tribunjateng.com': 'Tribunnews.com',
+    'tribunjatim.com': 'Tribunnews.com',
+    'tribunlampung.com': 'Tribunnews.com',
+    'antaranews.com': 'Antara',
+    'rmol.id': 'RMOL.id',
+    'mediaindonesia.com': 'Media Indonesia',
+    'suara.com': 'Suara.com',
+    'suaracommerce.com': 'Suara.com',
+    'tempo.co': 'Tempo.co',
+    'www.tempo.co': 'Tempo.co',
+    'pikiran-rakyat.com': 'Pikiran Rakyat',
+    'pikiranrakyat.com': 'Pikiran Rakyat',
+    'www.pikiran-rakyat.com': 'Pikiran Rakyat',
+    'rri.co.id': 'RRI.co.id',
+    'www.rri.co.id': 'RRI.co.id',
+    'ajnn.net': 'AJNN.net',
+    'www.ajnn.net': 'AJNN.net',
+    'harian-analisa.com': 'Harian Analisa',
+    'www.harian-analisa.com': 'Harian Analisa',
+    'acehtoday.id': 'Aceh Today',
+    'www.acehtoday.id': 'Aceh Today',
+    'susercontent.id': 'Susercontent.id',
+    'www.susercontent.id': 'Susercontent.id',
+    'paganujateng.com': 'Paganujateng.com',
+    'daerahpos.com': 'Daerah Pos',
+    'www.daerahpos.com': 'Daerah Pos',
+    'daerahpost.com': 'Daerah Pos',
+    'www.daerahpost.com': 'Daerah Pos',
+    'cianjurekspres.disway.id': 'Cianjur Ekspres',
+    'solopos.com': 'Solopos.com',
+    'www.solopos.com': 'Solopos.com',
+    'waspada.co.id': 'Waspada Online',
+    'www.waspada.co.id': 'Waspada Online',
+    'banjarmasinpost.co.id': 'Banjarmasin Post',
+    'www.banjarmasinpost.co.id': 'Banjarmasin Post',
+    'jambonews.id': 'Jambo News',
+    'jambiseru.com': 'Jambi Seru',
+    'paluekspres.co.id': 'Palu Ekspres',
+    'www.paluekspres.co.id': 'Palu Ekspres',
+    'sulteng raya.com': 'Sulteng Raya',
+    'sultengrayanews.com': 'Sulteng Raya',
+    'fajar.co.id': 'Fajar.co.id',
+    'www.fajar.co.id': 'Fajar.co.id',
+    'makassar.terkini.id': 'Terbit Indonesia',
+    'terkini.id': 'Terbit Indonesia',
+    'sultra.terkini.id': 'Terbit Indonesia',
+    'radarsultra.co.id': 'Radar Sultra',
+    'www.radarsultra.co.id': 'Radar Sultra',
+    'kendariinfo.com': 'Kendari Info',
+    'www.kendariinfo.com': 'Kendari Info',
+    'lombokpost.jawapos.com': 'Lombok Post',
+    'jawapos.com': 'Jawa Pos',
+    'www.jawapos.com': 'Jawa Pos',
+    'jatimnetwork.com': 'Jatim Network',
+    'wartabromo.com': 'Warta Bromo',
+    'www.wartabromo.com': 'Warta Bromo',
+    'kaltimkeadilan.id': 'Kaltim Keadilan',
+    'www.kaltimkeadilan.id': 'Kaltim Keadilan',
+    'posmetro.co.id': 'Posmetro',
+    'www.posmetro.co.id': 'Posmetro',
+    'cirebonpro.com': 'Cirebon Pro',
+    'jatinegara.com': 'Jatinegara.com',
+    'infoblitar.co.id': 'Info Blitar',
+    'wartajatim.com': 'WartaJatim.com',
+    'busercontent.id': 'Busercontent.id',
+    'beritadaerah.com': 'Beritadaerah.com',
+    'kliksulteng.com': 'Klik Sulteng',
+    'infopublik.id': 'InfoPublik.id',
+    'www.infopublik.id': 'InfoPublik.id',
+    'katadata.co.id': 'Katadata',
+    'radarbanyumas.com': 'Radar Banyumas',
+    'radarjateng.com': 'Radarjateng.com',
+    'radarsemarang.com': 'Radar Semarang',
+    'radarsolo.com': 'Radar Solo',
+    'fjconews.com': 'FJCO News',
+}
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
 def geo_lookup(text):
     t = text.lower()
     for city, (lat, lng) in CITY_COORDS.items():
@@ -115,12 +214,15 @@ def geo_lookup(text):
             return lat, lng
     return None, None
 
+
 def unwikify(text):
     return re.sub(r'\[\[([^\]|]+?\|)?([^\]]+?)\]\]', r'\2', text)
+
 
 def cite_url(cite_text):
     m = re.search(r'\burl\s*=\s*(https?://[^\s|\}]+)', cite_text, re.IGNORECASE)
     return m.group(1).rstrip(", ") if m else ""
+
 
 def ref_url(ref_cell, wikitext):
     inline = cite_url(ref_cell)
@@ -140,6 +242,42 @@ def ref_url(ref_cell, wikitext):
             return url
     return ""
 
+
+def extract_outlet(url):
+    """Extract publication name from URL."""
+    if not url:
+        return 'Wikipedia'
+    url_lower = url.lower()
+    for key, name in OUTLET_NAMES.items():
+        if key in url_lower:
+            return name
+    # Fallback: strip protocol + www, capitalize first part
+    domain = re.sub(r'^https?://(www\.)?', '', url_lower).split('/')[0]
+    name = domain.split('.')[0].replace('-', ' ').replace('_', ' ').title()
+    return name or 'Wikipedia'
+
+
+def parse_num(s):
+    """Extract integer from string like '5 Siswa', '38 Siswa', ''."""
+    m = re.sub(r'[^\d]', '', str(s)) if s else ''
+    return int(m) if m else 0
+
+
+def format_date(raw):
+    """Convert Indonesian date like '29 September 2025' to '29 Sep 2025'."""
+    raw = unwikify(raw).strip()
+    months = {
+        'januari':'Jan','februari':'Feb','maret':'Mar','april':'Apr',
+        'mei':'Mei','juni':'Jun','juli':'Jul','agustus':'Agt',
+        'september':'Sep','oktober':'Okt','november':'Nov','desember':'Des',
+    }
+    m = re.match(r'(\d{1,2})\s+(\w+)\s+(\d{4})', raw)
+    if m:
+        month = months.get(m.group(2).lower(), m.group(2))
+        return f"{m.group(1)} {month} {m.group(3)}"
+    return raw
+
+
 def scrape(out_file="data/wiki_incidents.json"):
     print("Fetching wikitext from MediaWiki API...")
     resp = requests.get(API_URL, params={
@@ -157,76 +295,84 @@ def scrape(out_file="data/wiki_incidents.json"):
         raise SystemExit("No tables found")
     table = tables[0]
     rows = table.data()
-    print(f"  {len(rows)} rows (incl. 2 headers)")
+    print(f"  {len(rows)} rows (incl. headers)")
 
     SKIP = {"Tanggal Kejadian", "Provinsi", "Lokasi", "Jumlah Korban", "Ref", "TOTAL"}
     incidents = []
     for row in rows[2:]:
         if len(row) < 7:
             continue
-        date     = str(row[0]).strip()
-        province = str(row[1]).strip()
-        if not date or date in SKIP:
+        date_raw  = str(row[0]).strip()
+        if not date_raw or date_raw in SKIP:
             continue
-        province = unwikify(province)
-        city     = unwikify(str(row[2]).strip())
-        school   = unwikify(str(row[3]).strip())
-        symp     = str(row[4]).strip()
-        deaths   = str(row[5]).strip()
-        url      = ref_url(str(row[6]).strip(), wikitext)
 
-        # Build location string
-        loc = city
-        if province and province not in city:
-            loc = f"{city}, {province}" if city else province
-        elif not city:
-            loc = province
+        province  = unwikify(str(row[1]).strip())
+        city      = unwikify(str(row[2]).strip())  # e.g. "Kabupaten Aceh Utara"
+        school    = unwikify(str(row[3]).strip()) # e.g. "SDN 6 Matangkuli" or "TBA"
+        symp      = str(row[4]).strip()              # e.g. "3 Siswa"
+        deaths_s  = str(row[5]).strip()             # e.g. "" or "1"
+        url       = ref_url(str(row[6]).strip(), wikitext)
 
-        # Geo lookup: check city, city+province, province
-        lat, lng = geo_lookup(city) or geo_lookup(f"{city} {province}") or geo_lookup(province)
+        victims   = parse_num(symp)
+        deaths    = parse_num(deaths_s)
 
-        # Parse victims
-        v = re.sub(r'[^\d]', '', symp) if symp else ''
-        victims = int(v) if v else 0
+        # ── Title: school name or "TBA" fallback ──
+        tba_patterns = ('tba', 'tidak disebutkan', 'tidak disebut', 'tidak disebutkan')
+        is_tba = school.lower().startswith(tba_patterns) if school else True
+        if is_tba:
+            title = city  # e.g. "Kabupaten Aceh Utara"
+        else:
+            title = school  # e.g. "SDN 6 Matangkuli"
 
-        # Title
-        title = school or f"{city} ({victims} korban)" if victims else city
+        # ── Location: just "Kabupaten Xxx" (no province) ──
+        kab = city  # already unwikified, already has "Kabupaten" prefix
+        loc = kab  # single-line location, no province
 
-        # Deaths
-        d = re.sub(r'[^\d]', '', deaths) if deaths else ''
-        deaths_val = int(d) if d else 0
+        # ── Geo lookup ──
+        lat, lng = geo_lookup(city) or geo_lookup(province) or (None, None)
+
+        # ── Note: 🚑 N Keracunan | N Meninggal ──
+        note = f"🚑 {victims} Keracunan"
+        if deaths > 0:
+            note += f" | {deaths} Meninggal"
+
+        # ── Source: publication name ──
+        source = extract_outlet(url)
 
         incidents.append({
-            "cat": "keracunan",
-            "date": unwikify(date),
-            "lat": lat,
-            "lng": lng,
-            "province": unwikify(province),
+            "cat":       "keracunan",
+            "date":      format_date(date_raw),
+            "lat":       lat,
+            "lng":       lng,
+            "province":  province,
             "kabupaten": city,
-            "school": school,
-            "loc": loc,
-            "victims": victims,
-            "deaths": deaths_val,
-            "title": title,
-            "source": "Wikipedia",
+            "school":    school,
+            "loc":       loc,
+            "victims":   victims,
+            "deaths":    deaths,
+            "title":     title,
+            "source":    source,
             "source_url": url,
-            "note": f"Sekolah: {school}" if school else "",
+            "note":      note,
         })
 
     geo_count = sum(1 for i in incidents if i["lat"] is not None)
+    url_count = sum(1 for i in incidents if i["source_url"])
     print(f"  {len(incidents)} incidents ({geo_count} with geo)")
-    print(f"  {sum(1 for i in incidents if i['source_url'])} with source URLs")
+    print(f"  {url_count} with source URLs")
 
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w", encoding="utf-8") as f:
-        json.dump(incidents, f, ensure_ascii=False, indent=2)
+        json.dump({"incidents": incidents}, f, ensure_ascii=False, indent=2)
     print(f"✓  {len(incidents)} → {out_file}")
 
+    # Preview
     for inc in incidents[:3]:
-        print(f"\n  {inc['date']} | {inc['loc']}")
-        print(f"  {inc['title']} | {inc['victims']} korban | {inc['deaths']} meninggal")
-        print(f"  Lat/Lng: {inc['lat']}, {inc['lng']}")
-        print(f"  URL: {inc['source_url'][:50] if inc['source_url'] else 'N/A'}")
+        print(f"\n  {inc['title']}")
+        print(f"  📍 {inc['loc']}")
+        print(f"  📅 {inc['date']}")
+        print(f"  {inc['note']}")
+        print(f"  🔗 {inc['source']} — {inc['source_url'][:60] if inc['source_url'] else 'N/A'}")
 
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "data/wiki_incidents.json"

@@ -334,14 +334,18 @@ function mkIcon(cat, v) {
 function popHTML(inc) {
   const c   = COL[inc.cat] || COL.lainnya;
   const url = safeUrl(inc.url || '');
+  // note field contains: "🚑 N Keracunan | N Meninggal" or "🚑 N Keracunan"
+  const note  = inc.note || '';
+  const source = inc.source || '';
+  const sourceLink = url
+    ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu);font-family:var(--mo);font-size:9px;text-decoration:underline">🔗 Sumber ↗</a>`
+    : '';
   return `<div class="pu">
-    <span class="pt" style="background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat]||inc.cat)}</span>
     <div class="ph">${esc(inc.title)}</div>
     <div class="pr"><span>📍</span><span class="v">${esc(inc.loc)}</span></div>
     <div class="pr"><span>📅</span><span class="v">${fmtD(inc.date)}</span></div>
-    ${(inc.victims||0)>0 ? `<div class="pr"><span>🚑</span><span class="v" style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
-    <div class="pn">${esc(inc.note || '')}</div>
-    <div class="ps">📰 ${esc(inc.source || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu);font-family:var(--mo);font-size:9px;text-decoration:underline">🔗 Sumber berita ↗</a>` : ''}</div>
+    <div class="pr"><span>${note || `🚑 ${inc.victims||0} Keracunan`}</span></div>
+    <div class="ps">🔗 ${esc(source)}${sourceLink}</div>
   </div>`;
 }
 
