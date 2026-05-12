@@ -1,9 +1,10 @@
 /**
  * Wikipedia table scraper for MBG poisoning incidents.
- * Fetches the structured wikitable from id.wikipedia.org and parses it.
+ * Uses MediaWiki API to fetch structured wikitext and parse the table.
  */
 
-const WIKI_URL = 'https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis';
+const WIKI_API = 'https://id.wikipedia.org/w/api.php';
+const WIKI_PAGE = 'Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis';
 
 // Indonesian city → (lat, lng)
 const CITY_COORDS = {
@@ -190,53 +191,83 @@ function parseDate(raw) {
 }
 
 export async function scrapeWikiTable(env) {
-  console.log('[WIKI] Fetching Wikipedia table...');
-  const res = await fetch(WIKI_URL, {
-    headers: { 'User-Agent': 'mbg-monitor-worker/1.0' },
+  console.log('[WIKI] Fetching Wikipedia via API...');
+
+  // Use MediaWiki API to get the wikitext
+  const apiUrl = `${WIKI_API}?action=parse&page=${WIKI_PAGE}&prop=wikitext&format=json`;
+  const res = await fetch(apiUrl, {
+    headers: { 'User-Agent': 'mbg-monitor-worker/1.0 (mbg-monitor@github.com)' },
   });
-  if (!res.ok) throw new Error(`Wikipedia fetch failed: ${res.status}`);
 
-  const html = await res.text();
+  if (!res.ok) throw new Error(`MediaWiki API failed: ${res.status}`);
 
-  // Parse wikitable manually (no DOM in Workers, use regex)
-  const tableMatch = html.match(/<table[^>]*class="wikitable"[^>]*>([\s\S]*?)<\/table>/);
-  if (!tableMatch) throw new Error('No wikitable found');
+  const data = await res.json();
+  if (!data.parse?.wikitext?.['*']) throw new Error('No wikitext content');
 
-  const tableHtml = tableMatch[1];
-  const rowMatches = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g);
-  if (!rowMatches) throw new Error('No table rows');
+  const wikitext = data.parse.wikitext['*'];
 
-  console.log(`[WIKI] Processing ${rowMatches.length} rows`);
+  // Parse the wikitable from wikitext
+  // Find the {| ... |} table block with wikitable class
+  const tableMatch = wikitext.match(/{\|[\s\S]*?class="wikitable"[\s\S]*?\|\}/);
+  if (!tableMatch) throw new Error('No wikitable found in wikitext');
+
+  const tableContent = tableMatch[0];
+  // Parse rows from wikitext (lines starting with | or |-), handle escaped pipes (\|)
+  const lines = tableContent.split('\n');
+  const rows = [];
+  let currentRow = [];
+
+  for (const line of lines) {
+    if (line.match(/^\|-/)) {
+      // New row separator - save previous row if exists
+      if (currentRow.length > 0) {
+        rows.push(currentRow);
+        currentRow = [];
+      }
+    } else if (line.match(/^\|/)) {
+      // Cell content - parse from "||" or single "|"
+      // Handle escaped pipes: \|
+      const cell = line.replace(/^\|\|?/, '').replace(/\\\|/g, '|').replace(/\[\[|\]\]/g, '').trim();
+      currentRow.push(cell);
+    }
+  }
+  // Push last row
+  if (currentRow.length > 0) rows.push(currentRow);
+
+  // Skip header row (index 0)
+  const dataRows = rows.slice(1);
+
+  console.log(`[WIKI] Processing ${dataRows.length} rows from wikitext`);
+
   const incidents = [];
-  let id = 1000;
 
-  for (const rowHtml of rowMatches.slice(1)) { // skip header
-    const cellMatches = rowHtml.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g);
-    if (!cellMatches || cellMatches.length < 6) continue;
+  for (const cells of dataRows) {
+    if (cells.length < 6) continue;
 
-    const cells = cellMatches.slice(0, 7).map(c =>
-      c.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    );
+    // Extract fields from table columns:
+    // Cols: No, Tanggal, Provinsi, Kabupaten/Kota, Satuan Pendidikan (Sekolah), Jumlah Berkontribusi, Keterangan
+    const date = parseDate(cells[1] || '');
+    const province = cells[2] || '';
+    const kab = cells[3] || '';
+    const school = cells[4] || '';
+    const bergejala = parseNum(cells[5] || '0');
+    const note = cells[6] || '';
 
-    const date = parseDate(cells[0] || '');
-    const province = cells[1] || '';
-    const kab = cells[2] || '';
-    const school = cells[3] || '';
-    const bergejala = parseNum(cells[4] || '0');
-
-    // Ref cell: last cell
-    const refCell = cellMatches[cellMatches.length - 1] || '';
-    const refMatches = refCell.match(/(https?:\/\/[^\s<>"']+)/g) || [];
-    const refUrl = refMatches[0] || '';
+    // Extract source URL from note (often has [source] or link)
+    const urlMatch = note.match(/(https?:\/\/[\s\]]+)/) || [];
+    const refUrl = urlMatch[1] || '';
 
     const [lat, lng] = geoLookup(`${province} ${kab} ${school}`);
 
-    if (!lat || !lng) continue;
+    if (!lat || !lng) {
+      console.log(`[WIKI] Skipping: no coords for ${kab}, ${province}`);
+      continue;
+    }
 
     const location = `${kab}, ${province}`;
     const title = school
       ? `Keracunan MBG — ${kab} (${school})`
-      : `Keracunan MBG — ${kab} (${bergejala} korban)`;
+      : `Keracunan MBG — ${kab}`;
 
     incidents.push({
       title,
@@ -248,16 +279,20 @@ export async function scrapeWikiTable(env) {
       school,
       location,
       victims: bergejala,
-      deaths: parseNum(cells[5] || '0'),
+      deaths: 0,
       source: 'Wikipedia',
       source_url: refUrl,
       url: refUrl,
       cat: 'keracunan',
       note: school ? `Sekolah: ${school}` : '',
     });
-    id++;
   }
 
   console.log(`[WIKI] Parsed ${incidents.length} incidents with coordinates`);
+
+  // Calculate totals
+  const totalVictims = incidents.reduce((sum, inc) => sum + inc.victims, 0);
+  console.log(`[WIKI] Total victims: ${totalVictims}`);
+
   return incidents;
 }

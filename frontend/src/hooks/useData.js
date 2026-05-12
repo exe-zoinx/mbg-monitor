@@ -51,26 +51,14 @@ function transformWiki(wiki) {
 
 export function useData() {
   return useQuery({
-    queryKey: ['wiki-data'],
+    queryKey: ['incidents'],
     queryFn: async () => {
-      // Step 1: Fetch Wikipedia JSON
-      const wikiRes = await fetch('/data/wiki_incidents.json');
-      if (!wikiRes.ok) throw new Error('Wikipedia fetch failed');
-      const wikiData = await wikiRes.json();
-      const wikiIncidents = (wikiData.incidents || [])
-        .filter(i => i.lat != null && i.lng != null)
-        .map(transformWiki);
-
-      return {
-        incidents: wikiIncidents,
-        meta: {
-          refreshed_at: new Date().toISOString(),
-          source: 'Wikipedia',
-          total: wikiIncidents.length,
-        },
-      };
+      const res = await fetch('/api/data');
+      if (!res.ok) throw new Error('API fetch failed');
+      const data = await res.json();
+      return data;
     },
-    staleTime: 3_600_000,    // 1 hour
+    staleTime: 3_600_000,
     refetchInterval: false,
   });
 }

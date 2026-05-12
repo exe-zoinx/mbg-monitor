@@ -1,5 +1,5 @@
 name                    = "mbg-monitor"
-pages_build_output_dir  = "dist"
+pages_build_output_dir  = "frontend/dist"
 compatibility_date      = "2025-01-01"
 
 # D1 binding for Pages Functions (/api/data, /api/history)

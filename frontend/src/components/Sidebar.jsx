@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { X, Utensils, Search, MapPin, Zap, ExternalLink } from 'lucide-react';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame } from 'lucide-react';
 import { COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
@@ -94,7 +94,7 @@ export default function Sidebar({
             boxShadow: '0 2px 8px rgba(248,81,73,0.4)',
             flexShrink: 0,
           }}>
-            <Bento size={14} strokeWidth={2} color="#fff" />
+            <Flame size={14} strokeWidth={2} color="#fff" />
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>
@@ -106,26 +106,6 @@ export default function Sidebar({
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            border: '1px solid var(--bd)',
-            borderRadius: 20,
-            padding: '3px 9px',
-            fontFamily: 'var(--mo)',
-            fontSize: 9,
-            color: 'var(--mu)',
-          }}>
-            <div style={{
-              width: 5,
-              height: 5,
-              borderRadius: '50%',
-              background: connectionStatus.cls === 'g' ? 'var(--grn)' : connectionStatus.cls === 'a' ? 'var(--amb)' : connectionStatus.cls === 'r' ? 'var(--red)' : 'var(--mu)',
-              ...(connectionStatus.cls === 'r' ? { animation: 'lp 1.6s infinite' } : {}),
-            }} />
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9 }}>{connectionStatus.text}</span>
-          </div>
         </div>
       </div>
 
