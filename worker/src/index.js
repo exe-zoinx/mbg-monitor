@@ -2,6 +2,7 @@ import { handleCron, deduplicateArticles } from './cron.js';
 import { scrapeAll, extractVictims, extractLocation } from './scrapers/index.js';
 import { classifyArticlesBatch, classifyArticle, heuristicClassify } from './ai-classify.js';
 import { deepSearchKeracunanMBG } from './search-apis.js';
+import { scrapeWikiTable } from './wiki-scrape.js';
 
 function TODAY() {
   return new Date().toISOString().slice(0, 10);

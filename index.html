@@ -259,7 +259,7 @@ const BASELINE = [
   {id:21,cat:'sppg',      date:'2025-03-07', lat:-0.501,  lng:117.154, title:'SPPG Samarinda — 60% juru masak tidak terlatih', loc:'Samarinda, Kalimantan Timur',     victims:0,   note:'BGN akui backlog pelatihan SDM nasional.',                                                                                        source:'Kaltim Post'},
   {id:22,cat:'kecelakaan',date:'2025-01-25', lat:-7.557,  lng:110.827, title:'Truk distribusi MBG terbalik di Tol Solo',        loc:'Boyolali, Jawa Tengah',           victims:2,   note:'Truk pengangkut MBG terguling di Tol Solo–Boyolali. 2 kru luka-luka. Kelebihan muatan.',                                        source:'Solopos'},
   {id:23,cat:'kecelakaan',date:'2025-02-09', lat:-6.960,  lng:107.644, title:'Motor pengantar MBG tabrak pejalan kaki',         loc:'Bandung, Jawa Barat',             victims:1,   note:'Driver SPPG yang terburu mengantarkan makanan menabrak seorang ibu di trotoar.',                                               source:'Pikiran Rakyat'},
-  {id:24,cat:'kecelakaan',date:'2025-03-01', lat:-8.174,  lng:113.965, title:'Mobil SPPG masuk jurang di Situbondo',            loc:'Situbondo, Jawa Timur',           victims:3,   note:'Mobil distribusi MBG masuk jurang 8 meter. 1 kritis. Akses ke sekolah terpencil berbahaya.',                                    source:'Detik Jatim'},
+  {id:24,cat:'kecelakaan',date:'2025-03-01', lat:-8.174,  lng:113.965, title:'Mobil SPPG masuk jurang di Situbondo',            loc:'Situbondo, Jawa Timur',           victims:3,   note:'Mobil distribusi MBG masuk jurang 8 meter. 1 kritis. Akses ke sekolah terpencil berbahaya.',                                    source:'Detik Timur'},
   {id:25,cat:'tewas',     date:'2025-01-29', lat:-6.183,  lng:106.822, title:'Balita meninggal pasca keracunan MBG — Jakarta',  loc:'Jakarta Utara, DKI Jakarta',      victims:1,   note:'Balita meninggal setelah dirawat intensif akibat dugaan keracunan makanan MBG.',                                               source:'Kompas.com'},
   {id:26,cat:'tewas',     date:'2025-02-17', lat:-3.986,  lng:122.514, title:'Driver pengantar MBG tewas — Kendari',            loc:'Kendari, Sulawesi Tenggara',      victims:1,   note:'Driver pengantar MBG meninggal akibat kecelakaan tunggal saat pengiriman malam hari.',                                          source:'Kendari Pos'},
 ];
@@ -341,7 +341,7 @@ function popHTML(inc) {
     <div class="pr"><span>📅</span><span class="v">${fmtD(inc.date)}</span></div>
     ${(inc.victims||0)>0 ? `<div class="pr"><span>🚑</span><span class="v" style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
     <div class="pn">${esc(inc.note || '')}</div>
-    <div class="ps">📰 ${esc(inc.source || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Baca ↗</a>` : ''}</div>
+    <div class="ps">📰 ${esc(inc.source || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu);font-family:var(--mo);font-size:9px;text-decoration:underline">🔗 Sumber berita ↗</a>` : ''}</div>
   </div>`;
 }
 
@@ -432,6 +432,37 @@ document.getElementById('si').addEventListener('input', function() {
   }, 200);  // 200ms debounce
 });
 
+// ── LOAD FROM D1 + WIKI ────────────────────────────────────────────────────────
+async function loadWiki() {
+  try {
+    const res = await fetch('data/wiki_incidents.json');
+    if (!res.ok) return;
+    const wiki = await res.json();
+    if (!wiki?.incidents?.length) return;
+
+    const existing = new Set(BASELINE.map(b => `${b.date}|${(b.loc||'').slice(0,8)}`));
+    const newInc = wiki.incidents
+      .filter(r => r.lat && r.lng && !existing.has(`${r.date}|${(r.loc||'').slice(0,8)}`))
+      .map((r, i) => ({
+        id: 9000 + i,
+        cat: r.cat || 'keracunan',
+        date: r.date,
+        lat: r.lat,
+        lng: r.lng,
+        title: r.title || r.school || `${r.kabupaten} — ${r.victims} korban`,
+        loc: r.loc || `${r.kabupaten}, ${r.province}`,
+        victims: r.victims || r.bergejala || 0,
+        note: r.note || '',
+        source: r.source || 'Wikipedia',
+        url: r.source_url || '',
+      }));
+    ALL = [...BASELINE, ...newInc];
+    renderAll();
+  } catch (e) {
+    console.warn('loadWiki:', e.message);
+  }
+}
+
 // ── LOAD FROM D1 ─────────────────────────────────────────────────────────────
 async function loadLive() {
   try {
@@ -490,6 +521,7 @@ document.head.appendChild(st);
 
 renderAll();
 setC('', 'Menghubungi…');
+loadWiki();
 loadLive();
 </script>
 </body>

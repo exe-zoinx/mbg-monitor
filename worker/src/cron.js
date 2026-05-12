@@ -343,6 +343,57 @@ export async function handleCron(env) {
   try {
     console.log('[CRON] Starting keracunan MBG crawl...');
 
+    // Step 0: Scrape Wikipedia table (structured, comprehensive)
+    let wikiIncidents = [];
+    try {
+      wikiIncidents = await scrapeWikiTable(env);
+      console.log(`[CRON] Wikipedia: ${wikiIncidents.length} incidents`);
+    } catch (e) {
+      console.warn('[CRON] Wikipedia scrape failed:', e.message);
+    }
+
+    // Step 0b: Dedup + insert Wikipedia incidents
+    if (wikiIncidents.length > 0) {
+      const existingWikiUrls = new Set();
+      try {
+        const rows = await env.DB.prepare('SELECT url FROM incidents').all();
+        for (const row of rows.results || []) existingWikiUrls.add(row.url);
+      } catch (e) {}
+
+      // Also dedup against existing by date+loc (some wiki entries may not have URL)
+      const existingByDateLoc = new Set();
+      try {
+        const rows = await env.DB.prepare('SELECT date, loc FROM incidents').all();
+        for (const row of rows.results || []) {
+          if (row.date && row.loc) existingByDateLoc.add(`${row.date}|${row.loc.slice(0,8)}`);
+        }
+      } catch (e) {}
+
+      const newWikiInc = wikiIncidents.filter(w =>
+        (w.url && !existingWikiUrls.has(w.url)) ||
+        (!existingByDateLoc.has(`${w.date}|${w.location.slice(0,8)}`))
+      );
+
+      console.log(`[CRON] ${newWikiInc.length} new wiki incidents to insert`);
+      let wikiInserted = 0;
+      for (const w of newWikiInc) {
+        try {
+          await env.DB.prepare(`
+            INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            'keracunan', w.date, w.lat, w.lng,
+            w.title, w.location, w.victims || 0, w.note || '', 'Wikipedia', w.url || '', 0
+          ).run();
+          wikiInserted++;
+          incidentsAdded++;
+        } catch (e) {
+          // likely duplicate, skip
+        }
+      }
+      console.log(`[CRON] Wiki inserted: ${wikiInserted}`);
+    }
+
     // Step 1: Scrape all sources
     const articles = await scrapeAll(env);
     console.log(`[CRON] Scraped ${articles.length} articles`);
