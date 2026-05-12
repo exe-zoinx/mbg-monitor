@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { CAT_SHORT, COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink } from 'lucide-react';
+import { COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
   incidents,
   filtered,
   stats,
   activeId,
-  filterCat,
-  setFilterCat,
   search,
   setSearch,
   focusInc,
@@ -26,9 +25,6 @@ export default function Sidebar({
   }, [setSearch]);
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
-
-  // Filter tabs - show only key categories to avoid overlap
-  const FILTER_CATS = ['all', 'keracunan', 'sppg', 'laporan'];
 
   return (
     <aside
@@ -84,7 +80,7 @@ export default function Sidebar({
               flexShrink: 0,
             }}
           >
-            ✕
+            <X size={20} strokeWidth={2} />
           </button>
           <div style={{
             width: 28,
@@ -96,8 +92,9 @@ export default function Sidebar({
             justifyContent: 'center',
             fontSize: 14,
             boxShadow: '0 2px 8px rgba(248,81,73,0.4)',
+            flexShrink: 0,
           }}>
-            🍱
+            <Bento size={14} strokeWidth={2} color="#fff" />
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>
@@ -109,29 +106,6 @@ export default function Sidebar({
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            background: 'rgba(248,81,73,0.1)',
-            border: '1px solid rgba(248,81,73,0.25)',
-            borderRadius: 20,
-            padding: '3px 9px',
-            fontFamily: 'var(--mo)',
-            fontSize: 9,
-            color: 'var(--red)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}>
-            <div style={{
-              width: 5,
-              height: 5,
-              borderRadius: '50%',
-              background: 'var(--red)',
-              animation: 'lp 1.6s infinite',
-            }} />
-            LIVE
-          </div>
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -162,7 +136,7 @@ export default function Sidebar({
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
         <input
           type="text"
-          placeholder="🔍  Cari insiden, lokasi…"
+          placeholder="Cari insiden, lokasi"
           autoComplete="off"
           spellCheck={false}
           value={debouncedSearch}
@@ -180,56 +154,6 @@ export default function Sidebar({
             outline: 'none',
           }}
         />
-      </div>
-
-      {/* Filter tabs - horizontal scrollable pill design */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        padding: '10px 12px',
-        borderBottom: '1px solid var(--bd)',
-        flexShrink: 0,
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-      }}>
-        {FILTER_CATS.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setFilterCat(cat)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 12px',
-              fontFamily: 'var(--mo)',
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.04em',
-              color: filterCat === cat ? '#fff' : 'var(--tx)',
-              textAlign: 'center',
-              cursor: 'pointer',
-              background: filterCat === cat ? 'var(--red)' : 'var(--sf2)',
-              border: `1px solid ${filterCat === cat ? 'var(--red)' : 'var(--bd)'}`,
-              borderRadius: 20,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {CAT_SHORT[cat]}
-            <span style={{
-              background: filterCat === cat ? 'rgba(255,255,255,0.25)' : 'var(--bd)',
-              borderRadius: 10,
-              padding: '2px 6px',
-              fontSize: 10,
-              fontWeight: 600,
-              color: filterCat === cat ? '#fff' : 'var(--mu)',
-            }}>
-              {cat === 'all' ? stats.total : stats[cat] || 0}
-            </span>
-          </button>
-        ))}
       </div>
 
       {/* Feed — single unified list of all incidents */}
@@ -275,7 +199,7 @@ export default function Sidebar({
           display: 'flex',
           alignItems: 'center',
         }}>
-          ⚡
+          <Zap size={10} strokeWidth={2} />
         </div>
         <div style={{ overflow: 'hidden', flex: 1 }}>
           <div style={{ display: 'flex', animation: 'sc 42s linear infinite', whiteSpace: 'nowrap' }}>
@@ -388,8 +312,9 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
           }}>
             {TLBL[inc.cat] || inc.cat}
           </span>
-          <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
-            📍 {(inc.loc || 'Indonesia').split(',')[0]}
+          <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <MapPin size={9} strokeWidth={2} />
+            {(inc.loc || 'Indonesia').split(',')[0]}
           </span>
           <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
             {fmtDate(inc.date)}
@@ -429,7 +354,7 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
                 minWidth: 36,
               }}
             >
-              ↗ Buka
+              <ExternalLink size={9} strokeWidth={2} /> Buka
             </button>
           )}
         </div>

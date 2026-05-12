@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
+import { BookOpen, MapPin, Calendar, Users, Newspaper, ExternalLink } from 'lucide-react';
 import { COL, TLBL, fmtDate, esc, safeUrl } from '../lib/constants';
 
 export default function MapView({ incidents, filtered, activeId, focusInc, stats }) {
@@ -26,7 +27,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     }).addTo(map);
 
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
-    L.control.attribution({ prefix: '© <a href="https://carto.com" style="color:#7d8590">CARTO</a>' }).addTo(map);
+    L.control.attribution({ prefix: '&copy; <a href="https://carto.com" style="color:#7d8590">CARTO</a>' }).addTo(map);
 
     const cluster = L.markerClusterGroup({
       maxClusterRadius: 50,
@@ -127,7 +128,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         className="map-title"
       >
         <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
-          🇮🇩 Peta Insiden MBG — Indonesia
+          <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
         </h2>
         <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
           {stats.total} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
@@ -166,7 +167,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             gap: 5,
           }}
         >
-          📖 Sumber: Wikipedia
+          <BookOpen size={11} strokeWidth={2} /> Sumber: Wikipedia
         </a>
       </div>
 
@@ -247,10 +248,10 @@ function popHTML(inc) {
   return `<div style="padding:13px 15px">
     <span style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:2px 7px;margin-bottom:8px;display:inline-block;background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat] || inc.cat)}</span>
     <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:7px;color:var(--tx)">${esc(inc.title)}</div>
-    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>📍</span><span style="color:var(--tx)">${esc(inc.loc)}</span></div>
-    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>📅</span><span style="color:var(--tx)">${fmtDate(inc.date)}</span></div>
-    ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span>🚑</span><span style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
+    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:var(--tx)">${esc(inc.loc)}</span></div>
+    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:var(--tx)">${fmtDate(inc.date)}</span></div>
+    ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
     <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
-    <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">📰 ${esc(inc.source || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Baca ↗</a>` : ''}</div>
+    <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || '')}${url ? ` &middot; <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Baca &rarr;</a>` : ''}</div>
   </div>`;
 }

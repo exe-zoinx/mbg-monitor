@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import { useData } from './hooks/useData';
@@ -12,8 +13,6 @@ export default function App() {
     filtered,
     stats,
     activeId,
-    filterCat,
-    setFilterCat,
     search,
     setSearch,
     focusInc,
@@ -54,8 +53,6 @@ export default function App() {
         filtered={filtered}
         stats={stats}
         activeId={activeId}
-        filterCat={filterCat}
-        setFilterCat={setFilterCat}
         search={search}
         setSearch={setSearch}
         focusInc={focusInc}
@@ -90,7 +87,7 @@ export default function App() {
           }}
           className="mobile-sidebar-btn touch-target"
         >
-          ☰ Daftar
+          <Menu size={14} strokeWidth={2} style={{ marginRight: 6 }} /> Daftar
         </button>
       </div>
 
