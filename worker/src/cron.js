@@ -337,13 +337,11 @@ export function deduplicateArticles(articles, existingIncidents) {
 export async function handleCron(env) {
   const start = Date.now();
   let incidentsAdded = 0;
-  let articlesClassified = 0;
-  let rawOk = true;
 
   try {
-    console.log('[CRON] Starting keracunan MBG crawl...');
+    console.log('[CRON] Starting Wikipedia-only crawl...');
 
-    // Step 0: Scrape Wikipedia table (structured, comprehensive)
+    // Scrape Wikipedia table only
     let wikiIncidents = [];
     try {
       wikiIncidents = await scrapeWikiTable(env);
@@ -352,7 +350,7 @@ export async function handleCron(env) {
       console.warn('[CRON] Wikipedia scrape failed:', e.message);
     }
 
-    // Step 0b: Dedup + insert Wikipedia incidents
+    // Dedup + insert Wikipedia incidents
     if (wikiIncidents.length > 0) {
       const existingWikiUrls = new Set();
       try {
@@ -360,7 +358,6 @@ export async function handleCron(env) {
         for (const row of rows.results || []) existingWikiUrls.add(row.url);
       } catch (e) {}
 
-      // Also dedup against existing by date+loc (some wiki entries may not have URL)
       const existingByDateLoc = new Set();
       try {
         const rows = await env.DB.prepare('SELECT date, loc FROM incidents').all();
@@ -379,11 +376,11 @@ export async function handleCron(env) {
       for (const w of newWikiInc) {
         try {
           await env.DB.prepare(`
-            INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, deaths, note, source, url, is_baseline)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             'keracunan', w.date, w.lat, w.lng,
-            w.title, w.location, w.victims || 0, w.note || '', 'Wikipedia', w.url || '', 0
+            w.title, w.location, w.victims || 0, w.deaths || 0, w.note || '', 'Wikipedia', w.url || '', 0
           ).run();
           wikiInserted++;
           incidentsAdded++;
@@ -394,248 +391,12 @@ export async function handleCron(env) {
       console.log(`[CRON] Wiki inserted: ${wikiInserted}`);
     }
 
-    // Step 1: Scrape all sources
-    const articles = await scrapeAll(env);
-    console.log(`[CRON] Scraped ${articles.length} articles`);
-
-    // Also fetch archive articles from pilot program period to today
-    const archiveArticles = await scrapeDateRangeArchive(env, '2024-10-01', TODAY());
-    console.log(`[CRON] Archive scraped ${archiveArticles.length} articles`);
-    const allArticles = [...articles, ...archiveArticles];
-
-    if (allArticles.length === 0) {
-      console.log('[CRON] No articles found, skipping');
-      await logCrawl(env, start, 0, 0, true, 'no-articles');
-      return;
-    }
-
-    // Step 2: Pre-filter — separate articles into "likely incidents" vs "likely non-incidents"
-    const likelyIncidents = [];
-    const likelyNonIncidents = [];
-
-    for (const article of allArticles) {
-      const titleLower = (article.title || '').toLowerCase();
-      const contentLower = (article.summary || '').toLowerCase();
-      const text = titleLower + ' ' + contentLower;
-
-      // Skip articles with obvious non-incident keywords
-      if (SKIP_KEYWORDS.some(kw => text.includes(kw))) {
-        likelyNonIncidents.push(article);
-        continue;
-      }
-
-      // Prioritize articles with incident keywords for AI classification
-      if (INCIDENT_KEYWORDS.some(kw => text.includes(kw))) {
-        likelyIncidents.push(article);
-      } else {
-        likelyNonIncidents.push(article);
-      }
-    }
-
-    console.log(`[CRON] Pre-filter: ${likelyIncidents.length} likely incidents, ${likelyNonIncidents.length} others`);
-
-    // Step 3: AI classification on likely incidents only (limit to 20 for better coverage)
-    const toClassify = likelyIncidents.slice(0, 20);
-    let incidentArticles = [];
-
-    if (toClassify.length > 0 && env.AI) {
-      console.log(`[CRON] AI classifying ${toClassify.length} articles...`);
-      const classifications = await classifyArticlesBatch(env, toClassify);
-      articlesClassified = classifications.length;
-
-      for (let i = 0; i < toClassify.length && i < classifications.length; i++) {
-        const article = toClassify[i];
-        const classification = classifications[i];
-
-        if (!classification.is_incident) {
-          console.log(`[SKIP] ${classification.category}: ${article.title?.slice(0, 60)}`);
-          continue;
-        }
-
-        // Use AI-extracted victims/location if better
-        if (classification.victims > 0 && !article.victims) {
-          article.victims = classification.victims;
-        }
-        if (classification.location && (!article.location || article.location === 'Indonesia')) {
-          article.location = classification.location;
-        }
-
-        incidentArticles.push({
-          ...article,
-          ai_category: classification.category,
-          ai_reasoning: classification.reasoning,
-        });
-      }
-    } else if (toClassify.length > 0 && !env.AI) {
-      // No AI binding — use isRelevantMBGPoisoning filter
-      console.log('[CRON] No AI binding, using isRelevantMBGPoisoning filter');
-      for (const article of toClassify) {
-        if (isRelevantMBGPoisoning(article)) {
-          incidentArticles.push(article);
-        }
-      }
-    }
-
-    // Also add remaining likely incidents (beyond AI limit) with isRelevantMBGPoisoning filter
-    const remaining = likelyIncidents.slice(20);
-    for (const article of remaining) {
-      if (isRelevantMBGPoisoning(article)) {
-        incidentArticles.push(article);
-      }
-    }
-
-    console.log(`[CRON] ${incidentArticles.length} actual incidents after filtering`);
-
-    if (incidentArticles.length === 0) {
-      console.log('[CRON] No incidents after filtering');
-      await logCrawl(env, start, 0, 0, true, 'filtered-none');
-      return;
-    }
-
-    // Step 4: Dedup — check existing URLs
-    const existingUrls = new Set();
-    try {
-      const rows = await env.DB.prepare('SELECT url FROM incidents').all();
-      for (const row of rows.results || []) {
-        existingUrls.add(row.url);
-      }
-    } catch (e) {
-      console.warn('[CRON] Could not fetch existing URLs, proceeding without dedup');
-    }
-
-    let newArticles = incidentArticles.filter(a => a.url && !existingUrls.has(a.url));
-    console.log(`[CRON] ${newArticles.length} articles after URL dedup`);
-
-    // Step 4b: Semantic dedup — match by date + victims + location
-    if (newArticles.length > 0) {
-      let existingIncidents = [];
-      try {
-        const rows = await env.DB.prepare(
-          "SELECT date, victims, loc FROM incidents WHERE date >= '2024-01-01'"
-        ).all();
-        existingIncidents = rows.results || [];
-      } catch (e) {
-        console.warn('[CRON] Could not fetch existing incidents for semantic dedup:', e.message);
-      }
-
-      const beforeSemantic = newArticles.length;
-      newArticles = deduplicateArticles(newArticles, existingIncidents);
-      const removed = beforeSemantic - newArticles.length;
-      if (removed > 0) {
-        console.log(`[CRON] Semantic dedup removed ${removed} duplicate(s)`);
-      }
-    }
-
-    console.log(`[CRON] ${newArticles.length} new incidents to insert`);
-
-    // Step 5: Batch insert with AI-summarized notes
-    if (newArticles.length > 0) {
-      const BATCH_SIZE = 10;
-      for (let i = 0; i < newArticles.length; i += BATCH_SIZE) {
-        const batch = newArticles.slice(i, i + BATCH_SIZE);
-        
-        // Summarize notes for all articles in batch first
-        const summarizedBatch = await Promise.all(
-          batch.map(async (article) => {
-            const summary = await summarizeWithAI(article.summary || '', env);
-            return { ...article, summary };
-          })
-        );
-
-        const stmts = summarizedBatch.map(article =>
-          env.DB.prepare(`
-            INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `).bind(
-            article.tag || 'keracunan',
-            article.date || new Date().toISOString().slice(0, 10),
-            article.lat || null,
-            article.lng || null,
-            article.title,
-            article.location || 'Indonesia',
-            article.victims || 0,
-            article.summary || '',
-            article.source || 'Unknown',
-            article.url,
-            0,
-          )
-        );
-
-        try {
-          await env.DB.batch(stmts);
-          incidentsAdded += batch.length;
-        } catch (batchErr) {
-          console.warn(`[CRON] Batch insert failed, trying individual:`, batchErr.message);
-          for (const article of summarizedBatch) {
-            try {
-              await env.DB.prepare(`
-                INSERT INTO incidents (cat, date, lat, lng, title, loc, victims, note, source, url, is_baseline)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-              `).bind(
-                article.tag || 'keracunan',
-                article.date || new Date().toISOString().slice(0, 10),
-                article.lat || null,
-                article.lng || null,
-                article.title,
-                article.location || 'Indonesia',
-                article.victims || 0,
-                article.summary || '',
-                article.source || 'Unknown',
-                article.url,
-                0,
-              ).run();
-              incidentsAdded++;
-            } catch (insertErr) {
-              console.warn('[CRON] Failed to insert:', insertErr.message);
-            }
-          }
-        }
-      }
-    }
-
-    // Step 6: Update stats
-    try {
-      const stats = await env.DB.prepare(
-        'SELECT COUNT(*) as count, SUM(victims) as total FROM incidents WHERE victims > 0'
-      ).first().catch(() => null);
-
-      if (stats?.total > 0) {
-        await env.DB.prepare(`
-          INSERT INTO stats_snapshot (poisoning_incidents, total_victims, victims_note)
-          VALUES (?, ?, ?)
-        `).bind(
-          stats.count,
-          stats.total,
-          `AI-classified: ${stats.count} incidents with ${stats.total} total victims`,
-        ).run();
-      }
-    } catch (statsErr) {
-      console.warn('[CRON] Stats update failed:', statsErr.message);
-    }
-
-    // Update KV meta
-    if (env.mbg_kv) {
-      await env.mbg_kv.put('mbg:meta', JSON.stringify({
-        refreshed_at: new Date().toISOString(),
-        provider: 'cron-ai',
-        model: 'ai-classify-v1',
-      }));
-    }
-
-    const duration = Date.now() - start;
-    await env.DB.prepare(`
-      INSERT INTO crawl_log (duration_ms, news_added, incidents_added, raw_ok, provider, model)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(duration, incidentsAdded, incidentsAdded, rawOk ? 1 : 0, 'ai-scraper', 'ai-classify-v1').run();
-
-    console.log(`[CRON] Complete: ${incidentsAdded} incidents, ${articlesClassified} AI-classified in ${duration}ms`);
-
-  } catch (err) {
-    console.error('[CRON] Failed:', err);
-    await logCrawl(env, start, incidentsAdded, 0, false, 'error');
+    await logCrawl(env, start, incidentsAdded, 0, true, 'wikipedia-only');
+  } catch (e) {
+    console.error('[CRON] Fatal:', e.message);
+    await logCrawl(env, start, 0, 0, false, 'error');
   }
 }
-
 async function logCrawl(env, start, incidentsAdded, newsAdded, ok, note) {
   const duration = Date.now() - start;
   try {
