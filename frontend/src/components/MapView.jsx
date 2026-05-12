@@ -145,18 +145,8 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       }}
         className="map-overlays"
       >
-        {/* Stats row: 3 figures justified */}
-        <div style={{ display: 'flex', gap: 7 }}>
-          <div style={{ flex: 1, minWidth: 68 }}>
-            <OverlayPanel color="var(--red)" value={stats.total} label={['insiden']} />
-          </div>
-          <div style={{ flex: 1, minWidth: 68 }}>
-            <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
-          </div>
-          <div style={{ flex: 1, minWidth: 68 }}>
-            <OverlayPanel color="var(--blu)" value={stats.deaths} label={['meninggal']} />
-          </div>
-        </div>
+        <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
+        <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
         <a
           href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
           target="_blank"
