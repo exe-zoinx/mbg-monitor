@@ -8,10 +8,48 @@ const WIKI_PAGE = 'Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis';
 
 // Indonesian city → (lat, lng)
 const CITY_COORDS = {
+  // Province defaults
   'jakarta': [-6.2088, 106.8456], 'dki jakarta': [-6.2088, 106.8456],
   'jawa timur': [-7.5, 112.5], 'jatim': [-7.5, 112.5],
   'jawa tengah': [-7.15, 110.14], 'jateng': [-7.15, 110.14],
-  'jawa barat': [-6.9, 107.6],
+  'jawa barat': [-6.9, 107.6], 'jabar': [-6.9, 107.6],
+  'di yogyakarta': [-7.7955, 110.3695], 'yogyakarta': [-7.7972, 110.3615],
+  'dki jakarta': [-6.2088, 106.8456], 'banten': [-6.12, 106.15],
+  'sumatera utara': [3.6, 98.7], 'sumut': [3.6, 98.7],
+  'sumatera barat': [-0.9, 100.4], 'sumbar': [-0.9, 100.4],
+  'riau': [0.5, 101.5],
+  'jambi': [-1.6, 103.6],
+  'sumatera selatan': [-3.1, 104.0], 'sumsel': [-2.9908, 104.7558],
+  'bengkulu': [-3.8, 102.3],
+  'lampung': [-4.9956, 105.2836],
+  'bali': [-8.34, 115.09],
+  'nusa tenggara barat': [-8.65, 117.4], 'ntb': [-8.65, 117.4],
+  'nusa tenggara timur': [-8.75, 121.5], 'ntt': [-8.75, 121.5],
+  'kalimantan barat': [0.0, 109.3],
+  'kalimantan tengah': [-1.5, 113.0],
+  'kalimantan selatan': [-3.1, 115.2],
+  'kalimantan timur': [1.0, 116.0],
+  'kalimantan utara': [3.0, 117.0],
+  'sulawesi selatan': [-4.0, 120.0],
+  'sulawesi tengah': [-1.0, 121.0],
+  'sulawesi utara': [1.0, 124.8],
+  'sulawesi tenggara': [-4.0, 122.5],
+  'sulawesi barat': [-2.8, 119.4],
+  'gorontalo': [0.5, 123.0],
+  'maluku': [-3.2, 129.5],
+  'maluku utara': [1.5, 127.8],
+  'papua': [-4.0, 136.0],
+  'papua barat': [-1.5, 133.0],
+  'papua tengah': [-3.5, 136.0],
+  'papua pegunungan': [-4.0, 138.0],
+  'papua selatan': [-6.0, 140.0],
+  'papua barat daya': [-2.0, 130.0],
+  'maluku utara': [1.5, 127.8], 'maluku Utara': [1.5, 127.8],
+  // Jakarta
+  'jakarta': [-6.2088, 106.8456], 'dki jakarta': [-6.2088, 106.8456],
+  'jakarta pusat': [-6.1751, 106.8650], 'jakarta utara': [-6.1389, 106.8813],
+  'jakarta timur': [-6.2250, 106.9010], 'jakarta selatan': [-6.2614, 106.8116],
+  'jakarta barat': [-6.1686, 106.7588], 'kepulauan seribu': [-5.55, 106.55],
   'bandung': [-6.9175, 107.6191], 'bandung barat': [-6.93, 107.35],
   'bogor': [-6.6127, 106.8], 'sukoharjo': [-7.7149, 110.8258],
   'wonogiri': [-7.867, 110.907], 'boyolali': [-7.5321, 110.5274],
@@ -142,41 +180,65 @@ const CITY_COORDS = {
   'sulawesi barat': [-2.8, 119.4],
   'garut': [-7.2181, 107.9036],
   'blora': [-7.0231, 111.4029], 'grobogan': [-7.05, 110.9],
+  // Additional specific locations from Wikipedia
+  'toba': [2.3, 99.15], 'samosir': [2.5, 98.9], 'toba': [2.3, 99.15],
+  'labuhan batu': [2.0, 100.0], 'labuhanbatu': [2.0, 100.0], 'labuhanbatu utara': [2.0, 99.8],
+  'labuhanbatu selatan': [2.0, 100.2], 'asahan': [2.0, 99.5],
+  'tanjung balai': [3.0, 99.2], 'tanjungbalai': [3.0, 99.2],
+  'pematang siantar': [2.96, 99.07], 'pematangsiantar': [2.96, 99.07],
+  'binjai': [3.6, 98.5], 'tebing tinggi': [2.1, 99.1], 'tebingtinggi': [2.1, 99.1],
+  'sibolga': [1.74, 98.78], 'padang sidempuan': [1.4, 99.3],
+  'gunungsitoli': [1.3, 97.6], 'kota medan': [3.5952, 98.6722],
+  'batang torpedo': [2.5, 98.5], 'batangtorop': [2.5, 98.5],
+  'batang torpedo': [2.5, 98.5], 'mandailing natal': [1.2, 99.0],
+  // Combined location patterns - try both parts
+  'kabupaten': '', // Will use fallback
+  'kota': '', // Will use fallback
+  'kab': '', // Will use fallback
 };
 
 function geoLookup(text) {
   const t = text.toLowerCase();
+  
+  // First, try exact matches for full location strings
   for (const [city, coords] of Object.entries(CITY_COORDS)) {
+    if (typeof coords === 'string') continue; // Skip empty fallbacks
     if (t.includes(city)) return coords;
   }
+  
+  // If no match, try to extract the province from combined strings
+  // e.g., "Kabupaten Toba, Sumatera Utara" -> try "sumatera utara"
+  const parts = text.split(/[,\/]/);
+  for (const part of parts) {
+    const p = part.toLowerCase().trim();
+    for (const [city, coords] of Object.entries(CITY_COORDS)) {
+      if (typeof coords === 'string') continue;
+      if (p.includes(city)) return coords;
+    }
+  }
+  
+  // Last resort: extract just the province name (usually last part after comma)
+  if (parts.length > 1) {
+    const lastPart = parts[parts.length - 1].trim().toLowerCase();
+    for (const [city, coords] of Object.entries(CITY_COORDS)) {
+      if (typeof coords === 'string') continue;
+      if (lastPart.includes(city)) return coords;
+    }
+  }
+  
   return [null, null];
 }
 
-function parseRefCell(td) {
-  const links = [];
-  for (const a of td.querySelectorAll('a')) {
-    const href = a.getAttribute('href') || '';
-    if (href.startsWith('http') && !href.includes('wikipedia.org')) {
-      const text = a.textContent?.trim() || '';
-      if (text) links.push({ url: href, text });
-    }
-  }
-  return links;
-}
-
-function stripHtml(el) {
-  return el ? (el.textContent || '').trim() : '';
-}
-
 function parseNum(s) {
-  const m = String(s).replace(/[^\d]/g, '');
-  return m ? parseInt(m, 10) : 0;
+  // Extract first number from string
+  const m = String(s).match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
 }
 
 function parseDate(raw) {
   // Try YYYY-MM-DD first
   if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
-  // Indonesian format: 5 Maret 2025
+  // Indonesian format: 29 September 2025
   const indMonths = {
     'januari':'01','februari':'02','maret':'03','april':'04',
     'mei':'05','juni':'06','juli':'07','agustus':'08',
@@ -190,11 +252,23 @@ function parseDate(raw) {
   return raw.slice(0, 10);
 }
 
+function cleanCell(text) {
+  // Remove wikitext markup: {| |} |- | || etc
+  // Keep only the actual text content
+  return text
+    .replace(/\[\[|\]\]/g, '')  // Remove wiki links
+    .replace(/\|[^|]+$/, '')     // Remove pipe-prefixed suffix
+    .replace(/rowspan="\d+"/gi, '')  // Remove rowspan
+    .replace(/colspan="\d+"/gi, '')  // Remove colspan
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export async function scrapeWikiTable(env) {
   console.log('[WIKI] Fetching Wikipedia via API...');
 
-  // Use MediaWiki API to get the wikitext
-  const apiUrl = `${WIKI_API}?action=parse&page=${WIKI_PAGE}&prop=wikitext&format=json`;
+  // Use MediaWiki API to get the HTML (more reliable for tables)
+  const apiUrl = `${WIKI_API}?action=parse&page=${WIKI_PAGE}&prop=text&format=json`;
   const res = await fetch(apiUrl, {
     headers: { 'User-Agent': 'mbg-monitor-worker/1.0 (mbg-monitor@github.com)' },
   });
@@ -202,65 +276,88 @@ export async function scrapeWikiTable(env) {
   if (!res.ok) throw new Error(`MediaWiki API failed: ${res.status}`);
 
   const data = await res.json();
-  if (!data.parse?.wikitext?.['*']) throw new Error('No wikitext content');
+  if (!data.parse?.text?.['*']) throw new Error('No HTML content');
 
-  const wikitext = data.parse.wikitext['*'];
+  const html = data.parse.text['*'];
 
-  // Parse the wikitable from wikitext
-  // Find the {| ... |} table block with wikitable class
-  const tableMatch = wikitext.match(/{\|[\s\S]*?class="wikitable"[\s\S]*?\|\}/);
-  if (!tableMatch) throw new Error('No wikitable found in wikitext');
+  // Parse wikitable from HTML (more reliable than wikitext)
+  const tableMatch = html.match(/<table[^>]*class="wikitable"[^>]*>([\s\S]*?)<\/table>/);
+  if (!tableMatch) throw new Error('No wikitable found in HTML');
 
-  const tableContent = tableMatch[0];
-  // Parse rows from wikitext (lines starting with | or |-), handle escaped pipes (\|)
-  const lines = tableContent.split('\n');
-  const rows = [];
-  let currentRow = [];
+  const tableHtml = tableMatch[1];
+  // Parse rows using regex
+  const rowMatches = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g);
+  if (!rowMatches) throw new Error('No table rows');
 
-  for (const line of lines) {
-    if (line.match(/^\|-/)) {
-      // New row separator - save previous row if exists
-      if (currentRow.length > 0) {
-        rows.push(currentRow);
-        currentRow = [];
-      }
-    } else if (line.match(/^\|/)) {
-      // Cell content - parse from "||" or single "|"
-      // Handle escaped pipes: \|
-      const cell = line.replace(/^\|\|?/, '').replace(/\\\|/g, '|').replace(/\[\[|\]\]/g, '').trim();
-      currentRow.push(cell);
-    }
-  }
-  // Push last row
-  if (currentRow.length > 0) rows.push(currentRow);
-
-  // Skip header row (index 0)
-  const dataRows = rows.slice(1);
-
-  console.log(`[WIKI] Processing ${dataRows.length} rows from wikitext`);
+  console.log(`[WIKI] Processing ${rowMatches.length} rows from HTML`);
 
   const incidents = [];
 
-  for (const cells of dataRows) {
-    if (cells.length < 6) continue;
+  // Skip header row (first row)
+  for (const rowHtml of rowMatches.slice(1)) {
+    // Get all cells in the row
+    const cellMatches = rowHtml.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g);
+    if (!cellMatches || cellMatches.length < 6) continue;
 
-    // Extract fields from table columns:
-    // Cols: No, Tanggal, Provinsi, Kabupaten/Kota, Satuan Pendidikan (Sekolah), Jumlah Berkontribusi, Keterangan
-    const date = parseDate(cells[1] || '');
-    const province = cells[2] || '';
-    const kab = cells[3] || '';
-    const school = cells[4] || '';
-    const bergejala = parseNum(cells[5] || '0');
-    const note = cells[6] || '';
+    // Extract cell contents
+    const cells = cellMatches.slice(0, 7).map(c => {
+      // Strip HTML tags, keep text
+      return c.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    });
 
-    // Extract source URL from note (often has [source] or link)
-    const urlMatch = note.match(/(https?:\/\/[\s\]]+)/) || [];
-    const refUrl = urlMatch[1] || '';
+    // Map columns:
+    // Col 0: Tanggal (Date)
+    // Col 1: Provinsi (Province)
+    // Col 2: Kabupaten/Kota
+    // Col 3: Tempat/Sekolah
+    // Col 4: Jumlah Bergejala (victims)
+    // Col 5: Jumlah Meninggal (deaths)
+    // Col 6: Ref (references with URLs)
+
+    const date = parseDate(cells[0] || '');
+    const province = cells[1] || '';
+    const kab = cells[2] || '';
+    const school = cells[3] || '';
+    const bergejala = parseNum(cells[4] || '0');
+    const meninggal = parseNum(cells[5] || '0');
+
+    // Extract URL from reference column
+    const refCell = cellMatches[cellMatches.length - 1] || '';
+    const urlMatch = refCell.match(/(https?:\/\/[^\s<>"']+)/);
+    const refUrl = urlMatch ? urlMatch[1] : '';
 
     const [lat, lng] = geoLookup(`${province} ${kab} ${school}`);
 
     if (!lat || !lng) {
-      console.log(`[WIKI] Skipping: no coords for ${kab}, ${province}`);
+      // Try province alone
+      const [lat2, lng2] = geoLookup(province);
+      if (!lat2 || !lng2) {
+        console.log(`[WIKI] Skipping: no coords for ${kab}, ${province}`);
+        continue;
+      }
+      // Use province coords but note the specific location
+      const location = `${kab}, ${province}`;
+      const title = school
+        ? `Keracunan MBG — ${kab} (${school})`
+        : `Keracunan MBG — ${kab}`;
+
+      incidents.push({
+        title,
+        date,
+        lat: lat2,
+        lng: lng2,
+        province,
+        kabupaten: kab,
+        school,
+        location,
+        victims: bergejala,
+        deaths: meninggal,
+        source: 'Wikipedia',
+        source_url: refUrl,
+        url: refUrl,
+        cat: 'keracunan',
+        note: school ? `Sekolah: ${school}` : '',
+      });
       continue;
     }
 
@@ -279,7 +376,7 @@ export async function scrapeWikiTable(env) {
       school,
       location,
       victims: bergejala,
-      deaths: 0,
+      deaths: meninggal,
       source: 'Wikipedia',
       source_url: refUrl,
       url: refUrl,
@@ -292,7 +389,8 @@ export async function scrapeWikiTable(env) {
 
   // Calculate totals
   const totalVictims = incidents.reduce((sum, inc) => sum + inc.victims, 0);
-  console.log(`[WIKI] Total victims: ${totalVictims}`);
+  const totalDeaths = incidents.reduce((sum, inc) => sum + inc.deaths, 0);
+  console.log(`[WIKI] Total victims: ${totalVictims}, deaths: ${totalDeaths}`);
 
   return incidents;
 }
