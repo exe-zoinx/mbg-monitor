@@ -71,7 +71,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     const spiralOffsets = (index) => {
       if (index === 0) return [0, 0];
       const GA = Math.PI * (3 - Math.sqrt(5)); // golden angle ≈ 2.399 rad
-      const radius = Math.sqrt(index) * 0.00045; // meters-per-step scaled to degrees
+      const radius = Math.sqrt(index) * 0.0012; // ~134m per step at equator
       const angle = index * GA;
       return [radius * Math.cos(angle), radius * Math.sin(angle)];
     };
@@ -147,6 +147,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       >
         <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
         <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
+        <OverlayPanel color="var(--blu)" value={stats.deaths} label={['meninggal']} />
         <a
           href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
           target="_blank"
