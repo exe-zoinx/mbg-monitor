@@ -306,10 +306,9 @@ export default function Sidebar({
 
 function StatsRow({ stats }) {
   const items = [
-    { label: 'Total Insiden', value: stats.total, color: 'var(--red)', sub: 'terpetakan' },
-    { label: 'Total Korban', value: stats.victims.toLocaleString('id-ID'), color: 'var(--amb)', sub: 'orang terdampak' },
-    { label: 'Keracunan', value: stats.keracunan, color: 'var(--red)', sub: 'kasus' },
-    { label: 'SPPG / Lain', value: stats.other, color: 'var(--blu)', sub: 'laporan' },
+    { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--red)', sub: 'kasus' },
+    { label: 'Keracunan', value: stats.keracunan.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang keracunan' },
+    { label: 'SPPG / Lain', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'orang meninggal' },
   ];
 
   return (

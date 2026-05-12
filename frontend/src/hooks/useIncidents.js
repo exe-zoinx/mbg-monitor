@@ -42,20 +42,21 @@ export function useIncidents(data) {
   const stats = useMemo(() => {
     const cats = {};
     let totalVictims = 0;
-    let mbgPoisoningCount = 0;
+    let keracunanVictims = 0;
+    let totalDeaths = 0;
     for (const i of incidents) {
       cats[i.cat] = (cats[i.cat] || 0) + 1;
       totalVictims += i.victims || 0;
-      // Count MBG-related poisoning: keracunan with MBG/school context
-      if (i.cat === 'keracunan' && isMBGRelated(i)) {
-        mbgPoisoningCount++;
+      if (i.cat === 'keracunan') {
+        keracunanVictims += i.victims || 0;
+        totalDeaths += i.deaths || 0;
       }
     }
     return {
       total: incidents.length,
       victims: totalVictims,
-      keracunan: cats.keracunan || 0,
-      mbgPoisoning: mbgPoisoningCount,
+      keracunan: keracunanVictims,   // total poisoned victims (not incident count)
+      deaths: totalDeaths,            // total death victims
       sppg: (cats.sppg || 0) + (cats.sppg_opened || 0) + (cats.sppg_temp_closed || 0) + (cats.sppg_closed || 0),
       sppg_opened: cats.sppg_opened || 0,
       sppg_temp_closed: cats.sppg_temp_closed || 0,
