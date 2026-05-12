@@ -57,22 +57,43 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
 
     const filteredIds = new Set(filtered.map(i => i.id));
 
-    incidents.forEach(inc => {
-      // Skip incidents without valid coordinates (news articles without map position)
-      if (!inc.lat || !inc.lng) return;
+    // ── Group by exact lat/lng ────────────────────────────────────────────────
+    const byLoc = new Map(); // key "lat,lng" → [inc, inc, ...]
+    for (const inc of incidents) {
+      if (!inc.lat || !inc.lng) continue;
+      const key = `${inc.lat},${inc.lng}`;
+      if (!byLoc.has(key)) byLoc.set(key, []);
+      byLoc.get(key).push(inc);
+    }
 
-      const m = L.marker([inc.lat, inc.lng], { icon: mkIcon(inc.cat, inc.victims || 0) })
-        .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
-        .on('click', () => focusInc(inc.id));
+    // ── Spiral offset so overlapping pins fan out ──────────────────────────────
+    // Returns [dLat, dLng] in degrees (~67m per 0.001 at equator)
+    const spiralOffsets = (index) => {
+      if (index === 0) return [0, 0];
+      const GA = Math.PI * (3 - Math.sqrt(5)); // golden angle ≈ 2.399 rad
+      const radius = Math.sqrt(index) * 0.00045; // meters-per-step scaled to degrees
+      const angle = index * GA;
+      return [radius * Math.cos(angle), radius * Math.sin(angle)];
+    };
 
-      markersRef.current.set(inc.id, { marker: m, inc });
+    // ── Add markers ───────────────────────────────────────────────────────────
+    for (const [, incs] of byLoc) {
+      incs.forEach((inc, idx) => {
+        const [dLat, dLng] = spiralOffsets(idx);
+        const lat = inc.lat + dLat;
+        const lng = inc.lng + dLng;
 
-      if (filteredIds.has(inc.id)) {
-        cluster.addLayer(m);
-      }
-    });
+        const m = L.marker([lat, lng], { icon: mkIcon(inc.cat, inc.victims || 0) })
+          .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
+          .on('click', () => focusInc(inc.id));
+
+        markersRef.current.set(inc.id, { marker: m, inc });
+        if (filteredIds.has(inc.id)) {
+          cluster.addLayer(m);
+        }
+      });
+    }
   }, [incidents, filtered, focusInc]);
-
   // Handle activeId changes (fly to marker)
   useEffect(() => {
     if (!activeId) return;
@@ -126,6 +147,27 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       >
         <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
         <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
+        <a
+          href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            background: 'rgba(9,12,16,0.88)',
+            border: '1px solid var(--bd2)',
+            borderRadius: 7,
+            padding: '6px 12px',
+            backdropFilter: 'blur(10px)',
+            fontFamily: 'var(--mo)',
+            fontSize: 9,
+            color: 'var(--mu)',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          📖 Sumber: Wikipedia
+        </a>
       </div>
 
       <style>{`

@@ -308,7 +308,7 @@ function StatsRow({ stats }) {
   const items = [
     { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--red)', sub: 'kasus' },
     { label: 'Keracunan', value: stats.keracunan.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang keracunan' },
-    { label: 'SPPG / Lain', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'orang meninggal' },
+    { label: 'Korban Meninggal', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'orang meninggal' },
   ];
 
   return (
