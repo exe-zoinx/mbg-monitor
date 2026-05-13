@@ -480,12 +480,12 @@ function renderFeed() {
       <div class="fd2 ${esc(i.cat)}" style="margin-top:3px;flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div class="ft2">${esc(i.title)}</div>
-        <div class="fm">
+        <div style="display:flex;gap:5px;align-items:center;margin-top:2px">
           <span class="ftg ${esc(i.cat)}">${esc(TLBL[i.cat]||i.cat)}</span>
           <span class="fl"><i class="fa-solid fa-location-dot" style="color:var(--mu);font-size:9px"></i> ${esc((i.loc||'').split(',')[0])}</span>
-          <span class="fdt"><i class="fa-solid fa-calendar" style="color:var(--mu);font-size:8px"></i> ${fmtD(i.date)}</span>
-          ${(i.victims||0)>0 ? `<span class="fv ${(i.victims||0)>40?'r':'a'}">+${esc(String(i.victims))}</span>` : ''}
         </div>
+        <div class="fdt"><i class="fa-solid fa-calendar" style="color:var(--mu);font-size:8px"></i> ${fmtD(i.date)}</div>
+        ${(i.victims||0)>0 ? `<div class="fv ${(i.victims||0)>40?'r':'a'}">+${esc(String(i.victims))} korban</div>` : ''}
       </div>
     </div>`).join('');
 }
