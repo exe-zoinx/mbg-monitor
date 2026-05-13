@@ -567,7 +567,7 @@ function setC(cls, txt) {
   document.getElementById('ctxt').textContent = txt;
 }
 function fmtD(d) {
-  if (!d) return 'TBD';
+  if (!d) return '—';
   try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
   catch { return d; }
 }
