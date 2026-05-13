@@ -143,7 +143,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* Mobile toggle */
 #mbb{display:none;position:absolute;bottom:76px;left:14px;z-index:600;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:8px 12px;font-family:var(--mo);font-size:11px;color:var(--tx);cursor:pointer}
 
-/* Mobile responsive */
+/* Desktop: sidebar always visible, no close button needed */
+#sb-close{display:none}
+
 @media(max-width:640px){
   :root{--sw:100vw}
   #sb{position:absolute;top:0;left:0;z-index:2000;transform:translateX(-100%);transition:transform .24s}
