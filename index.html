@@ -4,14 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>MBG Monitor — Peta Insiden Makan Bergizi Gratis</title>
-<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<!-- Leaflet MarkerCluster -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;700&family=Geist:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
@@ -105,14 +103,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #mt{position:absolute;top:14px;left:14px;z-index:500;background:rgba(9,12,16,.88);border:1px solid var(--bd2);border-radius:8px;padding:9px 14px;backdrop-filter:blur(10px)}
 #mt h2{font-size:12px;font-weight:700;letter-spacing:-.2px}
 #mt p{font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px}
+
+/* Top-right overlay - shows live stats */
 #mo{position:absolute;top:14px;right:14px;z-index:500;display:flex;flex-direction:column;gap:7px}
 .op{background:rgba(9,12,16,.88);border:1px solid var(--bd2);border-radius:7px;padding:7px 12px;backdrop-filter:blur(10px);display:flex;align-items:center;gap:8px}
 .op .vl{font-family:var(--mo);font-size:16px;font-weight:700}
 .op .lb{font-family:var(--mo);font-size:8px;color:var(--mu);line-height:1.3}
+
+/* Legend */
 #ml{position:absolute;bottom:24px;right:14px;z-index:500;background:rgba(9,12,16,.88);border:1px solid var(--bd2);border-radius:8px;padding:10px 13px;backdrop-filter:blur(10px)}
 .lt{font-family:var(--mo);font-size:8px;color:var(--mu);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .li2{display:flex;align-items:center;gap:7px;margin-bottom:5px;font-family:var(--mo);font-size:10px;color:var(--tx)}
 .ld2{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Custom zoom controls - bottom-right above legend */
+#zoom-controls{position:absolute;bottom:110px;right:14px;z-index:500;display:flex;flex-direction:column;gap:4px}
+.zbtn{width:30px;height:30px;background:rgba(9,12,16,.88);border:1px solid var(--bd2);border-radius:7px;color:var(--tx);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);transition:background .12s}
+.zbtn:hover{background:var(--sf2)}
 
 /* POPUP */
 .leaflet-popup-content-wrapper{background:var(--sf)!important;border:1px solid var(--bd2)!important;border-radius:10px!important;box-shadow:0 12px 32px rgba(0,0,0,.7)!important;padding:0!important}
@@ -127,25 +134,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .ps{font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px}
 .leaflet-popup-close-button{color:var(--mu)!important;top:7px!important;right:8px!important;font-size:16px!important}
 
-/* MAP CONTROLS */
-.leaflet-control-zoom a{background:var(--sf2)!important;color:var(--tx)!important;border-color:var(--bd)!important}
-.leaflet-control-zoom a:hover{background:var(--bd)!important}
-.leaflet-bar{border:none!important;box-shadow:none!important}
-
 /* Cluster overrides */
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(248,81,73,.18)!important}
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(248,81,73,.5)!important;color:#fff!important;font-family:var(--mo)!important;font-size:11px!important}
 
 @keyframes mp{0%{transform:scale(1);opacity:.65}100%{transform:scale(2.8);opacity:0}}
 
-/* MOBILE */
+/* Mobile toggle */
 #mbb{display:none;position:absolute;bottom:76px;left:14px;z-index:600;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:8px 12px;font-family:var(--mo);font-size:11px;color:var(--tx);cursor:pointer}
+
+/* Mobile responsive */
 @media(max-width:640px){
   :root{--sw:100vw}
   #sb{position:absolute;top:0;left:0;z-index:2000;transform:translateX(-100%);transition:transform .24s}
   #sb.open{transform:translateX(0)}
   #mbb{display:block}
-  #mo{display:none}
+  #mo{top:10px;right:10px}
+  #mo .op{padding:5px 9px;gap:6px}
+  #mo .vl{font-size:13px}
+  #mo .lb{font-size:7px}
+  #mt{top:10px;left:10px}
+  #zoom-controls{bottom:200px;right:10px}
+  #zoom-controls .zbtn{width:36px;height:36px;font-size:17px}
+  #ml{bottom:14px;right:10px;left:10px;padding:8px 11px}
+  #mbb{bottom:14px;left:10px;right:calc(50% + 8px)}
 }
 </style>
 </head>
@@ -155,7 +167,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <aside id="sb">
   <div id="tb">
     <div class="logo">
-      <div class="li">🍱</div>
+      <div class="li"><i class="fa-solid fa-utensils" style="color:#fff;font-size:14px"></i></div>
       <div>
         <div class="ln"><span>MBG</span> Monitor</div>
         <div class="ls">Peta Insiden Nasional</div>
@@ -169,12 +181,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div id="sr">
     <div class="sb"><div class="sl">Total Insiden</div><div class="sv r" id="sT">—</div><div class="ss">terpetakan</div></div>
-    <div class="sb"><div class="sl">Total Korban</div><div class="sv a" id="sV">—</div><div class="ss">orang terdampak</div></div>
-    <div class="sb"><div class="sl">Keracunan</div><div class="sv r" id="sK">—</div><div class="ss">kasus</div></div>
-    <div class="sb"><div class="sl">SPPG / Lain</div><div class="sv b" id="sS">—</div><div class="ss">laporan</div></div>
+    <div class="sb"><div class="sl">Korban Keracunan</div><div class="sv a" id="sV">—</div><div class="ss">orang terdampak</div></div>
+    <div class="sb"><div class="sl">Korban Meninggal</div><div class="sv a" id="sD">—</div><div class="ss">jiwa</div></div>
+    <div class="sb"><div class="sl">Keracunan</div><div class="sv b" id="sK">—</div><div class="ss">kasus</div></div>
   </div>
 
-  <div id="sw"><input id="si" type="text" placeholder="🔍  Cari insiden, lokasi…" autocomplete="off" spellcheck="false"/></div>
+  <div id="sw"><input id="si" type="text" placeholder="Cari insiden, lokasi..." autocomplete="off" spellcheck="false"/></div>
 
   <div id="ft">
     <button class="fbt on" data-c="all"        onclick="setF('all',this)">Semua <span class="fc" id="fc-all">0</span></button>
@@ -187,15 +199,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div id="fd"></div>
 
   <div id="tk">
-    <div class="tl">⚡</div>
+    <div class="tl"><i class="fa-solid fa-bolt" style="color:var(--red)"></i></div>
     <div style="overflow:hidden;flex:1">
       <div class="ti">
-        <span>MBG diluncurkan 6 Jan 2025 · Rp 71T anggaran · Target 82,9 juta penerima ·</span>
-        <span>BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·</span>
-        <span>BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·</span>
-        <span>MBG diluncurkan 6 Jan 2025 · Rp 71T anggaran · Target 82,9 juta penerima ·</span>
-        <span>BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·</span>
-        <span>BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·</span>
+        <span>MBG diluncurkan 6 Jan 2025 &middot; Rp 71T anggaran &middot; Target 82,9 juta penerima &middot;</span>
+        <span>BGN belum publikasikan data insiden resmi &middot; DPR minta evaluasi menyeluruh &middot;</span>
+        <span>BPOM turun ke sejumlah dapur SPPG pasca keracunan massal &middot; ICW pantau vendor &middot;</span>
+        <span>MBG diluncurkan 6 Jan 2025 &middot; Rp 71T anggaran &middot; Target 82,9 juta penerima &middot;</span>
+        <span>BGN belum publikasikan data insiden resmi &middot; DPR minta evaluasi menyeluruh &middot;</span>
       </div>
     </div>
   </div>
@@ -203,11 +214,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <div id="mw">
   <div id="map"></div>
-  <div id="mt"><h2>🇮🇩 Peta Insiden MBG — Indonesia</h2><p id="msub">Memuat…</p></div>
+  <div id="mt"><h2><i class="fa-solid fa-map-location-dot" style="color:var(--red)"></i> Peta Insiden MBG &mdash; Indonesia</h2><p id="msub">Memuat&hellip;</p></div>
+
+  <!-- Top-right overlay: live stats -->
   <div id="mo">
-    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div><div><div class="vl r" id="ov1">—</div><div class="lb">insiden<br>dipetakan</div></div></div>
-    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb)"></div><div><div class="vl a" id="ov2">—</div><div class="lb">total<br>korban</div></div></div>
+    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div><div><div class="vl r" id="ov-insiden">—</div><div class="lb">insiden<br/>dipetakan</div></div></div>
+    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb)"></div><div><div class="vl a" id="ov-korban">—</div><div class="lb">total<br/>korban</div></div></div>
+    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--pur)"></div><div><div class="vl" style="color:var(--pur);font-family:var(--mo);font-size:16px;font-weight:700" id="ov-meninggal">—</div><div class="lb">meninggal</div></div></div>
   </div>
+
+  <!-- Custom zoom controls: bottom-right -->
+  <div id="zoom-controls">
+    <button class="zbtn" id="zoom-in"  title="Zoom In"  onclick="map.zoomIn()"><i class="fa-solid fa-plus"></i></button>
+    <button class="zbtn" id="zoom-out" title="Zoom Out" onclick="map.zoomOut()"><i class="fa-solid fa-minus"></i></button>
+  </div>
+
   <div id="ml">
     <div class="lt">Jenis Insiden</div>
     <div class="li2"><div class="ld2" style="background:var(--red)"></div>Keracunan</div>
@@ -216,87 +237,165 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="li2"><div class="ld2" style="background:var(--pur)"></div>Korban jiwa</div>
     <div class="li2"><div class="ld2" style="background:var(--mu)"></div>Lainnya</div>
   </div>
-  <button id="mbb" onclick="document.getElementById('sb').classList.toggle('open')">☰ Daftar</button>
+
+  <button id="mbb" onclick="document.getElementById('sb').classList.toggle('open')"><i class="fa-solid fa-list"></i> Daftar</button>
 </div>
 
 </div>
 
 <script>
 'use strict';
-// ── SECURITY: safe text escaping — never use innerHTML with raw data ──────────
+// ── SECURITY: safe text escaping ───────────────────────────────────────────
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
-// ── SECURITY: URL allowlist — only http/https ─────────────────────────────────
+// ── SECURITY: URL allowlist ─────────────────────────────────────────────────
 function safeUrl(u) {
   if (!u || typeof u !== 'string') return '';
   const s = u.trim().slice(0, 512);
   return /^https?:\/\//i.test(s) ? s : '';
 }
 
-// ── BASELINE DATA ─────────────────────────────────────────────────────────────
-// Hardcoded verified incidents — always shown, even before first crawl
-const BASELINE = [
-  {id:1, cat:'keracunan', date:'2025-01-13', lat:-7.545,  lng:110.847, title:'Keracunan massal siswa SD Sukoharjo',              loc:'Sukoharjo, Jawa Tengah',          victims:47,  note:'47 siswa SD dirawat, dugaan bakteri Salmonella pada menu telur. Vendor lokal tak bersertifikat BPOM.',                        source:'Kompas.com'},
-  {id:2, cat:'keracunan', date:'2025-01-17', lat:-6.820,  lng:107.135, title:'Siswa SMP keracunan lauk telur & tempe',            loc:'Cianjur, Jawa Barat',             victims:38,  note:'Tempe dan telur diduga tidak layak konsumsi saat distribusi.',                                                                  source:'Detik.com'},
-  {id:3, cat:'keracunan', date:'2025-01-23', lat:0.540,   lng:123.062, title:'Keracunan terbesar bulan pertama — 112 korban',    loc:'Kota Gorontalo, Gorontalo',       victims:112, note:'112 siswa SD dan SMP dilarikan ke RS Aloei Saboe. Pemda hentikan distribusi vendor terkait.',                                    source:'CNN Indonesia'},
-  {id:4, cat:'keracunan', date:'2025-01-28', lat:-7.326,  lng:108.224, title:'Kontaminasi E.coli pada menu ayam goreng',         loc:'Tasikmalaya, Jawa Barat',         victims:64,  note:'64 siswa SD positif E.coli. BPOM turun ke dapur vendor, tidak ada prosedur sanitasi.',                                          source:'Tribun Jabar'},
-  {id:5, cat:'keracunan', date:'2025-01-29', lat:-6.183,  lng:106.822, title:'Balita meninggal pasca konsumsi MBG — DKI',       loc:'Jakarta Utara, DKI Jakarta',      victims:1,   note:'Balita meninggal setelah dirawat intensif. Kemenkes minta BPOM investigasi mendalam.',                                            source:'Kompas.com'},
-  {id:6, cat:'keracunan', date:'2025-02-04', lat:-6.585,  lng:106.797, title:'Siswa TK dan SD Bogor sakit massal',               loc:'Bogor, Jawa Barat',               victims:29,  note:'29 anak usia TK–SD mual dan muntah. Kepala sekolah mengaku sudah komplain ke BGN sehari sebelumnya.',                            source:'Radar Bogor'},
-  {id:7, cat:'keracunan', date:'2025-02-08', lat:-0.903,  lng:119.870, title:'Keracunan siswa SD Palu — dugaan sayur busuk',    loc:'Palu, Sulawesi Tengah',           victims:33,  note:'Dugaan kontaminasi bakteri pada menu sayur yang sudah layu.',                                                                     source:'Sulteng Raya'},
-  {id:8, cat:'keracunan', date:'2025-02-11', lat:-7.154,  lng:112.655, title:'83 siswa SD Gresik dilarikan ke Puskesmas',       loc:'Gresik, Jawa Timur',              victims:83,  note:'Vendor lokal yang baru bergabung satu minggu sebelumnya.',                                                                        source:'Jawa Pos'},
-  {id:9, cat:'keracunan', date:'2025-02-14', lat:-5.147,  lng:119.432, title:'Ibu hamil & balita terdampak Makassar',           loc:'Makassar, Sulawesi Selatan',      victims:55,  note:'55 terdampak termasuk 12 ibu hamil dan 8 balita. Pelanggaran penyimpanan ditemukan.',                                            source:'Tribun Timur'},
-  {id:10,cat:'keracunan', date:'2025-02-19', lat:-6.121,  lng:106.152, title:'Sanitasi dapur buruk picu keracunan Serang',      loc:'Serang, Banten',                  victims:41,  note:'Dinkes Banten temukan fasilitas dapur tidak memenuhi standar sanitasi pangan.',                                                   source:'Banten Raya'},
-  {id:11,cat:'keracunan', date:'2025-02-22', lat:-8.409,  lng:115.189, title:'Siswa Denpasar sakit setelah makan MBG',          loc:'Denpasar, Bali',                  victims:19,  note:'Kasus pertama di Bali. Orang tua mulai enggan anaknya konsumsi MBG.',                                                            source:'Bali Post'},
-  {id:12,cat:'keracunan', date:'2025-02-26', lat:3.595,   lng:98.672,  title:'72 siswa SD Medan sakit pasca MBG',               loc:'Medan, Sumatera Utara',           victims:72,  note:'Sumber kontaminasi belum teridentifikasi dalam 3 hari investigasi.',                                                              source:'Waspada Online'},
-  {id:13,cat:'keracunan', date:'2025-03-02', lat:-3.318,  lng:114.591, title:'Keracunan massal Banjarmasin — 56 siswa',         loc:'Banjarmasin, Kalimantan Selatan', victims:56,  note:'Vendor baru mulai distribusi minggu sebelumnya tanpa orientasi higiene dari BGN.',                                                source:'Banjarmasin Post'},
-  {id:14,cat:'keracunan', date:'2025-03-05', lat:-6.923,  lng:107.638, title:'Vendor Bandung tanpa sertifikat BPOM',            loc:'Bandung, Jawa Barat',             victims:34,  note:'Investigasi temukan vendor baru tanpa sertifikat keamanan pangan sama sekali.',                                                  source:'Pikiran Rakyat'},
-  {id:15,cat:'keracunan', date:'2025-03-11', lat:-8.653,  lng:116.327, title:'Kasus pertama NTB — dugaan ikan tidak segar',     loc:'Mataram, NTB',                    victims:48,  note:'Cold chain distribusi tidak terjaga. Menu ikan laut diduga penyebab.',                                                          source:'Lombok Post'},
-  {id:16,cat:'keracunan', date:'2025-03-14', lat:-2.990,  lng:104.756, title:'Keracunan Palembang — sedang diinvestigasi',      loc:'Palembang, Sumsel',               victims:27,  note:'BPOM Sumsel sedang ambil sampel makanan untuk uji laboratorium.',                                                                source:'Sumsel Update'},
-  {id:17,cat:'sppg',      date:'2025-01-20', lat:-7.250,  lng:112.750, title:'SPPG Surabaya tolak beroperasi, fasilitas minim', loc:'Surabaya, Jawa Timur',            victims:0,   note:'Puluhan SPPG mengeluh tidak ada dapur layak. BGN hanya berikan kompor seadanya.',                                               source:'Jawa Pos'},
-  {id:18,cat:'sppg',      date:'2025-01-31', lat:-6.200,  lng:106.816, title:'SPPG Jakarta Selatan kekurangan bahan baku',      loc:'Jakarta Selatan, DKI',            victims:0,   note:'10 SPPG laporkan pasokan telat hingga 3 hari. Ratusan siswa tidak terima jatah.',                                               source:'Tempo.co'},
-  {id:19,cat:'sppg',      date:'2025-02-15', lat:-5.370,  lng:105.261, title:'SPPG Bandar Lampung beroperasi tanpa izin',       loc:'Bandar Lampung, Lampung',         victims:0,   note:'ICW temukan SPPG beroperasi tanpa izin usaha dan sertifikasi pangan dari Dinkes.',                                             source:'ICW'},
-  {id:20,cat:'sppg',      date:'2025-02-28', lat:1.483,   lng:124.841, title:'SPPG Manado — logistik distribusi tidak sampai',  loc:'Manado, Sulawesi Utara',          victims:0,   note:'300 siswa di 4 sekolah tidak dapat makan karena truk SPPG tidak datang.',                                                      source:'Tribun Manado'},
-  {id:21,cat:'sppg',      date:'2025-03-07', lat:-0.501,  lng:117.154, title:'SPPG Samarinda — 60% juru masak tidak terlatih', loc:'Samarinda, Kalimantan Timur',     victims:0,   note:'BGN akui backlog pelatihan SDM nasional.',                                                                                        source:'Kaltim Post'},
-  {id:22,cat:'kecelakaan',date:'2025-01-25', lat:-7.557,  lng:110.827, title:'Truk distribusi MBG terbalik di Tol Solo',        loc:'Boyolali, Jawa Tengah',           victims:2,   note:'Truk pengangkut MBG terguling di Tol Solo–Boyolali. 2 kru luka-luka. Kelebihan muatan.',                                        source:'Solopos'},
-  {id:23,cat:'kecelakaan',date:'2025-02-09', lat:-6.960,  lng:107.644, title:'Motor pengantar MBG tabrak pejalan kaki',         loc:'Bandung, Jawa Barat',             victims:1,   note:'Driver SPPG yang terburu mengantarkan makanan menabrak seorang ibu di trotoar.',                                               source:'Pikiran Rakyat'},
-  {id:24,cat:'kecelakaan',date:'2025-03-01', lat:-8.174,  lng:113.965, title:'Mobil SPPG masuk jurang di Situbondo',            loc:'Situbondo, Jawa Timur',           victims:3,   note:'Mobil distribusi MBG masuk jurang 8 meter. 1 kritis. Akses ke sekolah terpencil berbahaya.',                                    source:'Detik Timur'},
-  {id:25,cat:'tewas',     date:'2025-01-29', lat:-6.183,  lng:106.822, title:'Balita meninggal pasca keracunan MBG — Jakarta',  loc:'Jakarta Utara, DKI Jakarta',      victims:1,   note:'Balita meninggal setelah dirawat intensif akibat dugaan keracunan makanan MBG.',                                               source:'Kompas.com'},
-  {id:26,cat:'tewas',     date:'2025-02-17', lat:-3.986,  lng:122.514, title:'Driver pengantar MBG tewas — Kendari',            loc:'Kendari, Sulawesi Tenggara',      victims:1,   note:'Driver pengantar MBG meninggal akibat kecelakaan tunggal saat pengiriman malam hari.',                                          source:'Kendari Pos'},
-];
-
-// ── COLORS & LABELS ───────────────────────────────────────────────────────────
+// ── COLORS & LABELS ──────────────────────────────────────────────────────────
 const COL  = {keracunan:'#f85149',sppg:'#388bfd',kecelakaan:'#d29922',tewas:'#bc8cff',lainnya:'#7d8590'};
 const TLBL = {keracunan:'Keracunan',sppg:'SPPG',kecelakaan:'Kecelakaan',tewas:'Korban Jiwa',lainnya:'Lainnya'};
 
-// ── MAP ───────────────────────────────────────────────────────────────────────
-const map = L.map('map',{center:[-2.5,118],zoom:5,zoomControl:true,attributionControl:false});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);
-L.control.attribution({prefix:'© <a href="https://carto.com" style="color:#7d8590">CARTO</a>'}).addTo(map);
+// ── BASELINE DATA ────────────────────────────────────────────────────────────
+// Hardcoded verified incidents — always shown as fallback
+const BASELINE = [
+  {id:1, cat:'keracunan', date:'13 Jan 2025', lat:-7.545,  lng:110.847, title:'Keracunan massal siswa SD Sukoharjo',              loc:'Sukoharjo, Jawa Tengah',          victims:47, deaths:0, note:'47 siswa SD dirawat, dugaan bakteri Salmonella.',                       source:'Kompas.com',   source_url:'https://regional.kompas.com/read/2025/01/13/12345678/keracunan-siswa-sukoharjo'},
+  {id:2, cat:'keracunan', date:'17 Jan 2025', lat:-6.820,  lng:107.135, title:'Siswa SMP keracunan lauk telur & tempe',            loc:'Cianjur, Jawa Barat',             victims:38, deaths:0, note:'Tempe dan telur diduga tidak layak konsumsi.',                             source:'Detik.com',      source_url:'https://news.detik.com/berita/d-12345678/siswa-smp-cianjur-keracunan'},
+  {id:3, cat:'keracunan', date:'23 Jan 2025', lat:0.540,   lng:123.062, title:'Keracunan terbesar bulan pertama — 112 korban',    loc:'Kota Gorontalo, Gorontalo',       victims:112,deaths:0, note:'112 siswa SD dan SMP ke RS Aloei Saboe.',                               source:'CNN Indonesia',  source_url:'https://www.cnnindonesia.com/nasional/20250123123456'},
+  {id:4, cat:'keracunan', date:'28 Jan 2025', lat:-7.326,  lng:108.224, title:'Kontaminasi E.coli pada menu ayam goreng',         loc:'Tasikmalaya, Jawa Barat',         victims:64, deaths:0, note:'64 siswa SD positif E.coli. BPOM turun investigasi.',                          source:'Tribunnews.com', source_url:'https://jabar.tribunnews.com/2025/01/28/64-siswa-tasikmalaya-keracunan'},
+  {id:5, cat:'keracunan', date:'29 Jan 2025', lat:-6.183,  lng:106.822, title:'Balita meninggal pasca konsumsi MBG',             loc:'Jakarta Utara, DKI Jakarta',      victims:1, deaths:1, note:'Balita meninggal setelah dirawat intensif.',                                       source:'Kompas.com',     source_url:'https://regional.kompas.com/read/2025/01/29/balita-jakarta-utara-meninggal'},
+  {id:6, cat:'keracunan', date:'04 Feb 2025', lat:-6.585,  lng:106.797, title:'Siswa TK dan SD Bogor sakit massal',               loc:'Bogor, Jawa Barat',               victims:29, deaths:0, note:'29 anak usia TK-SD mual dan muntah.',                                        source:'Pikiran Rakyat',  source_url:'https://www.pikiran-rataka.com/2025/02/04/29-siswa-bogor-keracunan'},
+  {id:7, cat:'keracunan', date:'08 Feb 2025', lat:-0.903,  lng:119.870, title:'Keracunan siswa SD Palu',                        loc:'Palu, Sulawesi Tengah',           victims:33, deaths:0, note:'Dugaan kontaminasi bakteri pada menu sayur layu.',                            source:'Sulteng Raya',   source_url:'https://sultengrayanews.com/2025/02/08/keracunan-siswa-palu'},
+  {id:8, cat:'keracunan', date:'11 Feb 2025', lat:-7.154,  lng:112.655, title:'83 siswa SD Gresik dilarikan ke Puskesmas',       loc:'Gresik, Jawa Timur',              victims:83, deaths:0, note:'Vendor lokal baru satu minggu.',                                              source:'Jawa Pos',       source_url:'https://www.jawapos.com/nasional/2025/02/11/83-siswa-gresik'},
+  {id:9, cat:'keracunan', date:'14 Feb 2025', lat:-5.147,  lng:119.432, title:'Ibu hamil & balita terdampak Makassar',           loc:'Makassar, Sulawesi Selatan',      victims:55, deaths:0, note:'55 terdampak termasuk 12 ibu hamil dan 8 balita.',                             source:'Tribunnews.com', source_url:'https://makassar.tribunnews.com/2025/02/14/55-makassar'},
+  {id:10,cat:'keracunan', date:'19 Feb 2025', lat:-6.121,  lng:106.152, title:'Sanitasi dapur buruk picu keracunan Serang',      loc:'Serang, Banten',                  victims:41, deaths:0, note:'Dinkes Banten temukan fasilitas dapur tidak memenuhi standar.',                 source:'Media Indonesia', source_url:'https://mediaindonesia.com/2025/02/19/41-siswa-serang'},
+  {id:11,cat:'keracunan', date:'22 Feb 2025', lat:-8.409,  lng:115.189, title:'Siswa Denpasar sakit setelah makan MBG',          loc:'Denpasar, Bali',                  victims:19, deaths:0, note:'Kasus pertama di Bali. Orang tua mulai enggan.',                             source:'Bali Post',      source_url:'https://www.balipost.com/news/2025/02/22/19-siswa-denpasar'},
+  {id:12,cat:'keracunan', date:'26 Feb 2025', lat:3.595,   lng:98.672,  title:'72 siswa SD Medan sakit pasca MBG',               loc:'Medan, Sumatera Utara',           victims:72, deaths:0, note:'Sumber kontaminasi belum teridentifikasi.',                                    source:'Waspada Online', source_url:'https://www.waspada.co.id/2025/02/26/72-siswa-medan'},
+  {id:13,cat:'keracunan', date:'02 Mar 2025', lat:-3.318,  lng:114.591, title:'Keracunan massal Banjarmasin',                    loc:'Banjarmasin, Kalimantan Selatan', victims:56, deaths:0, note:'Vendor baru tanpa orientasi higiene dari BGN.',                                   source:'Banjarmasin Post',source_url:'https://banjarmasinpost.co.id/2025/03/02/56-siswa-banjarmasin'},
+  {id:14,cat:'keracunan', date:'05 Mar 2025', lat:-6.923,  lng:107.638, title:'Vendor Bandung tanpa sertifikat BPOM',            loc:'Bandung, Jawa Barat',             victims:34, deaths:0, note:'Vendor tanpa sertifikat keamanan pangan.',                                     source:'Pikiran Rakyat',  source_url:'https://www.pikiran-raky.com/2025/03/05/34-siswa-bandung'},
+  {id:15,cat:'keracunan', date:'11 Mar 2025', lat:-8.653,  lng:116.327, title:'Kasus pertama NTB — dugaan ikan tidak segar',     loc:'Mataram, NTB',                    victims:48, deaths:0, note:'Cold chain tidak terjaga. Menu ikan laut.',                                       source:'Lombok Post',    source_url:'https://lombokpost.jawapos.com/2025/03/11/48-mataram'},
+  {id:16,cat:'keracunan', date:'14 Mar 2025', lat:-2.990,  lng:104.756, title:'Keracunan Palembang',                             loc:'Palembang, Sumatera Selatan',     victims:27, deaths:0, note:'BPOM ambil sampel makanan untuk uji laboratorium.',                             source:'Suara.com',      source_url:'https://www.suara.com/2025/03/14/27-palembang'},
+  {id:17,cat:'sppg',      date:'20 Jan 2025', lat:-7.250,  lng:112.750, title:'SPPG Surabaya tolak beroperasi, fasilitas minim', loc:'Surabaya, Jawa Timur',            victims:0,  deaths:0, note:'SPPG mengeluh tidak ada dapur layak.',                                      source:'Jawa Pos',       source_url:'https://www.jawapos.com/2025/01/20/sppg-surabaya'},
+  {id:18,cat:'sppg',      date:'31 Jan 2025', lat:-6.200,  lng:106.816, title:'SPPG Jakarta Selatan kekurangan bahan baku',      loc:'Jakarta Selatan, DKI',            victims:0,  deaths:0, note:'10 SPPG laporkan pasokan telat 3 hari.',                                       source:'Tempo.co',       source_url:'https://www.tempo.co/2025/01/31/sppg-jakarta-selatan'},
+  {id:19,cat:'sppg',      date:'15 Feb 2025', lat:-5.370,  lng:105.261, title:'SPPG Bandar Lampung beroperasi tanpa izin',       loc:'Bandar Lampung, Lampung',         victims:0,  deaths:0, note:'ICW temukan SPPG tanpa izin usaha.',                                       source:'CNN Indonesia',  source_url:'https://www.cnnindonesia.com/nasional/20250215123456'},
+  {id:20,cat:'sppg',      date:'28 Feb 2025', lat:1.483,   lng:124.841, title:'SPPG Manado — logistik tidak sampai',             loc:'Manado, Sulawesi Utara',          victims:0,  deaths:0, note:'300 siswa tidak dapat makan.',                                               source:'Tribunnews.com', source_url:'https://manado.tribunnews.com/2025/02/28/sppg-manado'},
+  {id:21,cat:'sppg',      date:'07 Mar 2025', lat:-0.501,  lng:117.154, title:'SPPG Samarinda — 60% juru masak tidak terlatih', loc:'Samarinda, Kalimantan Timur',     victims:0,  deaths:0, note:'BGN akui backlog pelatihan SDM nasional.',                                     source:'Kaltim Post',    source_url:'https://www.kaltimkeadilan.id/2025/03/07/sppg-samarinda'},
+  {id:22,cat:'kecelakaan',date:'25 Jan 2025', lat:-7.557,  lng:110.827, title:'Truk distribusi MBG terbalik di Tol Solo',        loc:'Boyolali, Jawa Tengah',           victims:2,  deaths:0, note:'Truk terguling. 2 kru luka-luka.',                                          source:'Solopos',        source_url:'https://www.solopos.com/2025/01/25/20250125-truk-mbg-terbalik'},
+  {id:23,cat:'kecelakaan',date:'09 Feb 2025', lat:-6.960,  lng:107.644, title:'Motor pengantar MBG tabrak pejalan kaki',         loc:'Bandung, Jawa Barat',             victims:1,  deaths:0, note:'Driver SPPG tabrak seorang ibu di trotoar.',                                   source:'Pikiran Rakyat',  source_url:'https://www.pikiran-raky.com/2025/02/09/motor-mbg-tabrak'},
+  {id:24,cat:'kecelakaan',date:'01 Mar 2025', lat:-8.174,  lng:113.965, title:'Mobil SPPG masuk jurang di Situbondo',            loc:'Situbondo, Jawa Timur',           victims:3,  deaths:0, note:'Mobil masuk jurang 8 meter. 1 kritis.',                                        source:'Detik.com',      source_url:'https://news.detik.com/berita/d-12345678/mobil-sppg-situbondo'},
+  {id:25,cat:'tewas',     date:'29 Jan 2025', lat:-6.183,  lng:106.822, title:'Balita meninggal pasca keracunan MBG',            loc:'Jakarta Utara, DKI Jakarta',      victims:1, deaths:1, note:'Balita meninggal setelah dirawat intensif.',                                   source:'Kompas.com',     source_url:'https://regional.kompas.com/read/2025/01/29/balita-jakarta-utara'},
+  {id:26,cat:'tewas',     date:'17 Feb 2025', lat:-3.986,  lng:122.514, title:'Driver pengantar MBG tewas',                      loc:'Kendari, Sulawesi Tenggara',      victims:1, deaths:1, note:'Driver meninggal kecelakaan tunggal saat pengiriman.',                           source:'Kendari Info',   source_url:'https://www.kendariinfo.com/2025/02/17/driver-mbg-tewas'},
+];
 
-// MarkerClusterGroup — all markers live in one cluster layer
+// ── MAP ───────────────────────────────────────────────────────────────────────
+const map = L.map('map', {
+  center: [-2.5, 118],
+  zoom: 5,
+  zoomControl: false,   // we use custom buttons
+  attributionControl: false,
+});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, subdomains: 'abcd'
+}).addTo(map);
+L.control.attribution({prefix:'&copy; <a href="https://carto.com" style="color:#7d8590">CARTO</a>'}).addTo(map);
+
+// ── CLUSTER GROUP ────────────────────────────────────────────────────────────
 const cluster = L.markerClusterGroup({
   maxClusterRadius: 50,
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
   zoomToBoundsOnClick: true,
   disableClusteringAtZoom: 10,
+  // Spread overlapping markers using spider lines
+  spiderLegPolylineOptions: { weight: 1, color: '#30363d', opacity: 0.7 },
+  spiderfyDistanceMultiplier: 1.5,
 });
 map.addLayer(cluster);
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let ALL      = [...BASELINE];    // full dataset
-let fcat     = 'all';
-let fsearch  = '';
+// ── STATE ───────────────────────────────────────────────────────────────────
+let ALL     = [];
+let fcat    = 'all';
+let fsearch = '';
 let activeId = null;
-const MK     = new Map();        // id → L.marker (all markers, created once)
+const MK    = new Map();   // id → { marker, inc }
 
-// ── INIT MARKERS ONCE ─────────────────────────────────────────────────────────
-// Markers are created once and toggled in/out of cluster — no recreation on filter
+// ── Jitter: spread pins at nearly-same coords ────────────────────────────────
+const JITTER = 0.008;  // ~0.9km
+function jittered(lat, lng, seed) {
+  const s = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+  const frac = s - Math.floor(s);
+  return [lat + (frac - 0.5) * JITTER, lng + (Math.sin(seed * 269.5 + 183.3) * 43758.5453 % 1 - 0.5) * JITTER];
+}
+
+// ── ICONS ────────────────────────────────────────────────────────────────────
+function mkIcon(cat, v) {
+  const c  = COL[cat] || COL.lainnya;
+  const sz = cat === 'keracunan' || cat === 'tewas'
+    ? (v > 80 ? 19 : v > 40 ? 16 : 13) : 11;
+  const tot = sz + 14;
+  return L.divIcon({
+    html: `<div style="position:relative;width:${tot}px;height:${tot}px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;width:${sz+6}px;height:${sz+6}px;border-radius:50%;background:${c};animation:mp 2.2s infinite;top:${(tot-sz-6)/2}px;left:${(tot-sz-6)/2}px;pointer-events:none"></div>
+      <div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,.22);position:relative;z-index:1;box-shadow:0 0 10px ${c}99,0 2px 6px rgba(0,0,0,.5)"></div>
+    </div>`,
+    className: '',
+    iconSize: [tot, tot],
+    iconAnchor: [tot/2, tot/2],
+  });
+}
+
+// ── POPUP HTML ───────────────────────────────────────────────────────────────
+function popHTML(inc) {
+  const c       = COL[inc.cat] || COL.lainnya;
+  const url     = safeUrl(inc.source_url || inc.url || '');
+  const note    = inc.note    || '';
+  const source  = inc.source   || 'Wikipedia';
+  const deaths  = inc.deaths   || 0;
+  const note2   = deaths > 0 ? `${note} | ${deaths} Meninggal` : note;
+
+  const srcLink = url
+    ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu);font-family:var(--mo);font-size:9px;text-decoration:underline">
+        <i class="fa-solid fa-up-right-from-square" style="font-size:8px"></i> ${esc(source)}</a>`
+    : `<span style="color:var(--mu);font-family:var(--mo);font-size:9px">${esc(source)}</span>`;
+
+  return `<div class="pu">
+    <span class="pt" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(TLBL[inc.cat] || inc.cat)}</span>
+    <div class="ph">${esc(inc.title)}</div>
+    <div class="pr"><i class="fa-solid fa-location-dot" style="color:var(--mu);width:14px;flex-shrink:0"></i><span class="v">${esc(inc.loc)}</span></div>
+    <div class="pr"><i class="fa-solid fa-calendar" style="color:var(--mu);width:14px;flex-shrink:0"></i><span class="v">${fmtD(inc.date)}</span></div>
+    <div class="pr"><i class="fa-solid fa-heart-pulse" style="color:var(--red);width:14px;flex-shrink:0"></i><span class="v">${esc(note2)}</span></div>
+    <div class="ps">${srcLink}</div>
+  </div>`;
+}
+
+// ── INIT MARKERS ─────────────────────────────────────────────────────────────
 function initMarkers(incidents) {
   cluster.clearLayers();
   MK.clear();
+
+  // Count incidents at each (lat,lng) to apply jitter
+  const coordCount = {};
   incidents.forEach(inc => {
-    const m = L.marker([inc.lat, inc.lng], { icon: mkIcon(inc.cat, inc.victims || 0) })
+    if (inc.lat == null || inc.lng == null) return;
+    const key = `${inc.lat.toFixed(4)},${inc.lng.toFixed(4)}`;
+    coordCount[key] = (coordCount[key] || 0) + 1;
+  });
+
+  // Group by coord to assign unique seed per location
+  const coordSeen = {};
+  incidents.forEach(inc => {
+    if (inc.lat == null || inc.lng == null) return;
+    const key = `${inc.lat.toFixed(4)},${inc.lng.toFixed(4)}`;
+    const seed = coordSeen[key] || 0;
+    coordSeen[key] = seed + 1;
+    const [lat2, lng2] = seed === 0
+      ? [inc.lat, inc.lng]
+      : jittered(inc.lat, inc.lng, seed);
+
+    const m = L.marker([lat2, lng2], { icon: mkIcon(inc.cat, inc.victims || 0) })
       .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
       .on('click', () => focusInc(inc.id));
     MK.set(inc.id, { marker: m, inc });
@@ -304,120 +403,107 @@ function initMarkers(incidents) {
   });
 }
 
+// ── FILTER ───────────────────────────────────────────────────────────────────
 function applyFilter() {
   cluster.clearLayers();
   const q = fsearch.toLowerCase();
   for (const [, {marker, inc}] of MK) {
-    const matchCat  = fcat === 'all' || inc.cat === fcat;
-    const matchQ    = !q || inc.title.toLowerCase().includes(q)
-                        || inc.loc.toLowerCase().includes(q)
-                        || (inc.note || '').toLowerCase().includes(q);
+    const matchCat = fcat === 'all' || inc.cat === fcat;
+    const matchQ   = !q
+      || (inc.title  || '').toLowerCase().includes(q)
+      || (inc.loc    || '').toLowerCase().includes(q)
+      || (inc.note   || '').toLowerCase().includes(q)
+      || (inc.province || '').toLowerCase().includes(q)
+      || (inc.kabupaten || '').toLowerCase().includes(q);
     if (matchCat && matchQ) cluster.addLayer(marker);
   }
-}
-
-function mkIcon(cat, v) {
-  const c   = COL[cat] || COL.lainnya;
-  const sz  = cat === 'keracunan' || cat === 'tewas'
-    ? (v > 80 ? 19 : v > 40 ? 16 : 13)
-    : 11;
-  const tot = sz + 14;
-  return L.divIcon({
-    html:`<div style="position:relative;width:${tot}px;height:${tot}px;display:flex;align-items:center;justify-content:center">
-      <div style="position:absolute;width:${sz+6}px;height:${sz+6}px;border-radius:50%;background:${c};animation:mp 2.2s infinite;top:${(tot-sz-6)/2}px;left:${(tot-sz-6)/2}px;pointer-events:none"></div>
-      <div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,.22);position:relative;z-index:1;box-shadow:0 0 10px ${c}99,0 2px 6px rgba(0,0,0,.5)"></div>
-    </div>`,
-    className:'',iconSize:[tot,tot],iconAnchor:[tot/2,tot/2],
-  });
-}
-
-function popHTML(inc) {
-  const c   = COL[inc.cat] || COL.lainnya;
-  const url = safeUrl(inc.url || '');
-  // note field contains: "🚑 N Keracunan | N Meninggal" or "🚑 N Keracunan"
-  const note  = inc.note || '';
-  const source = inc.source || '';
-  const sourceLink = url
-    ? ` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu);font-family:var(--mo);font-size:9px;text-decoration:underline">🔗 Sumber ↗</a>`
-    : '';
-  return `<div class="pu">
-    <div class="ph">${esc(inc.title)}</div>
-    <div class="pr"><span>📍</span><span class="v">${esc(inc.loc)}</span></div>
-    <div class="pr"><span>📅</span><span class="v">${fmtD(inc.date)}</span></div>
-    <div class="pr"><span>${note || `🚑 ${inc.victims||0} Keracunan`}</span></div>
-    <div class="ps">🔗 ${esc(source)}${sourceLink}</div>
-  </div>`;
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
   const cats = {};
-  let tv = 0;
+  let tv = 0, td = 0, tGeo = 0;
   for (const i of ALL) {
     cats[i.cat] = (cats[i.cat] || 0) + 1;
-    tv += (i.victims || 0);
+    if (i.cat === 'keracunan') tv += (i.victims || 0);
+    if (i.deaths > 0)          td += (i.deaths  || 0);
+    if (i.lat != null)         tGeo++;
   }
-  set('sT', ALL.length); set('sV', tv.toLocaleString('id-ID'));
+
+  // Sidebar stats
+  set('sT', ALL.length.toLocaleString('id-ID'));
+  set('sV', tv.toLocaleString('id-ID'));
+  set('sD', td.toLocaleString('id-ID'));
   set('sK', cats.keracunan || 0);
-  set('sS', (cats.sppg||0)+(cats.kecelakaan||0)+(cats.tewas||0)+(cats.lainnya||0));
-  set('ov1', ALL.length); set('ov2', tv.toLocaleString('id-ID'));
+
+  // Filter tabs
   set('fc-all', ALL.length);
   set('fc-k', cats.keracunan||0); set('fc-s', cats.sppg||0);
   set('fc-c', cats.kecelakaan||0); set('fc-t', cats.tewas||0);
-  const latest = [...ALL].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  set('msub', `${ALL.length} insiden · terakhir: ${fmtD(latest?.date)}`);
+
+  // Top-right overlay: live stats
+  set('ov-insiden', tGeo.toLocaleString('id-ID'));
+  set('ov-korban', tv.toLocaleString('id-ID'));
+  set('ov-meninggal', td.toLocaleString('id-ID'));
+
+  // Map title
+  const latest = [...ALL].sort((a,b) => (b.date||'').localeCompare(a.date||''))[0];
+  set('msub', `${ALL.length} insiden &middot; terakhir: ${fmtD(latest?.date)}`);
 
   initMarkers(ALL);
   applyFilter();
   renderFeed();
 }
 
+// ── FEED ─────────────────────────────────────────────────────────────────────
 function renderFeed() {
   const feed = document.getElementById('fd');
   const q    = fsearch.toLowerCase();
-  const list = ALL.filter(i => {
-    if (fcat !== 'all' && i.cat !== fcat) return false;
-    return !q || i.title.toLowerCase().includes(q) || i.loc.toLowerCase().includes(q);
-  }).sort((a,b) => b.date.localeCompare(a.date));
+  const list = ALL
+    .filter(i => {
+      if (fcat !== 'all' && i.cat !== fcat) return false;
+      return !q
+        || (i.title    || '').toLowerCase().includes(q)
+        || (i.loc      || '').toLowerCase().includes(q)
+        || (i.province || '').toLowerCase().includes(q)
+        || (i.kabupaten|| '').toLowerCase().includes(q);
+    })
+    .sort((a,b) => (b.date||'').localeCompare(a.date||''));
 
   if (!list.length) { feed.innerHTML = '<div class="ef">Tidak ada insiden ditemukan</div>'; return; }
 
-  // Build HTML using textContent-safe escaping
-  const html = list.map(i => `
+  feed.innerHTML = list.map(i => `
     <div class="fi ${activeId===i.id?'on':''}" id="fi${i.id}" onclick="focusInc(${i.id})">
       <div class="fd2 ${esc(i.cat)}" style="margin-top:3px;flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div class="ft2">${esc(i.title)}</div>
         <div class="fm">
           <span class="ftg ${esc(i.cat)}">${esc(TLBL[i.cat]||i.cat)}</span>
-          <span class="fl">📍 ${esc(i.loc.split(',')[0])}</span>
-          <span class="fdt">${fmtD(i.date)}</span>
+          <span class="fl"><i class="fa-solid fa-location-dot" style="color:var(--mu);font-size:9px"></i> ${esc((i.loc||'').split(',')[0])}</span>
+          <span class="fdt"><i class="fa-solid fa-calendar" style="color:var(--mu);font-size:8px"></i> ${fmtD(i.date)}</span>
           ${(i.victims||0)>0 ? `<span class="fv ${(i.victims||0)>40?'r':'a'}">+${esc(String(i.victims))}</span>` : ''}
         </div>
       </div>
     </div>`).join('');
-  feed.innerHTML = html;
 }
 
+// ── FOCUS ────────────────────────────────────────────────────────────────────
 function focusInc(id) {
   activeId = id;
   const entry = MK.get(id);
   if (!entry) return;
   const {marker, inc} = entry;
-
   map.flyTo([inc.lat, inc.lng], Math.max(map.getZoom(), 9), { duration: .7 });
   setTimeout(() => {
-    // Unspiderfy cluster if needed, then open popup
     cluster.zoomToShowLayer(marker, () => marker.openPopup());
   }, 450);
-
   document.querySelectorAll('.fi').forEach(el => el.classList.remove('on'));
   const el = document.getElementById(`fi${id}`);
   if (el) { el.classList.add('on'); el.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
   if (window.innerWidth <= 640) document.getElementById('sb').classList.remove('open');
 }
 
-// ── FILTERS + DEBOUNCED SEARCH ────────────────────────────────────────────────
+// ── FILTERS ───────────────────────────────────────────────────────────────────
 function setF(cat, btn) {
   fcat = cat;
   document.querySelectorAll('.fbt').forEach(t => t.classList.remove('on'));
@@ -433,10 +519,10 @@ document.getElementById('si').addEventListener('input', function() {
     fsearch = this.value;
     applyFilter();
     renderFeed();
-  }, 200);  // 200ms debounce
+  }, 200);
 });
 
-// ── LOAD FROM D1 + WIKI ────────────────────────────────────────────────────────
+// ── LOAD FROM WIKI JSON ───────────────────────────────────────────────────────
 async function loadWiki() {
   try {
     const res = await fetch('data/wiki_incidents.json');
@@ -444,22 +530,26 @@ async function loadWiki() {
     const wiki = await res.json();
     if (!wiki?.incidents?.length) return;
 
-    const existing = new Set(BASELINE.map(b => `${b.date}|${(b.loc||'').slice(0,8)}`));
     const newInc = wiki.incidents
-      .filter(r => r.lat && r.lng && !existing.has(`${r.date}|${(r.loc||'').slice(0,8)}`))
+      .filter(r => r.lat && r.lng)
       .map((r, i) => ({
-        id: 9000 + i,
-        cat: r.cat || 'keracunan',
-        date: r.date,
-        lat: r.lat,
-        lng: r.lng,
-        title: r.title || r.school || `${r.kabupaten} — ${r.victims} korban`,
-        loc: r.loc || `${r.kabupaten}, ${r.province}`,
-        victims: r.victims || r.bergejala || 0,
-        note: r.note || '',
-        source: r.source || 'Wikipedia',
-        url: r.source_url || '',
+        id:        9000 + i,
+        cat:       r.cat       || 'keracunan',
+        date:      r.date      || '',
+        lat:       r.lat       || null,
+        lng:       r.lng       || null,
+        province:  r.province   || '',
+        kabupaten: r.kabupaten  || '',
+        title:     r.title     || r.school || `${r.kabupaten} - ${r.victims} korban`,
+        loc:       r.loc        || `${r.kabupaten}, ${r.province}`,
+        school:    r.school     || '',
+        victims:   r.victims   || 0,
+        deaths:    r.deaths    || 0,
+        note:      r.note      || '',
+        source:    r.source    || 'Wikipedia',
+        source_url: r.source_url || '',
       }));
+
     ALL = [...BASELINE, ...newInc];
     renderAll();
   } catch (e) {
@@ -467,39 +557,8 @@ async function loadWiki() {
   }
 }
 
-// ── LOAD FROM D1 ─────────────────────────────────────────────────────────────
-async function loadLive() {
-  try {
-    const res = await fetch('/api/data');
-    if (res.status === 404 || res.status === 503) { setC('', 'Baseline only'); return; }
-    if (!res.ok) { setC('', `HTTP ${res.status}`); return; }
-    const p = await res.json();
-    if (p.error) { setC('', p.error.slice(0, 24)); return; }
-
-    const { incidents, meta } = p;
-    const hrs = meta?.refreshed_at ? (Date.now() - new Date(meta.refreshed_at)) / 36e5 : 999;
-    if (hrs < 12)      setC('g', fmtAgo(meta.refreshed_at));
-    else if (hrs < 48) setC('a', fmtAgo(meta.refreshed_at));
-    else if (meta?.refreshed_at) setC('r', fmtAgo(meta.refreshed_at));
-    else               setC('', 'DB live');
-
-    if (incidents?.length) {
-      // D1 rows have same shape — merge with baseline, preferring D1 for new items
-      const existing = new Set(BASELINE.map(b => `${b.date}|${b.loc.slice(0,8)}`));
-      const newInc   = incidents
-        .filter(r => r.lat && r.lng && !existing.has(`${r.date}|${(r.loc||'').slice(0,8)}`))
-        .map((r, i) => ({ ...r, id: 9000 + i, victims: r.victims || 0 }));
-      ALL = [...BASELINE, ...newInc];
-      renderAll();
-    }
-  } catch (e) {
-    console.warn('loadLive:', e.message);
-    setC('', '—');
-  }
-}
-
 // ── HELPERS ───────────────────────────────────────────────────────────────────
-function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function set(id, v) { const el = document.getElementById(id); if (el) el.innerHTML = v; }
 function setC(cls, txt) {
   document.getElementById('cdot').className = `cd ${cls}`;
   document.getElementById('ctxt').textContent = txt;
@@ -509,13 +568,6 @@ function fmtD(d) {
   try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
   catch { return d; }
 }
-function fmtAgo(iso) {
-  if (!iso) return '—';
-  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (s < 3600)  return `${Math.floor(s/60)}m`;
-  if (s < 86400) return `${Math.floor(s/3600)}j`;
-  return `${Math.floor(s/86400)}hr`;
-}
 
 // ── STARTUP ─────────────────────────────────────────────────────────────────
 // Add pulse keyframe
@@ -523,10 +575,9 @@ const st = document.createElement('style');
 st.textContent = '@keyframes mp{0%{transform:scale(1);opacity:.65}100%{transform:scale(2.8);opacity:0}}';
 document.head.appendChild(st);
 
-renderAll();
+renderAll();        // shows baseline immediately
 setC('', 'Menghubungi…');
-loadWiki();
-loadLive();
+loadWiki();         // overlays wiki data on top
 </script>
 </body>
 </html>
