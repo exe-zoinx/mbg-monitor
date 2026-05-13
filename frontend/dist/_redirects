@@ -1,0 +1,7 @@
+# Serve static assets directly (do NOT redirect to index.html)
+/assets/* /assets/:splat 200
+/data/* /data/:splat 200
+/favicon.svg /favicon.svg 200
+
+# SPA fallback — only unmatched paths go to index.html
+/* /index.html 200

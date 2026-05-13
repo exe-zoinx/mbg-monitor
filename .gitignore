@@ -1,7 +1,10 @@
 # Cloudflare
 .wrangler/
-dist/
 workers-site/
+
+# Build output
+!/frontend/dist/
+frontend/dist/**/*
 
 # Environment
 .env

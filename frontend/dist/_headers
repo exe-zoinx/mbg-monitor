@@ -1,0 +1,17 @@
+/*
+  # Security headers on all responses
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+
+/index.html
+  # Strict CSP for the map page
+  # Allows: self, Leaflet CDN, CartoDB tiles, Google Fonts
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; connect-src 'self' https://*.pages.dev https://generativelanguage.googleapis.com https://openrouter.ai https://api.anthropic.com; frame-ancestors 'none'
+  Cache-Control: public, max-age=60, stale-while-revalidate=300
+
+/api/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex
