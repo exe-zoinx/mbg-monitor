@@ -189,6 +189,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="sb"><div class="sl">Keracunan</div><div class="sv b" id="sK">—</div><div class="ss">kasus</div></div>
   </div>
 
+  <div style="background:var(--sf);border-bottom:1px solid var(--bd);padding:8px 14px;display:grid;grid-template-columns:1fr 1fr;gap:1px">
+    <div class="sb">
+      <div class="sl">Populasi Indonesia</div>
+      <div class="sv" style="color:var(--mu);font-size:13px" id="sPop">—</div>
+      <div class="ss">Orang</div>
+    </div>
+    <div class="sb">
+      <div class="sl">Korban vs Populasi</div>
+      <div class="sv" style="color:var(--grn);font-size:13px" id="sPct">—</div>
+      <div class="ss" id="sPctLbl"></div>
+    </div>
+  </div>
+
   <div id="sw"><input id="si" type="text" placeholder="Cari insiden, lokasi..." autocomplete="off" spellcheck="false"/></div>
 
   <div id="ft">
@@ -224,6 +237,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div><div><div class="vl r" id="ov-insiden">—</div><div class="lb">insiden<br/>dipetakan</div></div></div>
     <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb)"></div><div><div class="vl a" id="ov-korban">—</div><div class="lb">total<br/>korban</div></div></div>
     <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--pur)"></div><div><div class="vl" style="color:var(--pur);font-family:var(--mo);font-size:16px;font-weight:700" id="ov-meninggal">—</div><div class="lb">meninggal</div></div></div>
+    <div class="op"><div style="width:8px;height:8px;border-radius:50%;background:var(--grn)"></div><div><div class="vl" style="color:var(--grn)" id="ov-pct">—</div><div class="lb" id="ov-pctLbl">vs populasi<br/>Indonesia</div></div></div>
   </div>
 
   <!-- Custom zoom controls: bottom-right -->
@@ -448,6 +462,14 @@ function renderAll() {
   set('ov-insiden', tGeo.toLocaleString('id-ID'));
   set('ov-korban', tv.toLocaleString('id-ID'));
   set('ov-meninggal', td.toLocaleString('id-ID'));
+
+  // Population percentage
+  const IND_POP = 287_666_973;
+  const pct = tv > 0 ? ((tv / IND_POP) * 100).toFixed(4) : '0.000';
+  set('sPop', IND_POP.toLocaleString('id-ID'));
+  set('ov-pct', pct + '%');
+  set('sPct', pct + '%');
+  set('sPctLbl', pct === '0.000' ? '' : 'masih aman');
 
   // Map title
   const today = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
