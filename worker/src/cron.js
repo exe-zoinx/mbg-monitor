@@ -1,4 +1,5 @@
 import { scrapeAll, scrapeDateRangeArchive } from './scrapers/index.js';
+import { scrapeWikiTable } from './wiki-scrape.js';
 import { classifyArticlesBatch } from './ai-classify.js';
 
 // Helper functions for AI summarization and filtering (from index.js)

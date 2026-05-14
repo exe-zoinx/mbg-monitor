@@ -1,7 +1,7 @@
 name = "mbg-monitor-cron"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
-account_id = ""
+account_id = "d0ab4a941004d8666f9dce08c4553abf"
 
 # D1 binding — same database as Pages
 [[d1_databases]]

@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     ports:
-      - "3000:5173"      # Frontend (Vite dev server)
+      - "3000:5173"      # Frontend (static server - index.html)
       - "8787:8787"    # Worker (Wrangler)
       - "8788:8788"    # Worker API
     volumes:
@@ -28,8 +28,17 @@ services:
       - ./worker:/app/worker
       - ./vite.config.js:/app/vite.config.js
       - ./worker/wrangler.toml:/app/worker/wrangler.toml
+      - ./data:/app/data
+      - ./index.html:/app/index.html
+      - ./static-server.js:/app/static-server.js
     environment:
       - NODE_ENV=development
+    command: >
+      sh -c "
+        node /app/static-server.js &
+        npx wrangler dev --config /app/worker/wrangler.toml --ip 0.0.0.0 &
+        wait
+      "
 
   # -------------------------------------------------------------------------
   # Worker Development (standalone)
