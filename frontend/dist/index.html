@@ -157,9 +157,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   #mo .vl{font-size:13px}
   #mo .lb{font-size:7px}
   #mt{top:10px;left:10px}
-  #zoom-controls{bottom:14px;left:10px}
+  #zoom-controls{bottom:140px;left:10px}
   #zoom-controls .zbtn{width:36px;height:36px;font-size:17px}
-  #ml{bottom:14px;right:10px;left:auto;max-width:130px;padding:5px 8px;font-size:8px}
+  #ml{bottom:90px;right:10px;left:auto;max-width:130px;padding:5px 8px;font-size:8px}
   #ml .lt{font-size:8px;margin-bottom:3px}
   #ml .li2{margin-bottom:1px;gap:4px}
   #mbb{bottom:100px;left:10px;right:auto}
@@ -508,6 +508,7 @@ function renderFeed() {
         </div>
         <div class="fdt"><i class="fa-solid fa-calendar" style="color:var(--mu);font-size:8px"></i> ${fmtD(i.date)}</div>
         ${(i.victims||0)>0 ? `<div class="fv ${(i.victims||0)>40?'r':'a'}">+${esc(String(i.victims))} korban</div>` : ''}
+        ${i.source_url ? `<a href="${esc(i.source_url)}" target="_blank" rel="noopener noreferrer" class="fl" style="margin-top:4px;display:inline-block"><i class="fa-solid fa-up-right-from-square" style="font-size:8px"></i> ${esc(i.source||'Sumber')}</a>` : ''}
       </div>
     </div>`).join('');
 }
