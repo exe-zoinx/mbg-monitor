@@ -118,6 +118,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         position: 'absolute',
         top: 14,
         left: 14,
+        right: 14,
         zIndex: 500,
         background: 'rgba(9,12,16,0.88)',
         border: '1px solid var(--bd2)',
@@ -151,7 +152,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         >
           <Menu size={12} strokeWidth={2} /> Menu
         </button>
-        <div>
+        <div style={{ flexShrink: 0 }}>
           <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
             <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
           </h2>
@@ -159,46 +160,32 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
           </p>
         </div>
-      </div>
-      {/* Map overlays */}
-      <div style={{
-        position: 'absolute',
-        top: 14,
-        right: 14,
-        zIndex: 500,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 7,
-      }}
-        className="map-overlays"
-      >
-        {[{ label: 'Insiden', value: fmtNum(stats.total), color: 'var(--grn)', sub: 'terpetakan', bg: '#3fb95015', icon: MapPin },
-          { label: 'Korban', value: fmtNum(stats.victims), color: 'var(--red)', sub: 'orang terdampak', bg: '#f8514915', icon: AlertTriangle },
-          { label: 'Meninggal', value: fmtNum(stats.deaths), color: 'var(--pur)', sub: 'jiwa', bg: '#bc8cff15', icon: Skull },
-          { label: 'Kasus', value: fmtNum(stats.keracunan_cases), color: 'var(--amb)', sub: 'kasus', bg: '#d2992215', icon: Building2 },
-        ].map((s, i) => (
-          <div key={i} style={{ background: s.bg, border: '1px solid var(--bd2)', borderRadius: 7, padding: '6px 10px', backdropFilter: 'blur(10px)', minWidth: 80 }}>
-            <s.icon size={14} strokeWidth={1.8} style={{ color: s.color, opacity: 0.6, marginBottom: 3 }} />
-            <div style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, lineHeight: 1.1, color: s.color }}>{s.value}</div>
-            <div style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)', marginTop: 1 }}>{s.sub}</div>
-            <div style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{s.label}</div>
-          </div>
-        ))}
+        {/* Stat chips — inline in title bar */}
+        <div className="map-title-stats" style={{
+          marginLeft: 'auto',
+          display: 'none',
+          gap: 6,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+        }}>
+          {[{ icon: MapPin, value: fmtNum(stats.total), color: 'var(--grn)', label: 'insiden' },
+            { icon: AlertTriangle, value: fmtNum(stats.victims), color: 'var(--red)', label: 'korban' },
+            { icon: Skull, value: fmtNum(stats.deaths), color: 'var(--pur)', label: 'meninggal' },
+            { icon: Building2, value: fmtNum(stats.keracunan_cases), color: 'var(--amb)', label: 'kasus' },
+          ].map((s, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 3,
+              background: '#ffffff08', borderRadius: 4, padding: '2px 6px',
+              flexShrink: 0, whiteSpace: 'nowrap',
+            }}>
+              <s.icon size={10} strokeWidth={2} style={{ color: s.color, opacity: 0.6 }} />
+              <span style={{ fontFamily: 'var(--mo)', fontSize: 10, fontWeight: 700, color: s.color }}>{s.value}</span>
+              <span style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)' }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <style>{`
-        @media (max-width: 640px) {
-          .map-title {
-            padding: 6px 10px !important;
-          }
-          .map-title h2 {
-            font-size: 11px !important;
-          }
-          .map-title p {
-            font-size: 8px !important;
-          }
-        }
-      `}</style>
     </>
   );
 }

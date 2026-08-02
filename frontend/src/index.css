@@ -120,7 +120,7 @@ html, body, #root {
 
 /* Desktop sidebar: relative positioning with fixed width */
 @media (min-width: 641px) {
-  .map-overlays { display: none !important; }
+  .map-title-stats { display: none !important; }
   .sidebar-root {
     position: relative !important;
     width: var(--sw) !important;
@@ -164,19 +164,22 @@ html, body, #root {
     justify-content: center !important;
   }
   .stats-row-1, .stats-row-2 { grid-template-columns: repeat(3, 1fr) !important; }
-  .stats-row-1 > div, .stats-row-2 > div { padding: 8px 10px !important; }
-  .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 16px !important; }
-  .map-overlays {
-    flex-direction: row !important;
-    flex-wrap: wrap;
-    gap: 4px !important;
-    top: 72px !important;
-    right: 8px !important;
-    left: auto !important;
+  .stats-row-1 > div, .stats-row-2 > div { padding: 6px 8px !important; }
+  .stats-row-1 > div > svg, .stats-row-2 > div > svg { display: none !important; }
+  .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 14px !important; }
+  .stats-row-1 > div > div:nth-child(4), .stats-row-2 > div > div:nth-child(4) { font-size: 7px !important; margin-top: 2px !important; }
+  .map-title-stats {
+    display: flex !important;
   }
-  .map-overlays > div { padding: 4px 6px !important; min-width: 0 !important; }
-  .map-overlays > div > svg { width: 12px !important; height: 12px !important; }
-  .map-overlays > div > div:nth-child(2) { font-size: 13px !important; }
+  .map-title {
+    padding: 6px 10px !important;
+  }
+  .map-title h2 {
+    font-size: 11px !important;
+  }
+  .map-title p {
+    font-size: 8px !important;
+  }
   .leaflet-control-attribution {
     position: absolute !important;
     bottom: 0 !important;
