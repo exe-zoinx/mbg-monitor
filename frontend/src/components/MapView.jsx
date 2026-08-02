@@ -1,10 +1,10 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import { BookOpen, MapPin, Calendar, Users, Newspaper, ExternalLink } from 'lucide-react';
-import { COL, TLBL, CATEGORIES, CAT_SHORT, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
+import { MapPin, AlertTriangle, Skull, Building2, ExternalLink } from 'lucide-react';
+import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats, filterCat, setFilterCat }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
@@ -146,84 +146,17 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       }}
         className="map-overlays"
       >
-        <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
-        <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
-        <a
-          href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            background: 'rgba(9,12,16,0.88)',
-            border: '1px solid var(--bd2)',
-            borderRadius: 7,
-            padding: '6px 12px',
-            backdropFilter: 'blur(10px)',
-            fontFamily: 'var(--mo)',
-            fontSize: 9,
-            color: 'var(--mu)',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-          }}
-        >
-          <BookOpen size={11} strokeWidth={2} /> Sumber: Wikipedia
-        </a>
-      </div>
-      {/* Legend */}
-      <div className="map-legend" style={{
-        position: 'absolute',
-        bottom: 60,
-        right: 14,
-        zIndex: 500,
-        background: 'rgba(9,12,16,0.88)',
-        border: '1px solid var(--bd2)',
-        borderRadius: 7,
-        padding: '8px 10px',
-        backdropFilter: 'blur(10px)',
-      }}>
-        {[
-          ['keracunan', 'Keracunan'], ['tewas', 'Korban Jiwa'], ['kecelakaan', 'Kecelakaan'],
-          ['sppg', 'SPPG'], ['sppg_opened', 'Dibuka'], ['sppg_temp_closed', 'Tutup Sementara'],
-        ].map(([cat, lbl]) => (
-          <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: COL[cat] }} />
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>{lbl}</span>
+        {[{ label: 'Insiden', value: fmtNum(stats.total), color: 'var(--grn)', sub: 'terpetakan', bg: '#3fb95015', icon: MapPin },
+          { label: 'Korban', value: fmtNum(stats.victims), color: 'var(--red)', sub: 'orang terdampak', bg: '#f8514915', icon: AlertTriangle },
+          { label: 'Meninggal', value: fmtNum(stats.deaths), color: 'var(--pur)', sub: 'jiwa', bg: '#bc8cff15', icon: Skull },
+          { label: 'Kasus', value: fmtNum(stats.keracunan_cases), color: 'var(--amb)', sub: 'kasus', bg: '#d2992215', icon: Building2 },
+        ].map((s, i) => (
+          <div key={i} style={{ background: s.bg, border: '1px solid var(--bd2)', borderRadius: 7, padding: '6px 10px', backdropFilter: 'blur(10px)', minWidth: 80 }}>
+            <s.icon size={14} strokeWidth={1.8} style={{ color: s.color, opacity: 0.6, marginBottom: 3 }} />
+            <div style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, lineHeight: 1.1, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)', marginTop: 1 }}>{s.sub}</div>
+            <div style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>{s.label}</div>
           </div>
-        ))}
-      </div>
-      {/* Category filter bar */}
-      <div className="map-category-bar" style={{
-        position: 'absolute',
-        bottom: 14,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 500,
-        background: 'rgba(9,12,16,0.88)',
-        border: '1px solid var(--bd2)',
-        borderRadius: 20,
-        padding: '4px 6px',
-        backdropFilter: 'blur(10px)',
-        display: 'flex',
-        gap: 3,
-        overflowX: 'auto',
-        maxWidth: 'calc(100vw - 140px)',
-      }}>
-        {[{ cat: 'all', label: 'Semua' }, ...CATEGORIES.filter(c => c !== 'all').map(c => ({ cat: c, label: CAT_SHORT[c] || c }))].map(({ cat, label }) => (
-          <button
-            key={cat}
-            onClick={() => setFilterCat && setFilterCat(cat)}
-            style={{
-              fontFamily: 'var(--mo)', fontSize: 9, padding: '4px 8px', borderRadius: 12,
-              border: `1px solid ${(filterCat === 'all' && cat === 'all') || filterCat === cat ? 'var(--red)' : 'var(--bd)'}55`,
-              background: (filterCat === 'all' && cat === 'all') || filterCat === cat ? 'rgba(248,81,73,0.15)' : 'rgba(13,17,23,0.7)',
-              color: (filterCat === 'all' && cat === 'all') || filterCat === cat ? 'var(--red)' : 'var(--mu)',
-              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.15s',
-              flexShrink: 0,
-            }}
-          >
-            {label}
-          </button>
         ))}
       </div>
 
@@ -258,28 +191,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   );
 }
 
-function OverlayPanel({ color, value, label }) {
-  return (
-    <div style={{
-      background: 'rgba(9,12,16,0.88)',
-      border: '1px solid var(--bd2)',
-      borderRadius: 7,
-      padding: '7px 12px',
-      backdropFilter: 'blur(10px)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-    }}>
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-      <div>
-        <div className="overlay-value" style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, color }}>{fmtNum(value)}</div>
-        <div className="overlay-label" style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', lineHeight: 1.3 }}>
-          {label.map((l, i) => <span key={i}>{l}<br /></span>)}
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 function mkIcon(cat, v) {
   const c = COL[cat] || COL.lainnya;

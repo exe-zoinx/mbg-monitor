@@ -136,6 +136,14 @@ export default function Sidebar({
         />
       </div>
 
+      {connectionStatus?.text && (
+        <div style={{ padding: '4px 14px 6px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>
+            Update terakhir: {connectionStatus.text}
+          </span>
+        </div>
+      )}
+
       {/* Feed — single unified list of all incidents */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {filtered.length === 0 ? (

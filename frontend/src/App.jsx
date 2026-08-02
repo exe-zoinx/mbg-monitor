@@ -16,8 +16,6 @@ export default function App() {
     search,
     setSearch,
     focusInc,
-    filterCat,
-    setFilterCat,
   } = useIncidents(data);
 
   const connectionStatus = (() => {
@@ -73,8 +71,6 @@ export default function App() {
           activeId={activeId}
           focusInc={focusInc}
           stats={stats}
-          filterCat={filterCat}
-          setFilterCat={setFilterCat}
         />
         <button
           onClick={() => setSidebarOpen(o => !o)}

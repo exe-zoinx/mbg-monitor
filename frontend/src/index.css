@@ -157,9 +157,9 @@ html, body, #root {
     min-width: auto !important;
     max-width: calc(100vw - 60px) !important;
   }
-  .map-legend { display: none !important; }
-  .map-category-bar { display: none !important; }
   .stats-row-1, .stats-row-2 { grid-template-columns: repeat(3, 1fr) !important; }
   .stats-row-1 > div, .stats-row-2 > div { padding: 8px 10px !important; }
   .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 16px !important; }
+  .map-overlays > div { padding: 5px 8px !important; min-width: 70px !important; }
+  .map-overlays > div > div:nth-child(2) { font-size: 14px !important; }
 }
