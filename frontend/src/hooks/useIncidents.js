@@ -57,6 +57,7 @@ export function useIncidents(data) {
       victims: totalVictims,
       keracunan: keracunanVictims,   // total poisoned victims (not incident count)
       deaths: totalDeaths,            // total death victims
+      keracunan_cases: cats.keracunan || 0,
       sppg: (cats.sppg || 0) + (cats.sppg_opened || 0) + (cats.sppg_temp_closed || 0) + (cats.sppg_closed || 0),
       sppg_opened: cats.sppg_opened || 0,
       sppg_temp_closed: cats.sppg_temp_closed || 0,

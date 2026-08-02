@@ -46,6 +46,7 @@ function transformWiki(wiki) {
     school: wiki.school || '',
     province: wiki.province || '',
     kabupaten: wiki.kabupaten || '',
+    schools_list: wiki.schools_list || [],
   };
 }
 

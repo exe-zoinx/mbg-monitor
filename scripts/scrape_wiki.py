@@ -5,12 +5,12 @@ Lightweight: requests + wikitextparser only.
 
   pip install requests wikitextparser
 """
-import re, json, sys, os
+WIKI_PAGE = "Daftar_kasus_keracunan_massal_makan_siang_gratis"
 import requests
 import wikitextparser as wwp
+import re, json, sys, os
 
 # ── Config ────────────────────────────────────────────────────────────────────
-WIKI_PAGE = "Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
 API_URL   = "https://id.wikipedia.org/w/api.php"
 
 # ── Geo lookup ─────────────────────────────────────────────────────────────────
@@ -403,6 +403,11 @@ def extract_outlet(url):
 def parse_num(s):
     m = re.sub(r'[^\d]', '', str(s)) if s else ''
     return int(m) if m else 0
+
+def fmt_n(n):
+    """Indonesian thousands separator: 1333 -> '1.333'."""
+    return f"{n:,}".replace(",", ".")
+
 def format_date(raw):
     """Convert '29 September 2025' to '2025-09-29' for JS Date() parsing."""
     raw = unwikify(raw).strip()
@@ -460,9 +465,9 @@ def scrape(out_file="data/wiki_incidents.json"):
 
         lat, lng = geo_lookup(city) or geo_lookup(province) or (None, None)
 
-        note = f"{victims} Keracunan"
+        note = f"{fmt_n(victims)} Keracunan"
         if deaths > 0:
-            note += f" | {deaths} Meninggal"
+            note += f" | {fmt_n(deaths)} Meninggal"
 
         source = extract_outlet(url)
 
@@ -474,6 +479,39 @@ def scrape(out_file="data/wiki_incidents.json"):
             "title": title, "source": source,
             "source_url": url, "note": note,
         })
+
+    # Dedup: Wikipedia lists one row per school for a single incident, each row
+    # carrying the SAME total victim count. Treating rows independently inflates
+    # totals N-fold. Merge rows that share (date, kabupaten, source) into one
+    # incident; victims stay the incident total, counted exactly once.
+    from collections import OrderedDict
+    groups = OrderedDict()
+    for inc in incidents:
+        key = (inc["date"], inc["kabupaten"], inc["source_url"])
+        groups.setdefault(key, []).append(inc)
+
+    merged = []
+    for key, group in groups.items():
+        if len(group) == 1:
+            merged.append(group[0])
+            continue
+        first = group[0]
+        victims = max(i["victims"] for i in group)
+        deaths  = max(i["deaths"] for i in group)
+        schools = [i["school"] for i in group if i["school"]]
+        note = f"{fmt_n(victims)} korban dari {fmt_n(len(group))} sekolah"
+        if deaths > 0:
+            note += f" | {fmt_n(deaths)} Meninggal"
+        merged.append({
+            **first,
+            "school": f"{len(group)} sekolah terdampak",
+            "schools_list": schools,
+            "victims": victims,
+            "deaths": deaths,
+            "title": first["kabupaten"] or first["loc"] or first["province"],
+            "note": note,
+        })
+    incidents = merged
 
     geo_count = sum(1 for i in incidents if i["lat"] is not None)
     url_count = sum(1 for i in incidents if i["source_url"])

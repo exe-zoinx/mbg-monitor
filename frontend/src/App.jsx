@@ -16,6 +16,8 @@ export default function App() {
     search,
     setSearch,
     focusInc,
+    filterCat,
+    setFilterCat,
   } = useIncidents(data);
 
   const connectionStatus = (() => {
@@ -32,6 +34,10 @@ export default function App() {
     if (data.meta?.refreshed_at) return { cls: 'r', text: lastSync || 'Lama' };
     return { cls: '', text: 'DB live' };
   })();
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem('mbg_disclaimer_seen')) setShowDisclaimer(true);
+  }, []);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
@@ -67,6 +73,8 @@ export default function App() {
           activeId={activeId}
           focusInc={focusInc}
           stats={stats}
+          filterCat={filterCat}
+          setFilterCat={setFilterCat}
         />
         <button
           onClick={() => setSidebarOpen(o => !o)}
@@ -90,6 +98,39 @@ export default function App() {
           <Menu size={14} strokeWidth={2} style={{ marginRight: 6 }} /> Daftar
         </button>
       </div>
+
+      {showDisclaimer && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 3000,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+        }}>
+          <div style={{
+            maxWidth: 460, width: '100%', background: 'var(--sf)',
+            border: '1px solid var(--bd2)', borderRadius: 12,
+            padding: 24, boxShadow: '0 18px 48px rgba(0,0,0,0.6)',
+          }}>
+            <div style={{ fontFamily: 'var(--mo)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--red)', marginBottom: 8 }}>
+              Perhatian
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--tx)', marginBottom: 20 }}>
+              Seluruh data di situs ini murni hasil scraping otomatis dari pemberitaan
+              media Indonesia dan Wikipedia. Angka korban adalah estimasi dari laporan
+              berita dan dapat berubah; verifikasi silang dengan sumber berita asli.
+            </div>
+            <button
+              onClick={() => { localStorage.setItem('mbg_disclaimer_seen', '1'); setShowDisclaimer(false); }}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 8, cursor: 'pointer',
+                background: 'var(--red)', color: '#fff', border: 'none',
+                fontFamily: 'var(--mo)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+              }}
+            >
+              MENGERTI
+            </button>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @media (max-width: 640px) {

@@ -2,9 +2,9 @@ import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import { BookOpen, MapPin, Calendar, Users, Newspaper, ExternalLink } from 'lucide-react';
-import { COL, TLBL, fmtDate, esc, safeUrl } from '../lib/constants';
+import { COL, TLBL, CATEGORIES, CAT_SHORT, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, filterCat, setFilterCat }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
@@ -131,7 +131,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
         </h2>
         <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
-          {stats.total} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
+          {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
         </p>
       </div>
       {/* Map overlays */}
@@ -149,7 +149,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         <OverlayPanel color="var(--red)" value={stats.total} label={['insiden', 'dipetakan']} />
         <OverlayPanel color="var(--gre)" value={stats.keracunan} label={['keracunan']} />
         <a
-          href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_program_Makan_Bergizi_Gratis"
+          href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis"
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -169,6 +169,62 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         >
           <BookOpen size={11} strokeWidth={2} /> Sumber: Wikipedia
         </a>
+      </div>
+      {/* Legend */}
+      <div className="map-legend" style={{
+        position: 'absolute',
+        bottom: 60,
+        right: 14,
+        zIndex: 500,
+        background: 'rgba(9,12,16,0.88)',
+        border: '1px solid var(--bd2)',
+        borderRadius: 7,
+        padding: '8px 10px',
+        backdropFilter: 'blur(10px)',
+      }}>
+        {[
+          ['keracunan', 'Keracunan'], ['tewas', 'Korban Jiwa'], ['kecelakaan', 'Kecelakaan'],
+          ['sppg', 'SPPG'], ['sppg_opened', 'Dibuka'], ['sppg_temp_closed', 'Tutup Sementara'],
+        ].map(([cat, lbl]) => (
+          <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: COL[cat] }} />
+            <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>{lbl}</span>
+          </div>
+        ))}
+      </div>
+      {/* Category filter bar */}
+      <div className="map-category-bar" style={{
+        position: 'absolute',
+        bottom: 14,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 500,
+        background: 'rgba(9,12,16,0.88)',
+        border: '1px solid var(--bd2)',
+        borderRadius: 20,
+        padding: '4px 6px',
+        backdropFilter: 'blur(10px)',
+        display: 'flex',
+        gap: 3,
+        overflowX: 'auto',
+        maxWidth: 'calc(100vw - 140px)',
+      }}>
+        {[{ cat: 'all', label: 'Semua' }, ...CATEGORIES.filter(c => c !== 'all').map(c => ({ cat: c, label: CAT_SHORT[c] || c }))].map(({ cat, label }) => (
+          <button
+            key={cat}
+            onClick={() => setFilterCat && setFilterCat(cat)}
+            style={{
+              fontFamily: 'var(--mo)', fontSize: 9, padding: '4px 8px', borderRadius: 12,
+              border: `1px solid ${(filterCat === 'all' && cat === 'all') || filterCat === cat ? 'var(--red)' : 'var(--bd)'}55`,
+              background: (filterCat === 'all' && cat === 'all') || filterCat === cat ? 'rgba(248,81,73,0.15)' : 'rgba(13,17,23,0.7)',
+              color: (filterCat === 'all' && cat === 'all') || filterCat === cat ? 'var(--red)' : 'var(--mu)',
+              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.15s',
+              flexShrink: 0,
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <style>{`
@@ -216,7 +272,7 @@ function OverlayPanel({ color, value, label }) {
     }}>
       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
       <div>
-        <div className="overlay-value" style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, color }}>{value}</div>
+        <div className="overlay-value" style={{ fontFamily: 'var(--mo)', fontSize: 16, fontWeight: 700, color }}>{fmtNum(value)}</div>
         <div className="overlay-label" style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', lineHeight: 1.3 }}>
           {label.map((l, i) => <span key={i}>{l}<br /></span>)}
         </div>
@@ -245,13 +301,18 @@ function mkIcon(cat, v) {
 function popHTML(inc) {
   const c = COL[inc.cat] || COL.lainnya;
   const url = safeUrl(inc.url || '');
+  const WIKI_URL = 'https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis#Makan_Bergizi_Gratis';
+  const srcUrl = url || WIKI_URL;
+  const srcLabel = url ? 'Baca &rarr;' : 'Wiki &rarr;';
+  const srcColor = url ? 'var(--blu)' : 'var(--mu)';
   return `<div style="padding:13px 15px">
     <span style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:2px 7px;margin-bottom:8px;display:inline-block;background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat] || inc.cat)}</span>
     <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:7px;color:var(--tx)">${esc(inc.title)}</div>
     <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:var(--tx)">${esc(inc.loc)}</span></div>
     <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:var(--tx)">${fmtDate(inc.date)}</span></div>
-    ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(String(inc.victims))} korban</span></div>` : ''}
+    ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(fmtNum(inc.victims))} korban</span></div>` : ''}
     <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
-    <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || '')}${url ? ` &middot; <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Baca &rarr;</a>` : ''}</div>
+    ${(inc.schools_list && inc.schools_list.length) ? `<div style="border-top:1px solid var(--bd);padding-top:6px;margin-top:6px;font-family:var(--mo);font-size:10px;color:var(--mu)"><div style="margin-bottom:3px;color:var(--tx)">${fmtNum(inc.schools_list.length)} sekolah terdampak:</div>${inc.schools_list.slice(0, 8).map(s => `&middot; ${esc(s)}`).join('<br/>')}${inc.schools_list.length > 8 ? `<br/>&middot; +${fmtNum(inc.schools_list.length - 8)} lainnya` : ''}</div>` : ''}
+    <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || 'Wikipedia')} &middot; <a href="${esc(srcUrl)}" target="_blank" rel="noopener noreferrer" style="color:${srcColor}">${srcLabel}</a></div>
   </div>`;
 }

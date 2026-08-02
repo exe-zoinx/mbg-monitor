@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame } from 'lucide-react';
-import { COL, TLBL, fmtDate, safeUrl } from '../lib/constants';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp } from 'lucide-react';
+import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
   incidents,
@@ -209,34 +209,54 @@ export default function Sidebar({
 }
 
 function StatsRow({ stats }) {
-  const items = [
-    { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--red)', sub: 'kasus' },
-    { label: 'Keracunan', value: stats.keracunan.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang keracunan' },
-    { label: 'Korban Meninggal', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'orang meninggal' },
+  const POP = 287666973;
+  const pct = ((stats.victims / POP) * 100).toFixed(4);
+  const row1 = [
+    { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--grn)', sub: 'terpetakan', bg: '#3fb95015', icon: MapPin },
+    { label: 'Korban Keracunan', value: stats.victims.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang terdampak', bg: '#f8514915', icon: AlertTriangle },
+    { label: 'Korban Meninggal', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--pur)', sub: 'jiwa', bg: '#bc8cff15', icon: Skull },
+    { label: 'Kasus Keracunan', value: stats.keracunan_cases.toLocaleString('id-ID'), color: 'var(--amb)', sub: 'kasus', bg: '#d2992215', icon: Building2 },
+  ];
+  const row2 = [
+    { label: 'Populasi Indonesia', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'Orang', bg: '#388bfd10', icon: Globe },
+    { label: 'Korban vs Populasi', value: `${pct}%`, color: parseFloat(pct) < 0.05 ? 'var(--grn)' : 'var(--amb)', sub: 'masih aman', bg: parseFloat(pct) < 0.05 ? '#3fb95010' : '#d2992210', icon: TrendingUp },
   ];
 
+  const cell = (item, i) => (
+    <div key={i} style={{ background: item.bg || 'var(--sf)', padding: '10px 12px' }}>
+      <item.icon size={16} strokeWidth={1.8} style={{ color: item.color, opacity: 0.6, marginBottom: 4 }} />
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: item.color }}>
+        {item.value}
+      </div>
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 1 }}>
+        {item.sub}
+      </div>
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>
+        {item.label}
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 1,
-      background: 'var(--bd)',
-      borderBottom: '1px solid var(--bd)',
-      flexShrink: 0,
-    }}>
-      {items.map((item, i) => (
-        <div key={i} style={{ background: 'var(--sf)', padding: '8px 12px' }}>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
-            {item.label}
-          </div>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: item.color }}>
-            {item.value}
-          </div>
-          <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 1 }}>
-            {item.sub}
-          </div>
-        </div>
-      ))}
+    <div style={{ flexShrink: 0 }}>
+      <div className="stats-row-1" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 1,
+        background: 'var(--bd)',
+        borderBottom: '1px solid var(--bd)',
+      }}>
+        {row1.map(cell)}
+      </div>
+      <div className="stats-row-2" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 1,
+        background: 'var(--bd)',
+        borderBottom: '1px solid var(--bd)',
+      }}>
+        {row2.map(cell)}
+      </div>
     </div>
   );
 }
@@ -292,6 +312,21 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
           }}>
             {TLBL[inc.cat] || inc.cat}
           </span>
+          {inc.schools_list && inc.schools_list.length > 0 && (
+            <span style={{
+              fontFamily: 'var(--mo)',
+              fontSize: 10,
+              borderRadius: 3,
+              padding: '1px 5px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              background: `${c}22`,
+              color: c,
+              border: `1px solid ${c}44`,
+            }}>
+              {inc.schools_list.length} sekolah
+            </span>
+          )}
           <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', display: 'flex', alignItems: 'center', gap: 2 }}>
             <MapPin size={9} strokeWidth={2} />
             {(inc.loc || 'Indonesia').split(',')[0]}
@@ -306,7 +341,7 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
               fontWeight: 700,
               color: (inc.victims || 0) > 40 ? 'var(--red)' : 'var(--amb)',
             }}>
-              +{inc.victims}
+              +{fmtNum(inc.victims)}
             </span>
           )}
           {inc.source && (
@@ -314,27 +349,29 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
               {inc.source}
             </span>
           )}
-          {hasArticle && (
+          {hasArticle ? (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(safeUrl(inc.url), '_blank', 'noopener,noreferrer');
-              }}
+              onClick={(e) => { e.stopPropagation(); window.open(safeUrl(inc.url), '_blank', 'noopener,noreferrer'); }}
               style={{
-                fontFamily: 'var(--mo)',
-                fontSize: 11,
-                padding: '3px 6px',
-                borderRadius: 3,
-                border: '1px solid var(--bd)',
-                background: 'var(--sf2)',
-                color: 'var(--blu)',
-                cursor: 'pointer',
-                lineHeight: 1.4,
-                minHeight: 22,
-                minWidth: 36,
+                fontFamily: 'var(--mo)', fontSize: 10, padding: '4px 8px', borderRadius: 12,
+                border: '1px solid #388bfd33', background: '#388bfd12', color: 'var(--blu)',
+                cursor: 'pointer', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 4,
+                whiteSpace: 'nowrap', transition: 'background 0.15s', minHeight: 22,
               }}
             >
-              <ExternalLink size={9} strokeWidth={2} /> Buka
+              <ExternalLink size={10} /> Buka
+            </button>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); window.open('https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis#Makan_Bergizi_Gratis', '_blank', 'noopener,noreferrer'); }}
+              style={{
+                fontFamily: 'var(--mo)', fontSize: 10, padding: '4px 8px', borderRadius: 12,
+                border: '1px solid #7d859033', background: '#7d859012', color: 'var(--mu)',
+                cursor: 'pointer', lineHeight: 1, display: 'inline-flex', alignItems: 'center', gap: 4,
+                whiteSpace: 'nowrap', transition: 'background 0.15s', minHeight: 22,
+              }}
+            >
+              <ExternalLink size={10} /> Wiki
             </button>
           )}
         </div>

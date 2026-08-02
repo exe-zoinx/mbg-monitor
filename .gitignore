@@ -3,8 +3,8 @@
 workers-site/
 
 # Build output
-!/frontend/dist/
-frontend/dist/**/*
+/dist/
+frontend/dist/
 
 # Environment
 .env
