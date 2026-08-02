@@ -260,7 +260,7 @@ function StatsRow({ stats }) {
     <div style={{ flexShrink: 0 }}>
       <div className="stats-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
+        gridTemplateColumns: 'repeat(3, 1fr)',
         gap: 1,
         background: 'var(--bd)',
         borderBottom: '1px solid var(--bd)',
