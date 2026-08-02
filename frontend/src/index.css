@@ -120,6 +120,7 @@ html, body, #root {
 
 /* Desktop sidebar: relative positioning with fixed width */
 @media (min-width: 641px) {
+  .map-overlays { display: none !important; }
   .sidebar-root {
     position: relative !important;
     width: var(--sw) !important;

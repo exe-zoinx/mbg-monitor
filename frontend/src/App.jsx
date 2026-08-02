@@ -75,23 +75,27 @@ export default function App() {
         <button
           onClick={() => setSidebarOpen(o => !o)}
           style={{
-            display: 'none',
             position: 'absolute',
-            bottom: 76,
+            bottom: 14,
             left: 14,
             zIndex: 1001,
-            background: 'var(--sf)',
-            border: '1px solid var(--bd2)',
-            borderRadius: 8,
-            padding: '12px 16px',
+            display: 'none',
+            background: 'var(--red)',
+            border: 'none',
+            borderRadius: 20,
+            padding: '10px 18px',
             fontFamily: 'var(--mo)',
-            fontSize: 13,
-            color: 'var(--tx)',
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#fff',
             cursor: 'pointer',
+            alignItems: 'center',
+            gap: 6,
+            boxShadow: '0 4px 16px rgba(248,81,73,0.4)',
           }}
           className="mobile-sidebar-btn touch-target"
         >
-          <Menu size={14} strokeWidth={2} style={{ marginRight: 6 }} /> Daftar
+          <Menu size={14} strokeWidth={2} /> Menu
         </button>
       </div>
 
