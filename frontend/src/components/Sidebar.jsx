@@ -65,19 +65,19 @@ export default function Sidebar({
             aria-label="Tutup sidebar"
             style={{
               display: 'none',
-              width: 44,
-              height: 44,
-              minWidth: 44,
-              minHeight: 44,
+              width: 36,
+              height: 36,
+              minWidth: 36,
+              minHeight: 36,
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'none',
+              background: 'var(--red)',
               border: 'none',
-              color: 'var(--tx)',
-              fontSize: 22,
-              cursor: 'pointer',
               borderRadius: 8,
+              color: '#fff',
+              cursor: 'pointer',
               flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(248,81,73,0.3)',
             }}
           >
             <X size={20} strokeWidth={2} />

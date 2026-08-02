@@ -71,32 +71,8 @@ export default function App() {
           activeId={activeId}
           focusInc={focusInc}
           stats={stats}
+          onMenuClick={() => setSidebarOpen(o => !o)}
         />
-        <button
-          onClick={() => setSidebarOpen(o => !o)}
-          style={{
-            position: 'absolute',
-            top: 14,
-            right: 14,
-            zIndex: 1001,
-            display: 'none',
-            background: 'var(--red)',
-            border: 'none',
-            borderRadius: 20,
-            padding: '10px 18px',
-            fontFamily: 'var(--mo)',
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#fff',
-            cursor: 'pointer',
-            alignItems: 'center',
-            gap: 6,
-            boxShadow: '0 4px 16px rgba(248,81,73,0.4)',
-          }}
-          className="mobile-sidebar-btn touch-target"
-        >
-          <Menu size={14} strokeWidth={2} /> Menu
-        </button>
       </div>
 
       {showDisclaimer && (
@@ -134,7 +110,10 @@ export default function App() {
 
       <style>{`
         @media (max-width: 640px) {
-          .mobile-sidebar-btn { display: block !important; }
+          .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+          }
         }
       `}</style>
     </div>

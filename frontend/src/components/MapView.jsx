@@ -1,10 +1,10 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import { MapPin, AlertTriangle, Skull, Building2, ExternalLink } from 'lucide-react';
+import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
@@ -124,15 +124,41 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         borderRadius: 8,
         padding: '9px 14px',
         backdropFilter: 'blur(10px)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
       }}
         className="map-title"
       >
-        <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
-          <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
-        </h2>
-        <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
-          {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
-        </p>
+        <button
+          onClick={onMenuClick}
+          style={{
+            display: 'none',
+            background: 'var(--red)',
+            border: 'none',
+            borderRadius: 6,
+            padding: '6px 10px',
+            fontFamily: 'var(--mo)',
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#fff',
+            cursor: 'pointer',
+            alignItems: 'center',
+            gap: 4,
+            boxShadow: '0 2px 8px rgba(248,81,73,0.4)',
+          }}
+          className="mobile-sidebar-btn"
+        >
+          <Menu size={12} strokeWidth={2} /> Menu
+        </button>
+        <div>
+          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
+            <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
+          </h2>
+          <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
+            {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
+          </p>
+        </div>
       </div>
       {/* Map overlays */}
       <div style={{

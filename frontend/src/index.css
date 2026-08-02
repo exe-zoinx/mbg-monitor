@@ -170,7 +170,7 @@ html, body, #root {
     flex-direction: row !important;
     flex-wrap: wrap;
     gap: 4px !important;
-    top: 14px !important;
+    top: 70px !important;
     right: 8px !important;
     left: auto !important;
   }
