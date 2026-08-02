@@ -158,9 +158,30 @@ html, body, #root {
     min-width: auto !important;
     max-width: calc(100vw - 60px) !important;
   }
+  .mobile-sidebar-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
   .stats-row-1, .stats-row-2 { grid-template-columns: repeat(3, 1fr) !important; }
   .stats-row-1 > div, .stats-row-2 > div { padding: 8px 10px !important; }
   .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 16px !important; }
-  .map-overlays > div { padding: 5px 8px !important; min-width: 70px !important; }
-  .map-overlays > div > div:nth-child(2) { font-size: 14px !important; }
+  .map-overlays {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 4px !important;
+    top: 14px !important;
+    right: 8px !important;
+    left: auto !important;
+  }
+  .map-overlays > div { padding: 4px 6px !important; min-width: 0 !important; }
+  .map-overlays > div > svg { width: 12px !important; height: 12px !important; }
+  .map-overlays > div > div:nth-child(2) { font-size: 13px !important; }
+  .leaflet-control-attribution {
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    font-size: 8px !important;
+  }
 }

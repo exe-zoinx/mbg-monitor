@@ -76,8 +76,8 @@ export default function App() {
           onClick={() => setSidebarOpen(o => !o)}
           style={{
             position: 'absolute',
-            bottom: 14,
-            left: 14,
+            top: 14,
+            right: 14,
             zIndex: 1001,
             display: 'none',
             background: 'var(--red)',
