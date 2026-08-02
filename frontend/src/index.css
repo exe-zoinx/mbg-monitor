@@ -163,11 +163,13 @@ html, body, #root {
     align-items: center !important;
     justify-content: center !important;
   }
-  .stats-row-1, .stats-row-2 { grid-template-columns: repeat(3, 1fr) !important; }
-  .stats-row-1 > div, .stats-row-2 > div { padding: 6px 8px !important; }
-  .stats-row-1 > div > svg, .stats-row-2 > div > svg { display: none !important; }
-  .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 14px !important; }
-  .stats-row-1 > div > div:nth-child(4), .stats-row-2 > div > div:nth-child(4) { font-size: 7px !important; margin-top: 2px !important; }
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .stats-grid > div { padding: 6px 8px !important; }
+  .stats-grid > div > svg { display: none !important; }
+  .stats-grid > div > div:nth-child(2) { font-size: 14px !important; }
+  .stats-grid > div > div:nth-child(4) { font-size: 7px !important; margin-top: 2px !important; }
   .map-title {
     flex-direction: column !important;
     align-items: stretch !important;

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp } from 'lucide-react';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
 
 export default function Sidebar({
@@ -11,6 +11,7 @@ export default function Sidebar({
   setSearch,
   focusInc,
   connectionStatus,
+  onShowData,
   sidebarOpen,
   setSidebarOpen,
 }) {
@@ -136,13 +137,23 @@ export default function Sidebar({
         />
       </div>
 
-      {connectionStatus?.text && (
-        <div style={{ padding: '4px 14px 6px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
+      <div style={{ padding: '4px 14px 6px', borderBottom: '1px solid var(--bd)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        {connectionStatus?.text && (
           <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>
             Update terakhir: {connectionStatus.text}
           </span>
-        </div>
-      )}
+        )}
+        <button
+          onClick={onShowData}
+          style={{
+            fontFamily: 'var(--mo)', fontSize: 9, padding: '3px 8px', borderRadius: 8,
+            border: '1px solid var(--blu)44', background: '#388bfd12', color: 'var(--blu)',
+            cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
+          }}
+        >
+          <Database size={10} /> Tentang &amp; Data
+        </button>
+      </div>
 
       {/* Feed — single unified list of all incidents */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
@@ -247,23 +258,14 @@ function StatsRow({ stats }) {
 
   return (
     <div style={{ flexShrink: 0 }}>
-      <div className="stats-row-1" style={{
+      <div className="stats-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(6, 1fr)',
         gap: 1,
         background: 'var(--bd)',
         borderBottom: '1px solid var(--bd)',
       }}>
-        {row1.map(cell)}
-      </div>
-      <div className="stats-row-2" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: 1,
-        background: 'var(--bd)',
-        borderBottom: '1px solid var(--bd)',
-      }}>
-        {row2.map(cell)}
+        {[...row1, ...row2].map(cell)}
       </div>
     </div>
   );

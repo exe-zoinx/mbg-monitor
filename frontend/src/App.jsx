@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Download, Database, X } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import { useData } from './hooks/useData';
@@ -36,6 +36,20 @@ export default function App() {
   useEffect(() => {
     if (!localStorage.getItem('mbg_disclaimer_seen')) setShowDisclaimer(true);
   }, []);
+  const [showDataModal, setShowDataModal] = useState(false);
+
+  const downloadCSV = () => {
+    const headers = ['date', 'title', 'loc', 'province', 'kabupaten', 'cat', 'victims', 'deaths', 'source', 'source_url', 'school', 'note'];
+    const rows = incidents.map(i => headers.map(h => `"${String(i[h] || '').replace(/"/g, '""')}"`).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mbg_monitor_incidents.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
@@ -63,6 +77,7 @@ export default function App() {
         connectionStatus={connectionStatus}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        onShowData={() => setShowDataModal(true)}
       />
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <MapView
@@ -73,6 +88,31 @@ export default function App() {
           stats={stats}
           onMenuClick={() => setSidebarOpen(o => !o)}
         />
+        <button
+          onClick={() => setShowDataModal(true)}
+          className="mobile-sidebar-btn"
+          style={{
+            position: 'absolute',
+            bottom: 14,
+            left: 14,
+            zIndex: 1001,
+            display: 'none',
+            background: 'var(--blu)',
+            border: 'none',
+            borderRadius: 16,
+            padding: '8px 14px',
+            fontFamily: 'var(--mo)',
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#fff',
+            cursor: 'pointer',
+            alignItems: 'center',
+            gap: 4,
+            boxShadow: '0 2px 8px rgba(56,139,253,0.4)',
+          }}
+        >
+          <Download size={12} /> Data
+        </button>
       </div>
 
       {showDisclaimer && (
@@ -103,6 +143,57 @@ export default function App() {
               }}
             >
               MENGERTI
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showDataModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 3000,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+        }}
+          onClick={() => setShowDataModal(false)}
+        >
+          <div style={{
+            maxWidth: 460, width: '100%', background: 'var(--sf)',
+            border: '1px solid var(--bd2)', borderRadius: 12,
+            padding: 24, boxShadow: '0 18px 48px rgba(0,0,0,0.6)',
+          }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ fontFamily: 'var(--mo)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--red)' }}>
+                <Database size={12} style={{ marginRight: 6, verticalAlign: -2 }} /> Tentang &amp; Data
+              </div>
+              <button
+                onClick={() => setShowDataModal(false)}
+                aria-label="Tutup"
+                style={{ background: 'none', border: 'none', color: 'var(--mu)', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--tx)', marginBottom: 12 }}>
+              <strong>MBG Monitor</strong> — peta insiden program Makan Bergizi Gratis di Indonesia.
+              Seluruh data murni hasil scraping otomatis dari pemberitaan media Indonesia
+              dan Wikipedia (<span style={{ color: 'var(--mu)' }}>Daftar kasus keracunan massal makan siang gratis</span>).
+              Angka korban adalah estimasi dari laporan berita dan dapat berubah.
+            </div>
+            <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginBottom: 16 }}>
+              {stats.total} insiden · {stats.victims} korban · {stats.deaths} meninggal
+            </div>
+            <button
+              onClick={downloadCSV}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 8, cursor: 'pointer',
+                background: 'var(--blu)', color: '#fff', border: 'none',
+                fontFamily: 'var(--mo)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <Download size={14} /> Download CSV
             </button>
           </div>
         </div>
