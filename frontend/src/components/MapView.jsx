@@ -197,20 +197,6 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           .map-title p {
             font-size: 8px !important;
           }
-          .map-overlays {
-            top: 60px !important;
-            right: 8px !important;
-            gap: 4px !important;
-          }
-          .map-overlays > div {
-            padding: 6px 10px !important;
-          }
-          .map-overlays .overlay-value {
-            font-size: 14px !important;
-          }
-          .map-overlays .overlay-label {
-            font-size: 7px !important;
-          }
         }
       `}</style>
     </>
