@@ -168,16 +168,35 @@ html, body, #root {
   .stats-row-1 > div > svg, .stats-row-2 > div > svg { display: none !important; }
   .stats-row-1 > div > div:nth-child(2), .stats-row-2 > div > div:nth-child(2) { font-size: 14px !important; }
   .stats-row-1 > div > div:nth-child(4), .stats-row-2 > div > div:nth-child(4) { font-size: 7px !important; margin-top: 2px !important; }
+  .map-title {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+  .map-title > div:first-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
   .map-title-stats {
     display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
   }
-  .map-title {
-    padding: 6px 10px !important;
+  .map-title-stats > div {
+    padding: 5px 9px !important;
+    border-radius: 5px !important;
   }
-  .map-title h2 {
-    font-size: 11px !important;
+  .map-title-stats > div > svg {
+    width: 12px !important;
+    height: 12px !important;
   }
-  .map-title p {
+  .map-title-stats > div > span:nth-child(2) {
+    font-size: 12px !important;
+  }
+  .map-title-stats > div > span:nth-child(3) {
     font-size: 8px !important;
   }
   .leaflet-control-attribution {

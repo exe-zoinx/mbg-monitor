@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu } from 'lucide-react';
+import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
 export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick }) {
@@ -131,56 +131,58 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       }}
         className="map-title"
       >
-        <button
-          onClick={onMenuClick}
-          style={{
-            display: 'none',
-            background: 'var(--red)',
-            border: 'none',
-            borderRadius: 6,
-            padding: '6px 10px',
-            fontFamily: 'var(--mo)',
-            fontSize: 11,
-            fontWeight: 700,
-            color: '#fff',
-            cursor: 'pointer',
-            alignItems: 'center',
-            gap: 4,
-            boxShadow: '0 2px 8px rgba(248,81,73,0.4)',
-          }}
-          className="mobile-sidebar-btn"
-        >
-          <Menu size={12} strokeWidth={2} /> Menu
-        </button>
-        <div style={{ flexShrink: 0 }}>
-          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
-            <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
-          </h2>
-          <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
-            {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={onMenuClick}
+            style={{
+              display: 'none',
+              background: 'var(--red)',
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 10px',
+              fontFamily: 'var(--mo)',
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#fff',
+              cursor: 'pointer',
+              alignItems: 'center',
+              gap: 4,
+              boxShadow: '0 2px 8px rgba(248,81,73,0.4)',
+            }}
+            className="mobile-sidebar-btn"
+          >
+            <Menu size={12} strokeWidth={2} /> Menu
+          </button>
+          <div style={{ flexShrink: 0 }}>
+            <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-0.2px' }}>
+              <span style={{ fontSize: 14 }}>ID</span> Peta Insiden MBG — Indonesia
+            </h2>
+            <p style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2 }}>
+              {fmtNum(stats.total)} insiden · terakhir: {filtered[0] ? fmtDate(filtered[0].date) : '—'}
+            </p>
+          </div>
         </div>
-        {/* Stat chips — inline in title bar */}
+        {/* Stat chips — row below title on mobile */}
         <div className="map-title-stats" style={{
-          marginLeft: 'auto',
           display: 'none',
           gap: 6,
           flexWrap: 'wrap',
-          justifyContent: 'flex-end',
         }}>
           {[{ icon: MapPin, value: fmtNum(stats.total), color: 'var(--grn)', label: 'insiden' },
             { icon: AlertTriangle, value: fmtNum(stats.victims), color: 'var(--red)', label: 'korban' },
             { icon: Skull, value: fmtNum(stats.deaths), color: 'var(--pur)', label: 'meninggal' },
             { icon: Building2, value: fmtNum(stats.keracunan_cases), color: 'var(--amb)', label: 'kasus' },
+            { icon: Globe, value: '287.666.973', color: 'var(--blu)', label: 'populasi' },
+            { icon: TrendingUp, value: `${((stats.victims / 287666973) * 100).toFixed(4)}%`, color: (stats.victims / 287666973) < 0.0005 ? 'var(--grn)' : 'var(--amb)', label: 'vs pop' },
           ].map((s, i) => (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 3,
-              background: '#ffffff08', borderRadius: 4, padding: '2px 6px',
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: '#ffffff08', borderRadius: 5, padding: '4px 8px',
               flexShrink: 0, whiteSpace: 'nowrap',
             }}>
-              <s.icon size={10} strokeWidth={2} style={{ color: s.color, opacity: 0.6 }} />
-              <span style={{ fontFamily: 'var(--mo)', fontSize: 10, fontWeight: 700, color: s.color }}>{s.value}</span>
-              <span style={{ fontFamily: 'var(--mo)', fontSize: 7, color: 'var(--mu)' }}>{s.label}</span>
+              <s.icon size={12} strokeWidth={2} style={{ color: s.color, opacity: 0.6 }} />
+              <span style={{ fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 700, color: s.color }}>{s.value}</span>
+              <span style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)' }}>{s.label}</span>
             </div>
           ))}
         </div>
