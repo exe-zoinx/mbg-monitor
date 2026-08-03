@@ -4,11 +4,12 @@ import 'leaflet.markercluster';
 import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
   const sppgClusterRef = useRef(null);
+  const meninggalClusterRef = useRef(null);
   const markersRef = useRef(new Map());
 
   // Initialize map once
@@ -44,27 +45,39 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
     });
-    map.addLayer(sppgCluster);    // added first → renders behind
-    map.addLayer(cluster);        // added second → incidents on top
+    const meninggalCluster = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 10,
+    });
+    map.addLayer(sppgCluster);       // back
+    map.addLayer(cluster);           // middle — all incidents
+    map.addLayer(meninggalCluster);  // top — deaths only
 
     mapInstance.current = map;
     clusterRef.current = cluster;
     sppgClusterRef.current = sppgCluster;
+    meninggalClusterRef.current = meninggalCluster;
 
     return () => {
       map.remove();
       mapInstance.current = null;
       clusterRef.current = null;
       sppgClusterRef.current = null;
+      meninggalClusterRef.current = null;
     };
   }, []);
 
-  // Incident markers — always on the map
+
+  // Incident markers — keracunan layer
   useEffect(() => {
     const cluster = clusterRef.current;
     if (!cluster) return;
 
     cluster.clearLayers();
+    if (layers?.keracunan === false) return;
 
     const filteredIds = new Set(filtered.map(i => i.id));
 
@@ -104,38 +117,68 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         }
       });
     }
-  }, [incidents, filtered, focusInc]);
+  }, [incidents, filtered, focusInc, layers?.keracunan]);
 
-  // SPPG markers — always on the map (behind incidents)
+  // Meninggal layer — deaths > 0, purple, on top
+  useEffect(() => {
+    const cluster = meninggalClusterRef.current;
+    if (!cluster) return;
+
+    cluster.clearLayers();
+    if (layers?.meninggal === false) return;
+
+    incidents.forEach(inc => {
+      if (!inc.lat || !inc.lng) return;
+      if (!inc.deaths) return;
+      const m = L.circleMarker([inc.lat, inc.lng], {
+        radius: 7,
+        color: '#bc8cff66',
+        weight: 1,
+        fillColor: '#bc8cff',
+        fillOpacity: 0.85,
+      })
+        .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
+        .on('click', () => focusInc(inc.id));
+      markersRef.current.set(`meninggal-${inc.id}`, { marker: m, inc });
+      cluster.addLayer(m);
+    });
+  }, [incidents, layers?.meninggal, focusInc]);
+
+  // SPPG markers — sppg layer (behind incidents)
   useEffect(() => {
     const cluster = sppgClusterRef.current;
     if (!cluster) return;
 
     cluster.clearLayers();
+    if (layers?.sppg === false) return;
 
     if (!sppgData?.sppg?.length) return;
     sppgData.sppg.forEach(s => {
       if (!s.lat || !s.lng) return;
+      const fill = s.meninggal_terkait ? '#bc8cff'
+        : s.risiko ? '#f85149'
+        : '#388bfd';
       const m = L.circleMarker([s.lat, s.lng], {
-        radius: 4,
-        color: '#388bfd55',
+        radius: s.risiko ? 5 : 4,
+        color: fill + '55',
         weight: 1,
-        fillColor: '#388bfd',
-        fillOpacity: 0.45,
+        fillColor: fill,
+        fillOpacity: s.risiko ? 0.7 : 0.45,
       })
         .bindPopup(
           `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
             <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
             <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
             ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-            ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu)">${esc(s.tanggal_pembangunan)}</div>` : ''}
+            ${s.risiko ? `<div style="font-family:var(--mo);font-size:9px;color:var(--red);margin-top:2px">${esc(s.meninggal_terkait ? 'Terkait korban meninggal' : 'Terdekat insiden keracunan')}</div>` : ''}
+            ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">${esc(s.tanggal_pembangunan)}</div>` : ''}
           </div>`,
           { maxWidth: 260, closeButton: true }
         );
       markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
       cluster.addLayer(m);
     });
-  }, [sppgData]);
+  }, [sppgData, layers?.sppg]);
   // Handle activeId changes (fly to marker)
   useEffect(() => {
     if (!activeId) return;
@@ -227,6 +270,53 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Layer toggle control */}
+      <div style={{
+        position: 'absolute',
+        bottom: 30,
+        right: 14,
+        zIndex: 500,
+        background: 'rgba(13,17,23,0.92)',
+        border: '1px solid var(--bd2)',
+        borderRadius: 8,
+        padding: '8px 10px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        fontFamily: 'var(--mo)',
+        fontSize: 11,
+        backdropFilter: 'blur(6px)',
+      }}
+        className="map-layer-toggle"
+      >
+        {[
+          { key: 'keracunan', label: 'Keracunan', color: 'var(--red)' },
+          { key: 'meninggal', label: 'Meninggal', color: 'var(--pur)' },
+          { key: 'sppg', label: 'SPPG', color: 'var(--blu)' },
+        ].map(row => (
+          <label
+            key={row.key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '3px 0',
+              cursor: 'pointer',
+              color: 'var(--tx)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={!!layers[row.key]}
+              onChange={() => setLayers(prev => ({ ...prev, [row.key]: !prev[row.key] }))}
+              style={{ accentColor: row.color, cursor: 'pointer', width: 13, height: 13 }}
+            />
+            <span style={{ color: row.color, fontWeight: layers[row.key] ? 700 : 400 }}>
+              {row.label}
+            </span>
+          </label>
+        ))}
       </div>
 
     </>

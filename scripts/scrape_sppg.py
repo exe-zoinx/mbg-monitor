@@ -4,8 +4,18 @@ import json
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+import math
 URL = 'https://awr.ditjenpkh.pertanian.go.id/sppg/assets/js/geojson/sppg3.js'
 OUT = 'data/sppg.json'
+INC = 'data/wiki_incidents.json'
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    R = 6371
+    dlat, dlon = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
 
 
 def fetch_js(url):
@@ -44,9 +54,34 @@ def main():
                 f"{p.get('Nama SPPG', '')} berita pembangunan"
             ),
         })
+
+    # ── Cross-reference: flag SPPG near poisoning incidents (<10km) ────────────
+    with open(INC) as f:
+        incidents = json.load(f).get('incidents', [])
+    inc_coords = [(i.get('lat'), i.get('lng'), i.get('deaths', 0))
+                  for i in incidents if i.get('lat') and i.get('lng')]
+    risk_count = 0
+    death_count = 0
+    for s in sppg:
+        s['risiko'] = False
+        s['meninggal_terkait'] = False
+        if not s.get('lat') or not s.get('lng'):
+            continue
+        for lat, lng, deaths in inc_coords:
+            if haversine_km(s['lat'], s['lng'], lat, lng) < 10:
+                s['risiko'] = True
+                if deaths > 0:
+                    s['meninggal_terkait'] = True
+                break
+        if s['risiko']:
+            risk_count += 1
+            if s['meninggal_terkait']:
+                death_count += 1
     out = {
         'sppg': sppg,
         'total': len(sppg),
+        'risiko_count': risk_count,
+        'meninggal_terkait_count': death_count,
         'scraped_at': datetime.now(timezone.utc).isoformat(),
         'source': URL,
         'source_note': 'Data per 30 September 2025 (snapshot di situs pemerintah)',
@@ -60,6 +95,8 @@ def main():
         provs[s['provinsi']] = provs.get(s['provinsi'], 0) + 1
     print(f"Total SPPG: {len(sppg)}")
     print(f"Provinces: {len(provs)}")
+    print(f"Risiko (dekat insiden): {out.get('risiko_count', 0)}")
+    print(f"Meninggal terkait: {out.get('meninggal_terkait_count', 0)}")
     for p, c in sorted(provs.items(), key=lambda x: -x[1])[:10]:
         print(f"  {p}: {c}")
 

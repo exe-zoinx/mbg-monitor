@@ -58,15 +58,21 @@ export default function Sidebar({
 
   const sppgStats = useMemo(() => {
     if (!sppgData?.sppg) return null;
-    const provs = new Set();
+    let risiko = 0;
+    const provCounts = {};
     const kabs = new Set();
-    let withCoord = 0;
     for (const s of sppgData.sppg) {
-      if (s.provinsi) provs.add(s.provinsi);
+      if (s.risiko) risiko++;
+      if (s.provinsi) provCounts[s.provinsi] = (provCounts[s.provinsi] || 0) + 1;
       if (s.kabupaten) kabs.add(s.kabupaten);
-      if (s.lat && s.lng) withCoord++;
     }
-    return { provinces: provs.size, kabupatens: kabs.size, withCoord };
+    const topProv = Object.entries(provCounts).sort((a, b) => b[1] - a[1])[0];
+    return {
+      risiko,
+      topProvName: topProv ? topProv[0] : '—',
+      topProvCount: topProv ? topProv[1] : 0,
+      kabupatens: kabs.size,
+    };
   }, [sppgData]);
 
   return (
@@ -472,9 +478,8 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   const ratio = total > 0 ? Math.round(POP / total).toLocaleString('id-ID') : '—';
   const row1 = isSppg ? [
     { label: 'Total SPPG', value: total.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'unit', bg: '#388bfd12', icon: Building2 },
-    { label: 'Provinsi', value: (sppgStats?.provinces ?? 0).toLocaleString('id-ID'), color: 'var(--grn)', sub: 'provinsi', bg: '#3fb95015', icon: Globe },
-    { label: 'Kabupaten', value: (sppgStats?.kabupatens ?? 0).toLocaleString('id-ID'), color: 'var(--amb)', sub: 'kabupaten', bg: '#d2992215', icon: MapPin },
-    { label: 'Terpetakan', value: (sppgStats?.withCoord ?? 0).toLocaleString('id-ID'), color: 'var(--pur)', sub: 'dengan koordinat', bg: '#bc8cff15', icon: AlertTriangle },
+    { label: 'Risiko Insiden', value: (sppgStats?.risiko ?? 0).toLocaleString('id-ID'), color: 'var(--red)', sub: 'dekat insiden', bg: '#f8514912', icon: AlertTriangle },
+    { label: 'Populasi', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'penduduk', bg: '#388bfd10', icon: Globe },
   ] : [
     { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--grn)', sub: 'terpetakan', bg: '#3fb95015', icon: MapPin },
     { label: 'Korban Keracunan', value: stats.victims.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang terdampak', bg: '#f8514915', icon: AlertTriangle },
@@ -482,8 +487,9 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
     { label: 'Kasus Keracunan', value: stats.keracunan_cases.toLocaleString('id-ID'), color: 'var(--amb)', sub: 'kasus', bg: '#d2992215', icon: Building2 },
   ];
   const row2 = isSppg ? [
-    { label: 'Populasi Indonesia', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'Orang', bg: '#388bfd10', icon: Globe },
     { label: 'Warga per SPPG', value: ratio, color: 'var(--grn)', sub: 'rasio', bg: '#3fb95010', icon: TrendingUp },
+    { label: 'Provinsi Terbanyak', value: `${sppgStats?.topProvName || '—'} ${sppgStats?.topProvCount ? sppgStats.topProvCount.toLocaleString('id-ID') : ''}`, color: 'var(--amb)', sub: 'terbanyak', bg: '#d2992210', icon: MapPin },
+    { label: 'Cakupan Kabupaten', value: `${(sppgStats?.kabupatens ?? 0).toLocaleString('id-ID')} dari 514`, color: 'var(--pur)', sub: 'kabupaten', bg: '#bc8cff10', icon: Globe },
   ] : [
     { label: 'Populasi Indonesia', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'Orang', bg: '#388bfd10', icon: Globe },
     { label: 'Korban vs Populasi', value: `${pct}%`, color: parseFloat(pct) < 0.05 ? 'var(--grn)' : 'var(--amb)', sub: 'masih aman', bg: parseFloat(pct) < 0.05 ? '#3fb95010' : '#d2992210', icon: TrendingUp },
@@ -673,8 +679,10 @@ function SppgItem({ sppg }) {
         flexShrink: 0,
       }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'var(--tx)' }}>
+        <div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
           {sppg.nama}
+          {sppg.risiko && <AlertTriangle size={9} strokeWidth={2} style={{ color: 'var(--red)', flexShrink: 0 }} />}
+          {sppg.meninggal_terkait && <Skull size={9} strokeWidth={2} style={{ color: 'var(--pur)', flexShrink: 0 }} />}
         </div>
         <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginTop: 4 }}>
           {[sppg.provinsi, sppg.kabupaten, sppg.kecamatan].filter(Boolean).join(' · ')}

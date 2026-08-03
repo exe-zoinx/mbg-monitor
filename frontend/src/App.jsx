@@ -9,6 +9,7 @@ import { useSppg } from './hooks/useSppg';
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('incidents'); // 'incidents' | 'sppg'
+  const [layers, setLayers] = useState({ keracunan: true, meninggal: true, sppg: true });
   const { data, isLoading, error } = useData();
   const sppgQuery = useSppg();
   const sppgData = sppgQuery.data;
@@ -122,6 +123,8 @@ export default function App() {
           onMenuClick={() => setSidebarOpen(o => !o)}
           activeTab={activeTab}
           sppgData={sppgData}
+          layers={layers}
+          setLayers={setLayers}
         />
         <button
           onClick={() => setShowDataModal(true)}
