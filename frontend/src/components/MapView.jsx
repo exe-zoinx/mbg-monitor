@@ -37,6 +37,15 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
+      iconCreateFunction(cl) {
+        const n = cl.getChildCount();
+        const cls = n > 20 ? 'large' : n > 5 ? 'medium' : 'small';
+        return L.divIcon({
+          html: `<div><span>${n}</span></div>`,
+          className: `marker-cluster marker-cluster-keracunan marker-cluster-${cls}`,
+          iconSize: L.point(36, 36),
+        });
+      },
     });
     const sppgCluster = L.markerClusterGroup({
       maxClusterRadius: 40,
@@ -44,6 +53,15 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
+      iconCreateFunction(cl) {
+        const n = cl.getChildCount();
+        const cls = n > 50 ? 'large' : n > 15 ? 'medium' : 'small';
+        return L.divIcon({
+          html: `<div><span>${n}</span></div>`,
+          className: `marker-cluster marker-cluster-sppg marker-cluster-${cls}`,
+          iconSize: L.point(36, 36),
+        });
+      },
     });
     const meninggalCluster = L.markerClusterGroup({
       maxClusterRadius: 50,
@@ -51,6 +69,15 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
+      iconCreateFunction(cl) {
+        const n = cl.getChildCount();
+        const cls = n > 20 ? 'large' : n > 5 ? 'medium' : 'small';
+        return L.divIcon({
+          html: `<div><span>${n}</span></div>`,
+          className: `marker-cluster marker-cluster-meninggal marker-cluster-${cls}`,
+          iconSize: L.point(38, 38),
+        });
+      },
     });
     map.addLayer(sppgCluster);       // back
     map.addLayer(cluster);           // middle — all incidents
