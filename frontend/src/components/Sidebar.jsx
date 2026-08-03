@@ -411,7 +411,7 @@ export default function Sidebar({
           </div>
         ) : (
           sppgFiltered.map(s => (
-            <SppgItem key={s.id ?? s.kode} sppg={s} />
+            <SppgItem key={s.id ?? s.kode} sppg={s} focusInc={focusInc} />
           ))
         )}
       </div>
@@ -496,15 +496,32 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   ];
 
   const cell = (item, i) => (
-    <div key={i} style={{ background: item.bg || 'var(--sf)', padding: '10px 12px' }}>
-      <item.icon size={16} strokeWidth={1.8} style={{ color: item.color, opacity: 0.6, marginBottom: 4 }} />
-      <div style={{ fontFamily: 'var(--mo)', fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: item.color }}>
+    <div key={i} style={{
+      background: item.bg || 'var(--sf)',
+      padding: '14px 12px',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Watermark icon — large, outlined, bottom-right corner */}
+      <item.icon
+        size={44}
+        strokeWidth={0.5}
+        style={{
+          color: item.color,
+          opacity: 0.1,
+          position: 'absolute',
+          right: -4,
+          bottom: -8,
+          pointerEvents: 'none',
+        }}
+      />
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: item.color, position: 'relative' }}>
         {item.value}
       </div>
-      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 1 }}>
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', marginTop: 1, position: 'relative' }}>
         {item.sub}
       </div>
-      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>
+      <div style={{ fontFamily: 'var(--mo)', fontSize: 8, color: 'var(--mu)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4, position: 'relative' }}>
         {item.label}
       </div>
     </div>
@@ -660,15 +677,24 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
   );
 }
 
-function SppgItem({ sppg }) {
+function SppgItem({ sppg, focusInc }) {
   return (
     <div
+      onClick={() => {
+        if (sppg.lat && sppg.lng) {
+          focusInc(`sppg-${sppg.id ?? sppg.kode}`);
+        }
+      }}
       style={{
         display: 'flex',
         gap: 10,
         padding: '11px 14px',
         borderBottom: '1px solid var(--bd)',
+        cursor: 'pointer',
+        transition: 'background 0.1s',
       }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(56,139,253,0.06)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
       <div style={{
         width: 8,
