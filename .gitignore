@@ -40,3 +40,5 @@ logs/
 *.log
 .opencode
 .lean-ctx
+.hive/
+.tmp/

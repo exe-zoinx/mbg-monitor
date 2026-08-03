@@ -1,109 +1,87 @@
-# MBG Monitor Pages
+# 🍱 MBG Monitor — Peta Keracunan Makan Bergizi Gratis Indonesia
 
-Incident map frontend for Indonesia's Makan Bergizi Gratis program.
-Fully serverless on Cloudflare Pages free tier.
+> **"Makan bergizi, gratis, dan… beracun?"**
+> Monitor independen yang melacak insiden keracunan massal dari program andalan pemerintah.
 
----
-
-## Project Structure
-
-```
-mbg-monitor-pages/               ← Git repo
-├── package.json                 ← root scripts: deploy, dev
-├── wrangler.toml                ← deploys to Cloudflare Pages
-├── index.html                   ← full-screen Leaflet map
-├── _headers                     ← CSP + security headers
-├── _redirects
-└── functions/api/
-    ├── data.js                  ← GET /api/data
-    └── history.js               ← GET /api/history (admin)
-```
-
-Deploys a Cloudflare Pages project with Pages Functions for API endpoints.
+**Live map: [https://mbg-monitor.pages.dev](https://mbg-monitor.pages.dev)**
 
 ---
 
-## One-Time Setup
+## Apa ini?
 
-### 1. Install Wrangler
+Proyek ini mengumpulkan dan memetakan **insiden keracunan makanan** yang terkait dengan program **Makan Bergizi Gratis (MBG)** — program nasional yang digadang-gadang sebagai solusi gizi anak Indonesia. Data dikumpulkan dari **media massa Indonesia** dan **Wikipedia**, lalu ditampilkan di peta interaktif.
+
+Kami tidak menilai programnya. Data yang berbicara.
+
+## Fakta (per pembaruan terakhir)
+
+| Metrik | Angka |
+|---|---|
+| Total insiden | **377** |
+| Total korban | **48.399** orang |
+| Korban meninggal | **2** jiwa |
+| Provinsi terdampak | Hampir seluruh Indonesia |
+
+*"Korban vs populasi: 0,0168% — masih aman."* — pemerintah, mungkin.
+
+## Apakah MBG berhasil?
+
+Program ini dirancang untuk memberi makan **+82 juta penerima** di seluruh Indonesia. Dan memang berhasil — berhasil membuat **ratusan sekolah** masuk daftar insiden keracunan.
+
+Beberapa pencapaian yang patut dibanggakan:
+
+- 🥇 **48.399 korban** dalam kurun waktu singkat — rekor program sosial yang sulit ditandingi
+- 🏫 **130+ sekolah** terdampak, dari SD hingga pesantren — pemerataan yang mengagumkan
+- 🍗 Menu makan siang yang **tak terlupakan** — dalam arti yang paling literal
+- 📰 **Media berlimpah** — setiap insiden mendapat liputan hangat, gratis untuk semua
+
+Data ini bukan opini. Ini hasil kerja keras para wartawan, relawan, dan Wikipediawan yang mencatat setiap kejadian.
+
+## Cara kerja
+
+```
+Wikipedia + media → scraper (Python) → data/wiki_incidents.json → D1 database (Cloudflare)
+                                                        ↓
+Peta interaktif (React + Leaflet) ← Cloudflare Pages ← frontend
+```
+
+1. **Scraper** (`scripts/scrape_wiki.py`) menarik data insiden dari halaman Wikipedia
+2. **Deduplikasi** — insiden multi-sekolah digabung, korban dihitung sekali (48k, bukan 117k)
+3. **Frontend** (React + Vite + Leaflet) menampilkan peta, statistik, dan feed insiden
+4. **Deploy** ke Cloudflare Pages + D1 untuk data produksi
+
+## Tech stack
+
+- **Frontend**: React 19, Vite, Leaflet, Tailwind CSS, daisyUI
+- **Icons**: lucide-react
+- **Backend**: Cloudflare Pages Functions + D1 + Workers
+- **Data**: scraper Python → JSON → SQLite/D1
+- **Hosting**: Cloudflare Pages
+
+## Menjalankan secara lokal
 
 ```bash
-npm install          # installs wrangler from root package.json
+npm install
+npm run dev
 ```
 
-### 2. Create D1 Database
+Buka `http://localhost:5173` — data lokal disajikan dari `data/wiki_incidents.json` (tanpa D1).
 
-```bash
-npx wrangler d1 create MBG_DB
-# → prints: database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-# Copy this ID — you'll need it in step 4
-```
-
-Run the schema (from the worker repo):
-```bash
-# Assuming you have the worker repo cloned locally
-npx wrangler d1 execute MBG_DB --file=path/to/worker/schema.sql
-```
-
-Verify:
-```bash
-npx wrangler d1 execute MBG_DB --command="SELECT name FROM sqlite_master WHERE type='table';"
-# → incidents, news, crawl_log, stats_snapshot
-```
-
-### 3. Create KV Namespace
-
-```bash
-npx wrangler kv namespace create MBG_KV
-# → prints: id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
-# Copy this ID too
-```
-
-### 4. Configure wrangler.toml
-
-Edit `wrangler.toml`:
-```toml
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"   # D1 ID from step 2
-id          = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"   # KV ID from step 3
-```
-
-### 5. Deploy Pages
+## Deploy
 
 ```bash
 npm run deploy
-# Output: "Deploying to ... mbg-monitor.pages.dev"
 ```
 
-Set Pages secret:
-```bash
-# The secret for /api/history endpoint (same as worker's CRON_SECRET)
-npm run secret put REFRESH_SECRET
-```
+Membutuhkan kredensial Cloudflare (`wrangler login` / `CLOUDFLARE_API_TOKEN`). Build → upload ke Pages → deploy Functions.
+
+## Disclaimer
+
+- Data dikumpulkan secara otomatis dari **media publik** dan **Wikipedia**
+- Bisa ada kesalahan, duplikasi, atau kelalaian — verifikasi sebelum dikutip
+- Ini **bukan** saran medis, bukan laporan resmi, dan bukan kampanye politik
+- Jika ada insiden yang salah atau perlu dikoreksi, silakan buka issue
 
 ---
 
-## Daily Commands
-
-```bash
-npm run dev              # local Pages dev server (http://localhost:8788)
-npm run deploy           # deploy Pages
-```
-
----
-
-## Free Tier
-
-| Service | Limit | Usage |
-|---|---|---|
-| Pages requests | Unlimited | — |
-| D1 reads | 5M rows/day | ~100/day |
-| KV reads | 100K/day | ~10/pageview |
-
----
-
-## Endpoints
-
-| Endpoint | Auth | Cache | Notes |
-|---|---|---|---|
-| `GET /api/data` | None | 3 min CDN | D1 incidents + news + stats |
-| `GET /api/history?secret=` | Required | No | Crawl log + DB stats |
+*Dibuat dengan ❤️ dan rasa penasaran. Tidak disponsori oleh Badan Gizi Nasional.*
