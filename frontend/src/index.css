@@ -87,6 +87,7 @@ html, body, #root {
   font-size: 8px !important;
   background: transparent !important;
   color: #ffffffcc !important;
+  white-space: nowrap !important;
 }
 .leaflet-control-attribution a {
   color: #ffffffcc !important;
