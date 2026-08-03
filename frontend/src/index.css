@@ -51,8 +51,8 @@ html, body, #root {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
-
 /* Leaflet overrides for dark theme */
+.leaflet-container { will-change: transform; }
 .leaflet-popup-content-wrapper {
   background: var(--sf) !important;
   border: 1px solid var(--bd2) !important;
@@ -63,6 +63,7 @@ html, body, #root {
 .leaflet-popup-tip-container { display: none; }
 .leaflet-popup-content {
   margin: 0 !important;
+  padding: 10px 14px !important;
   min-width: 230px;
   max-width: 290px;
 }

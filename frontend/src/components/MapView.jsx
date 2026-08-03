@@ -184,14 +184,22 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     if (!activeId) return;
     const entry = markersRef.current.get(activeId);
     const map = mapInstance.current;
-    const cluster = clusterRef.current;
-    if (!entry || !map || !cluster) return;
+    if (!entry || !map) return;
 
     const { marker, inc } = entry;
+    // SPPG markers live in sppgClusterRef, incidents in clusterRef
+    const cluster = activeId.startsWith('sppg-')
+      ? sppgClusterRef.current
+      : clusterRef.current;
+
     map.flyTo([inc.lat, inc.lng], Math.max(map.getZoom(), 9), { duration: 0.7 });
-    setTimeout(() => {
-      cluster.zoomToShowLayer(marker, () => marker.openPopup());
-    }, 450);
+    if (cluster) {
+      setTimeout(() => {
+        cluster.zoomToShowLayer(marker, () => marker.openPopup());
+      }, 500);
+    } else {
+      marker.openPopup();
+    }
   }, [activeId]);
 
   return (
@@ -349,7 +357,7 @@ function popHTML(inc) {
   const srcUrl = url || WIKI_URL;
   const srcLabel = url ? 'Baca &rarr;' : 'Wiki &rarr;';
   const srcColor = url ? 'var(--blu)' : 'var(--mu)';
-  return `<div style="padding:13px 15px">
+  return `<div>
     <span style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:2px 7px;margin-bottom:8px;display:inline-block;background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat] || inc.cat)}</span>
     <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:7px;color:var(--tx)">${esc(inc.title)}</div>
     <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:var(--tx)">${esc(inc.loc)}</span></div>

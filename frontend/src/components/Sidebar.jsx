@@ -24,18 +24,40 @@ export default function Sidebar({
   sppgData,
 }) {
 
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
-  const timerRef = useRef(null);
+  const [localSearch, setLocalSearch] = useState(search);
 
-  const handleSearch = useCallback((e) => {
-    const val = e.target.value;
+  const handleSearch = useCallback(() => {
+    setSearch(localSearch.trim());
+  }, [localSearch, setSearch]);
 
-    setDebouncedSearch(val);
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setSearch(val), 200);
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter') {
+      setSearch(localSearch.trim());
+    }
+  }, [localSearch, setSearch]);
+
+  const clearSearch = useCallback(() => {
+    setLocalSearch('');
+    setSearch('');
   }, [setSearch]);
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  // Virtualization — RAF-batched scroll to avoid 60fps setState churn
+  const topRef = useRef(0);
+  const rafRef = useRef(0);
+  const [, setScrollTick] = useState(0);
+  const handleFeedScroll = useCallback((e) => {
+    topRef.current = e.target.scrollTop;
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = 0;
+        setScrollTick(t => t + 1);
+      });
+    }
+  }, []);
+  const INC_ITEM_H = 88;
+  const SPPG_ITEM_H = 72;
+  const VIRT_BUFFER = 5;
+  const VIRT_VISIBLE = 18;
 
   const activeCats = useMemo(() => {
     const set = new Set(incidents.map(i => i.cat).filter(Boolean));
@@ -209,26 +231,67 @@ export default function Sidebar({
 
       {/* Search */}
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
-        <input
-          type="text"
-          placeholder={activeTab === 'sppg' ? 'Cari SPPG, provinsi' : 'Cari insiden, lokasi'}
-          autoComplete="off"
-          spellCheck={false}
-          value={debouncedSearch}
-          onChange={handleSearch}
-          style={{
-            width: '100%',
-            background: 'var(--sf2)',
-            border: '1px solid var(--bd)',
-            borderRadius: 7,
-            padding: '11px 14px',
-            fontFamily: 'var(--mo)',
-            fontSize: 13,
-            minHeight: 44,
-            color: 'var(--tx)',
-            outline: 'none',
-          }}
-        />
+        <div style={{ position: 'relative' }}>
+          <input
+            type="text"
+            placeholder={activeTab === 'sppg' ? 'Cari SPPG, provinsi' : 'Cari insiden, lokasi'}
+            autoComplete="off"
+            spellCheck={false}
+            value={localSearch}
+            onChange={e => setLocalSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
+            style={{
+              width: '100%',
+              background: 'var(--sf2)',
+              border: '1px solid var(--bd)',
+              borderRadius: 7,
+              padding: '11px 38px 11px 14px',
+              fontFamily: 'var(--mo)',
+              fontSize: 13,
+              minHeight: 44,
+              color: 'var(--tx)',
+              outline: 'none',
+            }}
+          />
+          {localSearch && (
+            <button
+              onClick={clearSearch}
+              aria-label="Bersihkan pencarian"
+              style={{
+                position: 'absolute',
+                right: 34,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--mu)',
+                padding: 4,
+                display: 'flex',
+              }}
+            >
+              <X size={14} strokeWidth={2} />
+            </button>
+          )}
+          <button
+            onClick={handleSearch}
+            aria-label="Cari"
+            style={{
+              position: 'absolute',
+              right: 6,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--mu)',
+              padding: 4,
+              display: 'flex',
+            }}
+          >
+            <Search size={16} strokeWidth={2} />
+          </button>
+        </div>
       </div>
 
       {activeTab === 'incidents' && (
@@ -373,23 +436,36 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Feed — tab-conditional */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      {/* Feed — tab-conditional, virtualized */}
+      <div
+        style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        onScroll={handleFeedScroll}
+      >
         {activeTab === 'incidents' ? (
           filtered.length === 0 ? (
             <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--mu)', fontFamily: 'var(--mo)', fontSize: 11 }}>
               Tidak ada insiden ditemukan
             </div>
           ) : (
-            filtered.map(inc => (
-              <FeedItem
-                key={inc.id}
-                inc={inc}
-                isActive={activeId === inc.id}
-                focusInc={focusInc}
-                onClick={() => {}}
-              />
-            ))
+            (() => {
+              const h = INC_ITEM_H;
+              const start = Math.max(0, Math.floor(topRef.current / h) - VIRT_BUFFER);
+              const count = Math.min(VIRT_VISIBLE, filtered.length - start);
+              return (
+                <div style={{ height: filtered.length * h, position: 'relative' }}>
+                  {filtered.slice(start, start + count).map((inc, i) => (
+                    <div key={inc.id} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
+                      <FeedItem
+                        inc={inc}
+                        isActive={activeId === inc.id}
+                        focusInc={focusInc}
+                        onClick={() => {}}
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
           )
         ) : !sppgData ? (
           /* Loading skeleton */
@@ -410,9 +486,20 @@ export default function Sidebar({
             Tidak ada SPPG ditemukan
           </div>
         ) : (
-          sppgFiltered.map(s => (
-            <SppgItem key={s.id ?? s.kode} sppg={s} focusInc={focusInc} />
-          ))
+          (() => {
+            const h = SPPG_ITEM_H;
+            const start = Math.max(0, Math.floor(topRef.current / h) - VIRT_BUFFER);
+            const count = Math.min(VIRT_VISIBLE, sppgFiltered.length - start);
+            return (
+              <div style={{ height: sppgFiltered.length * h, position: 'relative' }}>
+                {sppgFiltered.slice(start, start + count).map((s, i) => (
+                  <div key={s.id ?? s.kode} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
+                    <SppgItem sppg={s} focusInc={focusInc} />
+                  </div>
+                ))}
+              </div>
+            );
+          })()
         )}
       </div>
 
