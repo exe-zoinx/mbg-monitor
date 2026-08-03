@@ -187,12 +187,12 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     if (!entry || !map) return;
 
     const { marker, inc } = entry;
-    // SPPG markers live in sppgClusterRef, incidents in clusterRef
-    const cluster = activeId.startsWith('sppg-')
-      ? sppgClusterRef.current
-      : clusterRef.current;
+    // SPPG markers live in sppgClusterRef, incidents in clusterRef.
+    // Incident ids are numbers; SPPG ids are `sppg-<id>` strings.
+    const isSppg = typeof activeId === 'string' && activeId.startsWith('sppg-');
+    const cluster = isSppg ? sppgClusterRef.current : clusterRef.current;
 
-    map.flyTo([inc.lat, inc.lng], Math.max(map.getZoom(), 9), { duration: 0.7 });
+    map.flyTo([inc.lat, inc.lng], isSppg ? Math.max(map.getZoom(), 13) : Math.max(map.getZoom(), 9), { duration: 0.7 });
     if (cluster) {
       setTimeout(() => {
         cluster.zoomToShowLayer(marker, () => marker.openPopup());
