@@ -1,7 +1,7 @@
 # 🍱 MBG Monitor
 
-> **"Makan bergizi, gratis, dan… beracun?"**
-> Monitor independen yang melacak insiden keracunan massal dari program andalan pemerintah.
+> Peta independen yang memantau peristiwa kesehatan yang dilaporkan terkait
+> program Makan Bergizi Gratis (MBG) di Indonesia.
 
 **Peta langsung: [https://mbg-monitor.pages.dev](https://mbg-monitor.pages.dev)**
 
@@ -24,7 +24,7 @@ MBG demi masa depan yang lebih baik.
 
 Program seperti MBG menyentuh jutaan kehidupan. Ketika insiden terjadi,
 insiden itu harus terlihat, terhitung, dan bisa dipelajari. Peta ini ada agar
-setiap insiden terdokumentasi — bukan untuk menyerang program, tetapi untuk
+setiap insiden terdokumentasi — bukan untuk mengkritik program, tetapi untuk
 membantu program menjadi lebih baik.
 
 ## Cara kerja
@@ -81,6 +81,9 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) — setup, konvensi, dan cara membuka m
 > baik dan apa yang perlu diperbaiki — agar program dapat melayani anak-anak
 > Indonesia lebih baik di masa depan.
 
+> **Pernyataan non-afiliasi:** Proyek ini independen dan tidak berafiliasi
+> dengan atau disponsori oleh lembaga pemerintah, kementerian, atau organisasi
+> mana pun.
 - Data dikumpulkan secara otomatis dari **media publik**, **Wikipedia**, dan
   **peta sebaran SPPG Kementerian Pertanian**
 - Bisa ada kesalahan, duplikasi, atau kelalaian — verifikasi sebelum dikutip

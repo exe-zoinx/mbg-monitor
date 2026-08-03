@@ -215,8 +215,9 @@ export default function App() {
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--tx)' }}>
               <strong>MBG Monitor</strong> adalah peta interaktif yang memetakan
-              kasus keracunan massal akibat program <strong>Makan Bergizi Gratis (MBG)</strong>.
-              Data insiden dikumpulkan dari media massa Indonesia dan halaman
+              peristiwa kesehatan massal yang dilaporkan terkait program
+              <strong>Makan Bergizi Gratis (MBG)</strong>.
+              Data dikumpulkan dari media massa Indonesia dan halaman
               <a href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis"
                  target="_blank" rel="noopener noreferrer"
                  style={{ color: 'var(--blu)' }}> Wikipedia</a>,
@@ -256,6 +257,20 @@ export default function App() {
                 <a href="https://gitlab.com/sukma-diki/mbg-monitor/-/issues" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
                   issue di GitLab
                 </a>.
+              </div>
+            </div>
+            <div style={{
+              marginTop: 12, background: 'var(--sf2)', borderRadius: 8,
+              padding: '12px 14px', border: '1px solid var(--bd)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600, color: 'var(--tx)', marginBottom: 6 }}>
+                <AlertTriangle size={12} /> Keterangan
+              </div>
+              <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', lineHeight: 1.6 }}>
+                Aplikasi ini <strong>tidak berafiliasi</strong> dengan pihak manapun,
+                termasuk pemerintah, kementerian, atau organisasi apa pun, dan
+                <strong>tidak disponsori</strong> oleh pihak mana pun. Data disusun dari
+                sumber terbuka untuk keperluan transparansi publik.
               </div>
             </div>
             <button

@@ -1,7 +1,7 @@
 # 🍱 MBG Monitor
 
-> **"Free nutritious meals… and free food poisoning."**
-> An independent monitor tracking mass food-poisoning incidents from Indonesia's flagship free-meals program.
+> An independent map tracking reported health incidents linked to Indonesia's
+> Makan Bergizi Gratis (MBG) free-meals program.
 
 **Live map: [https://mbg-monitor.pages.dev](https://mbg-monitor.pages.dev)**
 
@@ -80,6 +80,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) — setup, conventions, and how to open a
 > program helps the public and government evaluate what works and what needs
 > fixing — so the program can serve Indonesian children better in the future.
 
+> **Non-affiliation notice:** This project is independent and not affiliated
+> with or sponsored by any government agency, ministry, or organization.
 - Data is collected automatically from **public media**, **Wikipedia**, and the
   **Ministry of Agriculture's SPPG map**
 - Errors, duplicates, or omissions are possible — verify before citing

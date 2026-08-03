@@ -539,7 +539,7 @@ export default function Sidebar({
               BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·
             </span>
             <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
-              BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·
+              BPOM turun ke sejumlah dapur SPPG pasca laporan peristiwa kesehatan · evaluasi menyeluruh berlanjut ·
             </span>
             <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
               MBG diluncurkan 6 Jan 2025 · Rp 71T anggaran · Target 82,9 juta penerima ·
@@ -548,7 +548,7 @@ export default function Sidebar({
               BGN belum publikasikan data insiden resmi · DPR minta evaluasi menyeluruh ·
             </span>
             <span style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'rgba(248,81,73,0.75)', paddingRight: 60 }}>
-              BPOM turun ke sejumlah dapur SPPG pasca keracunan massal · ICW pantau vendor ·
+              BPOM turun ke sejumlah dapur SPPG pasca laporan peristiwa kesehatan · evaluasi menyeluruh berlanjut ·
             </span>
           </div>
         </div>
