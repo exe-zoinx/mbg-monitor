@@ -119,6 +119,19 @@ function serveLocalData() {
           res.end(JSON.stringify({ error: 'LOCAL_DATA_ERROR', message: err.message }));
         }
       });
+
+      server.middlewares.use('/api/sppg', (_req, res) => {
+        try {
+          const raw = readFileSync(resolve(__dirname, 'data/sppg.json'), 'utf-8');
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(raw);
+        } catch (err) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'LOCAL_SPPG_ERROR', message: err.message }));
+        }
+      });
     },
   };
 }

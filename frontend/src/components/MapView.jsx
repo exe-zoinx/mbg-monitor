@@ -4,7 +4,7 @@ import 'leaflet.markercluster';
 import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
@@ -52,6 +52,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   useEffect(() => {
     const cluster = clusterRef.current;
     if (!cluster) return;
+    if (activeTab === 'sppg') return; // sppg effect owns the cluster
 
     cluster.clearLayers();
     markersRef.current.clear();
@@ -94,7 +95,40 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         }
       });
     }
-  }, [incidents, filtered, focusInc]);
+  }, [incidents, filtered, focusInc, activeTab]);
+
+  // SPPG markers — shown when SPPG tab is active
+  useEffect(() => {
+    const map = mapInstance.current;
+    const cluster = clusterRef.current;
+    if (!map || !cluster) return;
+    if (activeTab !== 'sppg') return; // incidents effect owns the cluster
+
+    cluster.clearLayers();
+    markersRef.current.clear();
+
+    sppgData.sppg.forEach(s => {
+      if (!s.lat || !s.lng) return;
+      const m = L.circleMarker([s.lat, s.lng], {
+        radius: 5,
+        color: '#388bfd66',
+        weight: 1,
+        fillColor: '#388bfd',
+        fillOpacity: 0.8,
+      })
+        .bindPopup(
+          `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
+            <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
+            <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
+            ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
+            ${s.tanggal_operasional ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu)">${esc(s.tanggal_operasional)}</div>` : ''}
+          </div>`,
+          { maxWidth: 260, closeButton: true }
+        );
+      markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
+      cluster.addLayer(m);
+    });
+  }, [activeTab, sppgData]);
   // Handle activeId changes (fly to marker)
   useEffect(() => {
     if (!activeId) return;

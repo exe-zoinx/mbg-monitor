@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Menu, Download, Database, X } from 'lucide-react';
+import { Menu, Download, Database, X, Info, AlertTriangle } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import { useData } from './hooks/useData';
 import { useIncidents } from './hooks/useIncidents';
+import { useSppg } from './hooks/useSppg';
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('incidents'); // 'incidents' | 'sppg'
   const { data, isLoading, error } = useData();
+  const sppgQuery = useSppg();
+  const sppgData = sppgQuery.data;
   const {
     incidents,
     filtered,
@@ -57,6 +61,20 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadSppgCsv = () => {
+    if (!sppgData?.sppg?.length) return;
+    const headers = ['kode', 'nama', 'provinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat', 'lat', 'lng', 'tanggal_operasional'];
+    const rows = sppgData.sppg.map(s => headers.map(h => `"${String(s[h] ?? '').replace(/"/g, '""')}"`).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sppg-indonesia.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
       {/* Mobile backdrop */}
@@ -76,6 +94,9 @@ export default function App() {
         incidents={incidents}
         filtered={filtered}
         stats={stats}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sppgData={sppgData}
         activeId={activeId}
         search={search}
         setSearch={setSearch}
@@ -99,6 +120,8 @@ export default function App() {
           focusInc={focusInc}
           stats={stats}
           onMenuClick={() => setSidebarOpen(o => !o)}
+          activeTab={activeTab}
+          sppgData={sppgData}
         />
         <button
           onClick={() => setShowDataModal(true)}
@@ -195,6 +218,7 @@ export default function App() {
             </div>
             <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginBottom: 16 }}>
               {stats.total} insiden · {stats.victims} korban · {stats.deaths} meninggal
+              {sppgData?.sppg?.length ? ` · ${sppgData.total} unit SPPG` : ''}
             </div>
             <button
               onClick={downloadCSV}
@@ -207,6 +231,43 @@ export default function App() {
             >
               <Download size={14} /> Download CSV
             </button>
+            <button
+              onClick={downloadSppgCsv}
+              disabled={!sppgData?.sppg?.length}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 8, cursor: sppgData?.sppg?.length ? 'pointer' : 'not-allowed',
+                background: 'transparent', color: 'var(--blu)', border: '1px solid var(--blu)44',
+                fontFamily: 'var(--mo)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                marginTop: 8, opacity: sppgData?.sppg?.length ? 1 : 0.5,
+              }}
+            >
+              <Download size={14} /> Download CSV SPPG
+            </button>
+            <div style={{
+              marginTop: 16, background: 'var(--sf2)', borderRadius: 8,
+              padding: '12px 14px', border: '1px solid var(--bd)',
+            }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600,
+                color: 'var(--tx)', marginBottom: 8,
+              }}>
+                <Info size={12} /> Sumber Data
+              </div>
+              <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', lineHeight: 1.6 }}>
+                Insiden keracunan dikumpulkan dari media massa Indonesia dan Wikipedia.
+                <br /><br />
+                Data SPPG diambil dari Peta Sebaran SPPG Kementerian Pertanian
+                (<a href="https://awr.ditjenpkh.pertanian.go.id/sppg/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  awr.ditjenpkh.pertanian.go.id
+                </a>). Data per 30 September 2025.
+                <br /><br />
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--amb)' }}>
+                  <AlertTriangle size={10} /> Data ini bukan saran medis. Verifikasi sebelum dikutip.
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}

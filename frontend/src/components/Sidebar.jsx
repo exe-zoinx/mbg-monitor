@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database } from 'lucide-react';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
-
 export default function Sidebar({
   incidents,
   filtered,
@@ -20,7 +19,11 @@ export default function Sidebar({
   onShowData,
   sidebarOpen,
   setSidebarOpen,
+  activeTab,
+  setActiveTab,
+  sppgData,
 }) {
+
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const timerRef = useRef(null);
 
@@ -40,6 +43,18 @@ export default function Sidebar({
   }, [incidents]);
 
   const hasFilter = filterCat !== 'all' || !!dateFrom || !!dateTo;
+
+  const sppgFiltered = useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return sppgData?.sppg || [];
+    return (sppgData?.sppg || []).filter(s =>
+      s.nama?.toLowerCase().includes(q) ||
+      s.provinsi?.toLowerCase().includes(q) ||
+      s.kabupaten?.toLowerCase().includes(q) ||
+      s.kecamatan?.toLowerCase().includes(q) ||
+      s.alamat?.toLowerCase().includes(q)
+    );
+  }, [sppgData, search]);
 
   return (
     <aside
@@ -124,6 +139,53 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* Tabs */}
+      <div style={{
+        display: 'flex',
+        gap: 0,
+        borderBottom: '1px solid var(--bd)',
+        flexShrink: 0,
+      }}
+        role="tablist"
+      >
+        <button
+          role="tab"
+          aria-selected={activeTab === 'incidents'}
+          onClick={() => setActiveTab('incidents')}
+          style={{
+            flex: 1, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600,
+            padding: '10px 0', textAlign: 'center', cursor: 'pointer',
+            transition: 'all 0.15s ease', border: 'none', background: 'transparent',
+            borderBottom: activeTab === 'incidents' ? '2px solid var(--red)' : '2px solid transparent',
+            color: activeTab === 'incidents' ? 'var(--tx)' : 'var(--mu)',
+          }}
+        >
+          <span style={{
+            display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+            background: 'var(--red)', marginRight: 6, verticalAlign: 1,
+          }} />
+          Insiden
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'sppg'}
+          onClick={() => setActiveTab('sppg')}
+          style={{
+            flex: 1, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600,
+            padding: '10px 0', textAlign: 'center', cursor: 'pointer',
+            transition: 'all 0.15s ease', border: 'none', background: 'transparent',
+            borderBottom: activeTab === 'sppg' ? '2px solid var(--blu)' : '2px solid transparent',
+            color: activeTab === 'sppg' ? 'var(--tx)' : 'var(--mu)',
+          }}
+        >
+          <span style={{
+            display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+            background: 'var(--blu)', marginRight: 6, verticalAlign: 1,
+          }} />
+          SPPG
+        </button>
+      </div>
+
       {/* Stats */}
       <StatsRow stats={stats} />
 
@@ -131,7 +193,7 @@ export default function Sidebar({
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
         <input
           type="text"
-          placeholder="Cari insiden, lokasi"
+          placeholder={activeTab === 'sppg' ? 'Cari SPPG, provinsi' : 'Cari insiden, lokasi'}
           autoComplete="off"
           spellCheck={false}
           value={debouncedSearch}
@@ -150,6 +212,9 @@ export default function Sidebar({
           }}
         />
       </div>
+
+      {activeTab === 'incidents' && (
+        <>
 
       {/* Tag pills */}
       <div style={{
@@ -269,6 +334,8 @@ export default function Sidebar({
           </button>
         </div>
       )}
+        </>
+      )}
 
       <div style={{ padding: '4px 14px 6px', borderBottom: '1px solid var(--bd)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         {connectionStatus?.text && (
@@ -288,21 +355,45 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Feed — single unified list of all incidents */}
+      {/* Feed — tab-conditional */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        {filtered.length === 0 ? (
+        {activeTab === 'incidents' ? (
+          filtered.length === 0 ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--mu)', fontFamily: 'var(--mo)', fontSize: 11 }}>
+              Tidak ada insiden ditemukan
+            </div>
+          ) : (
+            filtered.map(inc => (
+              <FeedItem
+                key={inc.id}
+                inc={inc}
+                isActive={activeId === inc.id}
+                focusInc={focusInc}
+                onClick={() => {}}
+              />
+            ))
+          )
+        ) : !sppgData ? (
+          /* Loading skeleton */
+          <div style={{ padding: '14px' }}>
+            {[0, 1, 2, 3].map(i => (
+              <div
+                key={i}
+                style={{
+                  height: 64, borderRadius: 6, marginBottom: 10,
+                  background: 'var(--sf2)',
+                  animation: 'lp 1.5s ease infinite',
+                }}
+              />
+            ))}
+          </div>
+        ) : sppgFiltered.length === 0 ? (
           <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--mu)', fontFamily: 'var(--mo)', fontSize: 11 }}>
-            Tidak ada insiden ditemukan
+            Tidak ada SPPG ditemukan
           </div>
         ) : (
-          filtered.map(inc => (
-            <FeedItem
-              key={inc.id}
-              inc={inc}
-              isActive={activeId === inc.id}
-              focusInc={focusInc}
-              onClick={() => {}}
-            />
+          sppgFiltered.map(s => (
+            <SppgItem key={s.id ?? s.kode} sppg={s} />
           ))
         )}
       </div>
@@ -532,6 +623,42 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
             WebkitBoxOrient: 'vertical',
           }}>
             {inc.note}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SppgItem({ sppg }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 10,
+        padding: '11px 14px',
+        borderBottom: '1px solid var(--bd)',
+      }}
+    >
+      <div style={{
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: 'var(--blu)',
+        marginTop: 3,
+        flexShrink: 0,
+      }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'var(--tx)' }}>
+          {sppg.nama}
+        </div>
+        <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginTop: 4 }}>
+          {[sppg.provinsi, sppg.kabupaten, sppg.kecamatan].filter(Boolean).join(' · ')}
+        </div>
+        {sppg.tanggal_operasional && (
+          <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Calendar size={9} strokeWidth={2} />
+            {sppg.tanggal_operasional}
           </div>
         )}
       </div>
