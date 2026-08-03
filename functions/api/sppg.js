@@ -11,6 +11,8 @@ export async function onRequestGet(ctx) {
   const cache = caches.default;
   const cacheKey = new Request('https://mbg-monitor.pages.dev/api/sppg-cache', ctx.request);
 
+  const cached = await cache.match(cacheKey);
+
   if (cached) {
     return new Response(cached.body, {
       headers: {
