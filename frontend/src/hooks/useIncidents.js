@@ -14,7 +14,13 @@ export function useIncidents(data) {
 
   const incidents = useMemo(() => {
     if (!data?.incidents?.length) return [];
-    return data.incidents.map((r, i) => ({ ...r, id: r.id || 9000 + i, victims: r.victims || 0 }));
+    return data.incidents.map((r, i) => ({
+      ...r,
+      id: r.id || 9000 + i,
+      victims: r.victims || 0,
+      // ponytail: D1 stores schools_list as JSON text, parse it
+      schools_list: typeof r.schools_list === 'string' ? (() => { try { return JSON.parse(r.schools_list); } catch { return []; } })() : (r.schools_list || []),
+    }));
   }, [data]);
 
   const filtered = useMemo(() => {
