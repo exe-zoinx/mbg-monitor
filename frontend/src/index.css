@@ -121,6 +121,9 @@ html, body, #root {
 /* Desktop sidebar: relative positioning with fixed width */
 @media (min-width: 641px) {
   .map-title-stats { display: none !important; }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
   .sidebar-root {
     position: relative !important;
     width: var(--sw) !important;
