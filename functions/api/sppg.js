@@ -11,12 +11,11 @@ export async function onRequestGet(ctx) {
   const cache = caches.default;
   const cacheKey = new Request('https://mbg-monitor.pages.dev/api/sppg-cache', ctx.request);
 
-  const cached = await cache.match(cacheKey);
   if (cached) {
     return new Response(cached.body, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
         'Access-Control-Allow-Origin': '*',
       },
     });
@@ -46,7 +45,8 @@ export async function onRequestGet(ctx) {
         alamat: p.Alamat,
         lat: c[1],
         lng: c[0],
-        tanggal_operasional: p['Tanggal Operasional'],
+        tanggal_pembangunan: p['Tanggal Operasional'],
+        berita_url: 'https://www.google.com/search?q=' + encodeURIComponent(`${p['Nama SPPG'] || ''} berita pembangunan`),
       };
     });
 
@@ -63,7 +63,7 @@ export async function onRequestGet(ctx) {
     return new Response(body, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
         'Access-Control-Allow-Origin': '*',
       },
     });

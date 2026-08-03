@@ -8,6 +8,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
+  const sppgClusterRef = useRef(null);
   const markersRef = useRef(new Map());
 
   // Initialize map once
@@ -36,26 +37,34 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
     });
-    map.addLayer(cluster);
+    const sppgCluster = L.markerClusterGroup({
+      maxClusterRadius: 40,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 10,
+    });
+    map.addLayer(sppgCluster);    // added first → renders behind
+    map.addLayer(cluster);        // added second → incidents on top
 
     mapInstance.current = map;
     clusterRef.current = cluster;
+    sppgClusterRef.current = sppgCluster;
 
     return () => {
       map.remove();
       mapInstance.current = null;
       clusterRef.current = null;
+      sppgClusterRef.current = null;
     };
   }, []);
 
-  // Create/update markers when incidents change
+  // Incident markers — always on the map
   useEffect(() => {
     const cluster = clusterRef.current;
     if (!cluster) return;
-    if (activeTab === 'sppg') return; // sppg effect owns the cluster
 
     cluster.clearLayers();
-    markersRef.current.clear();
 
     const filteredIds = new Set(filtered.map(i => i.id));
 
@@ -95,40 +104,38 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         }
       });
     }
-  }, [incidents, filtered, focusInc, activeTab]);
+  }, [incidents, filtered, focusInc]);
 
-  // SPPG markers — shown when SPPG tab is active
+  // SPPG markers — always on the map (behind incidents)
   useEffect(() => {
-    const map = mapInstance.current;
-    const cluster = clusterRef.current;
-    if (!map || !cluster) return;
-    if (activeTab !== 'sppg') return; // incidents effect owns the cluster
+    const cluster = sppgClusterRef.current;
+    if (!cluster) return;
 
     cluster.clearLayers();
-    markersRef.current.clear();
 
+    if (!sppgData?.sppg?.length) return;
     sppgData.sppg.forEach(s => {
       if (!s.lat || !s.lng) return;
       const m = L.circleMarker([s.lat, s.lng], {
-        radius: 5,
-        color: '#388bfd66',
+        radius: 4,
+        color: '#388bfd55',
         weight: 1,
         fillColor: '#388bfd',
-        fillOpacity: 0.8,
+        fillOpacity: 0.45,
       })
         .bindPopup(
           `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
             <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
             <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
             ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-            ${s.tanggal_operasional ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu)">${esc(s.tanggal_operasional)}</div>` : ''}
+            ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu)">${esc(s.tanggal_pembangunan)}</div>` : ''}
           </div>`,
           { maxWidth: 260, closeButton: true }
         );
       markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
       cluster.addLayer(m);
     });
-  }, [activeTab, sppgData]);
+  }, [sppgData]);
   // Handle activeId changes (fly to marker)
   useEffect(() => {
     if (!activeId) return;

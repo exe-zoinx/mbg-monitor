@@ -63,7 +63,7 @@ export default function App() {
 
   const downloadSppgCsv = () => {
     if (!sppgData?.sppg?.length) return;
-    const headers = ['kode', 'nama', 'provinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat', 'lat', 'lng', 'tanggal_operasional'];
+    const headers = ['kode', 'nama', 'provinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat', 'lat', 'lng', 'tanggal_pembangunan', 'berita_url'];
     const rows = sppgData.sppg.map(s => headers.map(h => `"${String(s[h] ?? '').replace(/"/g, '""')}"`).join(','));
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

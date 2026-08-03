@@ -56,6 +56,19 @@ export default function Sidebar({
     );
   }, [sppgData, search]);
 
+  const sppgStats = useMemo(() => {
+    if (!sppgData?.sppg) return null;
+    const provs = new Set();
+    const kabs = new Set();
+    let withCoord = 0;
+    for (const s of sppgData.sppg) {
+      if (s.provinsi) provs.add(s.provinsi);
+      if (s.kabupaten) kabs.add(s.kabupaten);
+      if (s.lat && s.lng) withCoord++;
+    }
+    return { provinces: provs.size, kabupatens: kabs.size, withCoord };
+  }, [sppgData]);
+
   return (
     <aside
       className="sidebar-root"
@@ -186,8 +199,7 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Stats */}
-      <StatsRow stats={stats} />
+      <StatsRow stats={stats} activeTab={activeTab} sppgData={sppgData} sppgStats={sppgStats} />
 
       {/* Search */}
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
@@ -451,16 +463,28 @@ export default function Sidebar({
   );
 }
 
-function StatsRow({ stats }) {
+function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   const POP = 287666973;
   const pct = ((stats.victims / POP) * 100).toFixed(4);
-  const row1 = [
+
+  const isSppg = activeTab === 'sppg';
+  const total = sppgData?.total || 0;
+  const ratio = total > 0 ? Math.round(POP / total).toLocaleString('id-ID') : '—';
+  const row1 = isSppg ? [
+    { label: 'Total SPPG', value: total.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'unit', bg: '#388bfd12', icon: Building2 },
+    { label: 'Provinsi', value: (sppgStats?.provinces ?? 0).toLocaleString('id-ID'), color: 'var(--grn)', sub: 'provinsi', bg: '#3fb95015', icon: Globe },
+    { label: 'Kabupaten', value: (sppgStats?.kabupatens ?? 0).toLocaleString('id-ID'), color: 'var(--amb)', sub: 'kabupaten', bg: '#d2992215', icon: MapPin },
+    { label: 'Terpetakan', value: (sppgStats?.withCoord ?? 0).toLocaleString('id-ID'), color: 'var(--pur)', sub: 'dengan koordinat', bg: '#bc8cff15', icon: AlertTriangle },
+  ] : [
     { label: 'Total Insiden', value: stats.total.toLocaleString('id-ID'), color: 'var(--grn)', sub: 'terpetakan', bg: '#3fb95015', icon: MapPin },
     { label: 'Korban Keracunan', value: stats.victims.toLocaleString('id-ID'), color: 'var(--red)', sub: 'orang terdampak', bg: '#f8514915', icon: AlertTriangle },
     { label: 'Korban Meninggal', value: stats.deaths.toLocaleString('id-ID'), color: 'var(--pur)', sub: 'jiwa', bg: '#bc8cff15', icon: Skull },
     { label: 'Kasus Keracunan', value: stats.keracunan_cases.toLocaleString('id-ID'), color: 'var(--amb)', sub: 'kasus', bg: '#d2992215', icon: Building2 },
   ];
-  const row2 = [
+  const row2 = isSppg ? [
+    { label: 'Populasi Indonesia', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'Orang', bg: '#388bfd10', icon: Globe },
+    { label: 'Warga per SPPG', value: ratio, color: 'var(--grn)', sub: 'rasio', bg: '#3fb95010', icon: TrendingUp },
+  ] : [
     { label: 'Populasi Indonesia', value: POP.toLocaleString('id-ID'), color: 'var(--blu)', sub: 'Orang', bg: '#388bfd10', icon: Globe },
     { label: 'Korban vs Populasi', value: `${pct}%`, color: parseFloat(pct) < 0.05 ? 'var(--grn)' : 'var(--amb)', sub: 'masih aman', bg: parseFloat(pct) < 0.05 ? '#3fb95010' : '#d2992210', icon: TrendingUp },
   ];
@@ -655,10 +679,10 @@ function SppgItem({ sppg }) {
         <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginTop: 4 }}>
           {[sppg.provinsi, sppg.kabupaten, sppg.kecamatan].filter(Boolean).join(' · ')}
         </div>
-        {sppg.tanggal_operasional && (
+        {sppg.tanggal_pembangunan && (
           <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
             <Calendar size={9} strokeWidth={2} />
-            {sppg.tanggal_operasional}
+            {sppg.tanggal_pembangunan}
           </div>
         )}
       </div>

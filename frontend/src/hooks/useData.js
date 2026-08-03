@@ -59,7 +59,7 @@ export function useData() {
       const data = await res.json();
       return data;
     },
-    staleTime: 3_600_000,
+    staleTime: 86_400_000, // 24h — data changes rarely
     refetchInterval: false,
   });
 }

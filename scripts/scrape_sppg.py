@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Scrape SPPG GeoJSON data from the government map site."""
 import json
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-
 URL = 'https://awr.ditjenpkh.pertanian.go.id/sppg/assets/js/geojson/sppg3.js'
 OUT = 'data/sppg.json'
 
@@ -39,9 +39,11 @@ def main():
             'alamat': p.get('Alamat'),
             'lat': coords[1],
             'lng': coords[0],
-            'tanggal_operasional': p.get('Tanggal Operasional'),
+            'tanggal_pembangunan': p.get('Tanggal Operasional'),
+            'berita_url': 'https://www.google.com/search?q=' + urllib.parse.quote(
+                f"{p.get('Nama SPPG', '')} berita pembangunan"
+            ),
         })
-
     out = {
         'sppg': sppg,
         'total': len(sppg),
