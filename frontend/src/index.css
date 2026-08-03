@@ -85,6 +85,11 @@ html, body, #root {
   right: 0 !important;
   left: auto !important;
   font-size: 8px !important;
+  background: transparent !important;
+  color: #ffffffcc !important;
+}
+.leaflet-control-attribution a {
+  color: #ffffffcc !important;
 }
 
 /* Cluster overrides */
@@ -210,5 +215,8 @@ html, body, #root {
   }
   .map-title-stats > div > span:nth-child(3) {
     font-size: 8px !important;
+  }
+  .leaflet-control-zoom {
+    display: none !important;
   }
 }

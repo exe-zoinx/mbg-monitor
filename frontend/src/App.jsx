@@ -25,7 +25,7 @@ export default function App() {
       ? (Date.now() - new Date(data.meta.refreshed_at)) / 36e5
       : 999;
     const lastSync = data.meta?.refreshed_at
-      ? new Date(data.meta.refreshed_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })
+      ? new Date(data.meta.refreshed_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
       : null;
     if (hrs < 12) return { cls: 'g', text: lastSync || 'OK' };
     if (hrs < 48) return { cls: 'a', text: lastSync || 'Stale' };
