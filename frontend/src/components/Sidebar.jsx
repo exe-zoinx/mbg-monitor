@@ -240,13 +240,33 @@ export default function Sidebar({
       {/* Filter count */}
       {hasFilter && (
         <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
           fontFamily: 'var(--mo)',
           fontSize: 9,
           color: 'var(--mu)',
           padding: '4px 14px 2px',
           flexShrink: 0,
         }}>
-          {filtered.length} dari {incidents.length} insiden
+          <span>{filtered.length} dari {incidents.length} insiden</span>
+          <button
+            onClick={() => { setFilterCat('all'); setDateFrom(''); setDateTo(''); }}
+            style={{
+              fontFamily: 'var(--mo)',
+              fontSize: 9,
+              padding: '2px 8px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              border: '1px solid var(--red)44',
+              background: '#f8514912',
+              color: 'var(--red)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Reset filter
+          </button>
         </div>
       )}
 
