@@ -135,8 +135,13 @@ html, body, #root {
 @media (min-width: 641px) {
   .map-title-stats { display: none !important; }
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
   }
+  .stats-grid > div { padding: 6px 8px !important; }
+  .stats-grid > div > svg { width: 12px !important; height: 12px !important; margin-bottom: 2px !important; }
+  .stats-grid > div > div:nth-child(2) { font-size: 15px !important; }
+  .stats-grid > div > div:nth-child(3) { font-size: 7px !important; margin-top: 0 !important; }
+  .stats-grid > div > div:nth-child(4) { font-size: 7px !important; margin-top: 1px !important; letter-spacing: 0.05em !important; }
   .sidebar-root {
     position: relative !important;
     width: var(--sw) !important;
