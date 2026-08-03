@@ -86,9 +86,6 @@ html, body, #root {
   left: auto !important;
   font-size: 8px !important;
 }
-.leaflet-control-zoom {
-  margin-bottom: 26px !important;
-}
 
 /* Cluster overrides */
 .marker-cluster-small,
