@@ -64,7 +64,7 @@ export default function App() {
 
   const downloadSppgCsv = () => {
     if (!sppgData?.sppg?.length) return;
-    const headers = ['kode', 'nama', 'provinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat', 'lat', 'lng', 'tanggal_pembangunan', 'berita_url'];
+    const headers = ['kode', 'nama', 'provinsi', 'kabupaten', 'kecamatan', 'kelurahan', 'alamat', 'lat', 'lng', 'tanggal_pembangunan'];
     const rows = sppgData.sppg.map(s => headers.map(h => `"${String(s[h] ?? '').replace(/"/g, '""')}"`).join(','));
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -213,15 +213,32 @@ export default function App() {
                 <X size={18} />
               </button>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--tx)', marginBottom: 12 }}>
-              <strong>MBG Monitor</strong> — peta insiden program Makan Bergizi Gratis di Indonesia.
-              Seluruh data murni hasil scraping otomatis dari pemberitaan media Indonesia
-              dan Wikipedia (<span style={{ color: 'var(--mu)' }}>Daftar kasus keracunan massal makan siang gratis</span>).
-              Angka korban adalah estimasi dari laporan berita dan dapat berubah.
+            <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--tx)' }}>
+              <strong>MBG Monitor</strong> adalah peta independen yang melacak insiden
+              keracunan dari program Makan Bergizi Gratis (MBG) — program nasional
+              pemenuhan gizi anak Indonesia.
+              <br /><br />
+              <strong>Tujuan:</strong> menyediakan data terbuka dan transparan agar publik,
+              pemerintah, dan pembuat kebijakan dapat mengevaluasi dan memperbaiki program
+              MBG ke depan.
+              <br /><br />
+              <strong>Sumber data:</strong> insiden dikumpulkan otomatis dari pemberitaan
+              media Indonesia dan Wikipedia. Data SPPG diambil dari Peta Sebaran SPPG
+              Kementerian Pertanian (per 30 September 2025).
             </div>
-            <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginBottom: 16 }}>
-              {stats.total} insiden · {stats.victims} korban · {stats.deaths} meninggal
-              {sppgData?.sppg?.length ? ` · ${sppgData.total} unit SPPG` : ''}
+            <div style={{
+              marginTop: 16, marginBottom: 16, background: 'rgba(56,139,253,0.08)',
+              border: '1px solid rgba(56,139,253,0.35)', borderRadius: 8,
+              padding: '14px 16px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 700, color: 'var(--blu)', marginBottom: 6 }}>
+                <Info size={13} /> TRANSPARENSI
+              </div>
+              <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--tx)' }}>
+                Aplikasi ini dibangun sebagai bagian dari <strong>upaya transparansi</strong> —
+                dengan data terbuka, kita berharap program MBG bisa dievaluasi dan
+                diperbaiki demi masa depan yang lebih baik.
+              </div>
             </div>
             <button
               onClick={downloadCSV}
@@ -247,29 +264,8 @@ export default function App() {
             >
               <Download size={14} /> Download CSV SPPG
             </button>
-            <div style={{
-              marginTop: 16, background: 'var(--sf2)', borderRadius: 8,
-              padding: '12px 14px', border: '1px solid var(--bd)',
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600,
-                color: 'var(--tx)', marginBottom: 8,
-              }}>
-                <Info size={12} /> Sumber Data
-              </div>
-              <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', lineHeight: 1.6 }}>
-                Insiden keracunan dikumpulkan dari media massa Indonesia dan Wikipedia.
-                <br /><br />
-                Data SPPG diambil dari Peta Sebaran SPPG Kementerian Pertanian
-                (<a href="https://awr.ditjenpkh.pertanian.go.id/sppg/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
-                  awr.ditjenpkh.pertanian.go.id
-                </a>). Data per 30 September 2025.
-                <br /><br />
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--amb)' }}>
-                  <AlertTriangle size={10} /> Data ini bukan saran medis. Verifikasi sebelum dikutip.
-                </span>
-              </div>
+            <div style={{ marginTop: 12, fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', lineHeight: 1.5 }}>
+              Data bukan saran medis. Angka korban adalah estimasi dari laporan berita. Verifikasi sebelum dikutip.
             </div>
           </div>
         </div>

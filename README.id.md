@@ -11,33 +11,21 @@
 
 ## Apa ini?
 
-Proyek ini mengumpulkan dan memetakan **insiden keracunan makanan** yang terkait dengan program **Makan Bergizi Gratis (MBG)** — program nasional yang digadang-gadang sebagai solusi gizi anak Indonesia. Data dikumpulkan dari **media massa Indonesia** dan **Wikipedia**, lalu ditampilkan di peta interaktif.
+MBG Monitor adalah peta independen yang melacak insiden keracunan makanan dari
+program **Makan Bergizi Gratis (MBG)** — inisiatif nasional pemenuhan gizi anak
+Indonesia. Data dikumpulkan otomatis dari **media massa Indonesia** dan
+**Wikipedia**, serta lokasi dapur SPPG dari peta sebaran SPPG Kementerian Pertanian.
 
-Kami tidak menilai programnya. Data yang berbicara.
+**Tujuannya adalah transparansi.** Dengan data terbuka dan terlihat, publik,
+pemerintah, dan pembuat kebijakan dapat mengevaluasi dan memperbaiki program
+MBG demi masa depan yang lebih baik.
 
-## Fakta (per pembaruan terakhir)
+## Mengapa transparansi penting
 
-| Metrik | Angka |
-|---|---|
-| Total insiden | **377** |
-| Total korban | **48.399** orang |
-| Korban meninggal | **2** jiwa |
-| Provinsi terdampak | Hampir seluruh Indonesia |
-
-*"Korban vs populasi: 0,0168% — masih aman."* — pemerintah, mungkin.
-
-## Apakah MBG berhasil?
-
-Program ini dirancang untuk memberi makan **+82 juta penerima** di seluruh Indonesia. Dan memang berhasil — berhasil membuat **ratusan sekolah** masuk daftar insiden keracunan.
-
-Beberapa pencapaian yang patut dibanggakan:
-
-- 🥇 **48.399 korban** dalam kurun waktu singkat — rekor program sosial yang sulit ditandingi
-- 🏫 **130+ sekolah** terdampak, dari SD hingga pesantren — pemerataan yang mengagumkan
-- 🍗 Menu makan siang yang **tak terlupakan** — dalam arti yang paling literal
-- 📰 **Media berlimpah** — setiap insiden mendapat liputan hangat, gratis untuk semua
-
-Data ini bukan opini. Ini hasil kerja keras para wartawan, relawan, dan Wikipediawan yang mencatat setiap kejadian.
+Program seperti MBG menyentuh jutaan kehidupan. Ketika insiden terjadi,
+insiden itu harus terlihat, terhitung, dan bisa dipelajari. Peta ini ada agar
+setiap insiden terdokumentasi — bukan untuk menyerang program, tetapi untuk
+membantu program menjadi lebih baik.
 
 ## Cara kerja
 
@@ -88,7 +76,13 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) — setup, konvensi, dan cara membuka m
 
 ## Disclaimer
 
-- Data dikumpulkan secara otomatis dari **media publik** dan **Wikipedia**
+> **Proyek ini adalah bagian dari upaya transparansi.** Data terbuka tentang
+> program MBG membantu publik dan pemerintah mengevaluasi apa yang berjalan
+> baik dan apa yang perlu diperbaiki — agar program dapat melayani anak-anak
+> Indonesia lebih baik di masa depan.
+
+- Data dikumpulkan secara otomatis dari **media publik**, **Wikipedia**, dan
+  **peta sebaran SPPG Kementerian Pertanian**
 - Bisa ada kesalahan, duplikasi, atau kelalaian — verifikasi sebelum dikutip
 - Ini **bukan** saran medis, bukan laporan resmi, dan bukan kampanye politik
 - Jika ada insiden yang salah atau perlu dikoreksi, silakan buka issue.

@@ -11,31 +11,21 @@
 
 ## What is this?
 
-This project collects and maps **food-poisoning incidents** linked to the **Makan Bergizi Gratis (MBG)** program — the national initiative touted as Indonesia's answer to child malnutrition. Data is gathered from **Indonesian media outlets** and **Wikipedia**, then visualized on an interactive map.
+MBG Monitor is an independent map tracking food-poisoning incidents from
+Indonesia's **Makan Bergizi Gratis (MBG)** program — the national school-meals
+initiative. Data is gathered automatically from **Indonesian media** and
+**Wikipedia**, and SPPG kitchen locations come from the Ministry of Agriculture's
+public SPPG distribution map.
 
-We don't judge the program. The data does.
+**The goal is transparency.** By making incident data open and visible, we hope
+the public, government, and policymakers can evaluate and improve the MBG
+program for a better future.
 
-## Facts (as of the latest update)
+## Why transparency matters
 
-| Metric | Value |
-|---|---|
-| Total incidents | **377** |
-| Total victims | **48,399** people |
-| Deaths | **2** |
-| Affected provinces | Nearly all of Indonesia |
-
-## Does MBG work?
-
-The program is designed to feed **+82 million recipients** nationwide. And it does — it's doing a great job putting **hundreds of schools** on the food-poisoning incident map.
-
-Achievements worth celebrating:
-
-- 🥇 **48,399 victims** in record time — a social-program record hard to beat
-- 🏫 **130+ schools** affected, from elementary schools to Islamic boarding schools — impressive equity
-- 🍗 A lunch menu that's **unforgettable** — in the most literal sense
-- 📰 **Plentiful media coverage** — every incident gets warm coverage, free of charge
-
-This is not opinion. It's the work of journalists, volunteers, and Wikipedians recording every single event.
+Programs like MBG touch millions of lives. When incidents happen, they should
+be visible, countable, and learnable-from. This map exists so that every
+incident is documented — not to attack the program, but to help it get better.
 
 ## How it works
 
@@ -86,7 +76,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) — setup, conventions, and how to open a
 
 ## Disclaimer
 
-- Data is collected automatically from **public media** and **Wikipedia**
+> **This project is part of a transparency effort.** Open data about the MBG
+> program helps the public and government evaluate what works and what needs
+> fixing — so the program can serve Indonesian children better in the future.
+
+- Data is collected automatically from **public media**, **Wikipedia**, and the
+  **Ministry of Agriculture's SPPG map**
 - Errors, duplicates, or omissions are possible — verify before citing
 - This is **not** medical advice, an official report, or a political campaign
 - Spotted a wrong incident or missing correction? Open an issue.
