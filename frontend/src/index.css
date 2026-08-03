@@ -79,6 +79,16 @@ html, body, #root {
 }
 .leaflet-control-zoom a:hover { background: var(--bd) !important; }
 .leaflet-bar { border: none !important; box-shadow: none !important; }
+.leaflet-control-attribution {
+  position: absolute !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+  font-size: 8px !important;
+}
+.leaflet-control-zoom {
+  margin-bottom: 18px !important;
+}
 
 /* Cluster overrides */
 .marker-cluster-small,
@@ -202,13 +212,6 @@ html, body, #root {
     font-size: 12px !important;
   }
   .map-title-stats > div > span:nth-child(3) {
-    font-size: 8px !important;
-  }
-  .leaflet-control-attribution {
-    position: absolute !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    left: auto !important;
     font-size: 8px !important;
   }
 }
