@@ -50,8 +50,8 @@ function copyCloudflareFiles() {
     name: 'copy-cloudflare-files',
     closeBundle() {
       try {
-        copyFileSync(resolve('frontend/_headers'), resolve('dist/_headers'));
-        copyFileSync(resolve('frontend/_redirects'), resolve('dist/_redirects'));
+        copyFileSync(resolve('_headers'), resolve('dist/_headers'));
+        copyFileSync(resolve('_redirects'), resolve('dist/_redirects'));
       } catch (e) {
         console.warn('Could not copy Cloudflare files:', e.message);
       }
