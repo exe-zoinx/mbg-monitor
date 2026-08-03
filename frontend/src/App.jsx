@@ -213,31 +213,31 @@ export default function App() {
                 <X size={18} />
               </button>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--tx)' }}>
-              <strong>MBG Monitor</strong> adalah peta independen yang melacak insiden
-              keracunan dari program Makan Bergizi Gratis (MBG) — program nasional
-              pemenuhan gizi anak Indonesia.
+            <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--tx)' }}>
+              <strong>MBG Monitor</strong> adalah peta interaktif yang memetakan
+              kasus keracunan massal akibat program <strong>Makan Bergizi Gratis (MBG)</strong>.
+              Data insiden dikumpulkan dari media massa Indonesia dan halaman
+              <a href="https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis"
+                 target="_blank" rel="noopener noreferrer"
+                 style={{ color: 'var(--blu)' }}> Wikipedia</a>,
+              sedangkan lokasi unit SPPG diambil dari
+              <a href="https://awr.ditjenpkh.pertanian.go.id/sppg/"
+                 target="_blank" rel="noopener noreferrer"
+                 style={{ color: 'var(--blu)' }}> peta resmi Kementerian Pertanian</a>.
               <br /><br />
-              <strong>Tujuan:</strong> menyediakan data terbuka dan transparan agar publik,
-              pemerintah, dan pembuat kebijakan dapat mengevaluasi dan memperbaiki program
-              MBG ke depan.
-              <br /><br />
-              <strong>Sumber data:</strong> insiden dikumpulkan otomatis dari pemberitaan
-              media Indonesia dan Wikipedia. Data SPPG diambil dari Peta Sebaran SPPG
-              Kementerian Pertanian (per 30 September 2025).
+              Kami percaya data yang terbuka membantu semua pihak — publik, pemerintah,
+              dan pengambil kebijakan — memahami dampak program dan terus memperbaikinya.
             </div>
             <div style={{
               marginTop: 16, marginBottom: 16, background: 'rgba(56,139,253,0.08)',
               border: '1px solid rgba(56,139,253,0.35)', borderRadius: 8,
               padding: '14px 16px',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 700, color: 'var(--blu)', marginBottom: 6 }}>
-                <Info size={13} /> TRANSPARENSI
-              </div>
-              <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--tx)' }}>
-                Aplikasi ini dibangun sebagai bagian dari <strong>upaya transparansi</strong> —
-                dengan data terbuka, kita berharap program MBG bisa dievaluasi dan
-                diperbaiki demi masa depan yang lebih baik.
+              <div style={{ fontSize: 12, lineHeight: 1.7, color: 'var(--mu)' }}>
+                <strong>Disclaimer:</strong> Angka dalam aplikasi ini berasal dari
+                sumber terbuka dan dapat mengalami perubahan. Data ini bukan
+                rekomendasi medis dan tidak mewakili pandangan resmi pemerintah.
+                Selalu verifikasi dengan sumber asli sebelum dikutip.
               </div>
             </div>
             <button
