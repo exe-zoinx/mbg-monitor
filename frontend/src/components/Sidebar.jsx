@@ -460,6 +460,7 @@ export default function Sidebar({
                         isActive={activeId === inc.id}
                         focusInc={focusInc}
                         onClick={() => {}}
+                        setSidebarOpen={setSidebarOpen}
                       />
                     </div>
                   ))}
@@ -494,7 +495,7 @@ export default function Sidebar({
               <div style={{ height: sppgFiltered.length * h, position: 'relative' }}>
                 {sppgFiltered.slice(start, start + count).map((s, i) => (
                   <div key={s.id ?? s.kode} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
-                    <SppgItem sppg={s} focusInc={focusInc} />
+                    <SppgItem sppg={s} focusInc={focusInc} setSidebarOpen={setSidebarOpen} />
                   </div>
                 ))}
               </div>
@@ -629,7 +630,7 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   );
 }
 
-function FeedItem({ inc, isActive, onClick, focusInc }) {
+function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen }) {
   const c = COL[inc.cat] || COL.lainnya;
   const hasArticle = !!safeUrl(inc.url);
   const hasCoords = inc.lat && inc.lng;
@@ -639,6 +640,7 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
       onClick={() => {
         if (inc.lat && inc.lng) {
           focusInc(inc.id);
+          setSidebarOpen(false);
         }
       }}
       style={{
@@ -764,12 +766,13 @@ function FeedItem({ inc, isActive, onClick, focusInc }) {
   );
 }
 
-function SppgItem({ sppg, focusInc }) {
+function SppgItem({ sppg, focusInc, setSidebarOpen }) {
   return (
     <div
       onClick={() => {
         if (sppg.lat && sppg.lng) {
           focusInc(`sppg-${sppg.id ?? sppg.kode}`);
+          setSidebarOpen(false);
         }
       }}
       style={{

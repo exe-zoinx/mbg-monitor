@@ -203,7 +203,7 @@ export default function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div style={{ fontFamily: 'var(--mo)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--red)' }}>
-                <Database size={12} style={{ marginRight: 6, verticalAlign: -2 }} /> Tentang &amp; Data
+                Tentang &amp; Data
               </div>
               <button
                 onClick={() => setShowDataModal(false)}
@@ -238,6 +238,24 @@ export default function App() {
                 sumber terbuka dan dapat mengalami perubahan. Data ini bukan
                 rekomendasi medis dan tidak mewakili pandangan resmi pemerintah.
                 Selalu verifikasi dengan sumber asli sebelum dikutip.
+              </div>
+            </div>
+            <div style={{
+              marginTop: 12, background: 'var(--sf2)', borderRadius: 8,
+              padding: '12px 14px', border: '1px solid var(--bd)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600, color: 'var(--tx)', marginBottom: 6 }}>
+                <Database size={12} /> Source Code
+              </div>
+              <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', lineHeight: 1.6 }}>
+                Kode sumber tersedia di
+                <a href="https://gitlab.com/sukma-diki/mbg-monitor" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  GitLab
+                </a>.
+                Masukan, saran, dan koreksi dapat disampaikan melalui
+                <a href="https://gitlab.com/sukma-diki/mbg-monitor/-/issues" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  issue di GitLab
+                </a>.
               </div>
             </div>
             <button
