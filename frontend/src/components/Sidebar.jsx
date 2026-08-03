@@ -10,6 +10,12 @@ export default function Sidebar({
   search,
   setSearch,
   focusInc,
+  filterCat,
+  setFilterCat,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
   connectionStatus,
   onShowData,
   sidebarOpen,
@@ -20,12 +26,20 @@ export default function Sidebar({
 
   const handleSearch = useCallback((e) => {
     const val = e.target.value;
+
     setDebouncedSearch(val);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setSearch(val), 200);
   }, [setSearch]);
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  const activeCats = useMemo(() => {
+    const set = new Set(incidents.map(i => i.cat).filter(Boolean));
+    return ['meninggal', ...set];
+  }, [incidents]);
+
+  const hasFilter = filterCat !== 'all' || !!dateFrom || !!dateTo;
 
   return (
     <aside
@@ -136,6 +150,105 @@ export default function Sidebar({
           }}
         />
       </div>
+
+      {/* Tag pills */}
+      <div style={{
+        display: 'flex',
+        gap: 4,
+        overflowX: 'auto',
+        flexShrink: 0,
+        padding: '6px 14px',
+        borderBottom: '1px solid var(--bd)',
+        scrollbarWidth: 'none',
+      }}>
+        {activeCats.map(cat => {
+          const active = filterCat === cat;
+          const color = cat === 'meninggal' ? 'var(--pur)' : (COL[cat] || 'var(--mu)');
+          const label = cat === 'meninggal' ? 'Meninggal' : (TLBL[cat] || cat);
+          return (
+            <button
+              key={cat}
+              onClick={() => setFilterCat(active ? 'all' : cat)}
+              style={{
+                fontFamily: 'var(--mo)',
+                fontSize: 10,
+                padding: '4px 9px',
+                borderRadius: 12,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                border: `1px solid ${color}40`,
+                background: active ? `${color}22` : `${color}10`,
+                color,
+                opacity: active ? 1 : 0.65,
+                fontWeight: active ? 700 : 400,
+                flexShrink: 0,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Date range */}
+      <div style={{
+        display: 'flex',
+        gap: 6,
+        alignItems: 'center',
+        padding: '4px 14px 6px',
+        borderBottom: '1px solid var(--bd)',
+        flexShrink: 0,
+      }}>
+        <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>Dari</span>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={e => setDateFrom(e.target.value)}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            background: 'var(--sf2)',
+            border: '1px solid var(--bd)',
+            borderRadius: 6,
+            padding: '4px 6px',
+            fontFamily: 'var(--mo)',
+            fontSize: 11,
+            color: 'var(--tx)',
+            colorScheme: 'dark',
+          }}
+        />
+        <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>Sampai</span>
+        <input
+          type="date"
+          value={dateTo}
+          onChange={e => setDateTo(e.target.value)}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            background: 'var(--sf2)',
+            border: '1px solid var(--bd)',
+            borderRadius: 6,
+            padding: '4px 6px',
+            fontFamily: 'var(--mo)',
+            fontSize: 11,
+            color: 'var(--tx)',
+            colorScheme: 'dark',
+          }}
+        />
+      </div>
+
+      {/* Filter count */}
+      {hasFilter && (
+        <div style={{
+          fontFamily: 'var(--mo)',
+          fontSize: 9,
+          color: 'var(--mu)',
+          padding: '4px 14px 2px',
+          flexShrink: 0,
+        }}>
+          {filtered.length} dari {incidents.length} insiden
+        </div>
+      )}
 
       <div style={{ padding: '4px 14px 6px', borderBottom: '1px solid var(--bd)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         {connectionStatus?.text && (

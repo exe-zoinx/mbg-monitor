@@ -1,16 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
-import { MBG_KEYWORDS } from '../lib/constants';
-
-// Check if an incident is related to MBG (Makan Bergizi Gratis) program
-function isMBGRelated(incident) {
-  const text = `${incident.title} ${incident.note || ''} ${incident.loc || ''}`.toLowerCase();
-  return MBG_KEYWORDS.some(keyword => text.includes(keyword.toLowerCase()));
-}
 
 export function useIncidents(data) {
   const [activeId, setActiveId] = useState(null);
   const [filterCat, setFilterCat] = useState('all');
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const incidents = useMemo(() => {
     if (!data?.incidents?.length) return [];
@@ -27,7 +22,13 @@ export function useIncidents(data) {
     const q = search.toLowerCase();
     return incidents
       .filter(i => {
-        if (filterCat !== 'all' && i.cat !== filterCat) return false;
+        if (filterCat === 'meninggal') {
+          if (!i.deaths) return false;
+        } else if (filterCat !== 'all' && i.cat !== filterCat) {
+          return false;
+        }
+        if (dateFrom && i.date < dateFrom) return false;
+        if (dateTo && i.date > dateTo) return false;
         if (!q) return true;
         return (
           i.title.toLowerCase().includes(q) ||
@@ -35,15 +36,8 @@ export function useIncidents(data) {
           (i.note || '').toLowerCase().includes(q)
         );
       })
-      .sort((a, b) => {
-        // Prioritize MBG poisoning: keracunan with MBG/school context comes first
-        const aIsMBGPoisoning = a.cat === 'keracunan' && isMBGRelated(a);
-        const bIsMBGPoisoning = b.cat === 'keracunan' && isMBGRelated(b);
-        if (aIsMBGPoisoning && !bIsMBGPoisoning) return -1;
-        if (!aIsMBGPoisoning && bIsMBGPoisoning) return 1;
-        return b.date.localeCompare(a.date);
-      });
-  }, [incidents, filterCat, search]);
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [incidents, filterCat, search, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const cats = {};
@@ -86,6 +80,10 @@ export function useIncidents(data) {
     activeId,
     filterCat,
     setFilterCat,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
     search,
     setSearch,
     focusInc,

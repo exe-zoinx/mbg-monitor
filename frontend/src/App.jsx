@@ -16,6 +16,12 @@ export default function App() {
     search,
     setSearch,
     focusInc,
+    filterCat,
+    setFilterCat,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
   } = useIncidents(data);
 
   const connectionStatus = (() => {
@@ -74,6 +80,12 @@ export default function App() {
         search={search}
         setSearch={setSearch}
         focusInc={focusInc}
+        filterCat={filterCat}
+        setFilterCat={setFilterCat}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
         connectionStatus={connectionStatus}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
