@@ -1,71 +1,72 @@
-# 🍱 MBG Monitor — Peta Keracunan Makan Bergizi Gratis Indonesia
+# 🍱 MBG Monitor
 
-> **"Makan bergizi, gratis, dan… beracun?"**
-> Monitor independen yang melacak insiden keracunan massal dari program andalan pemerintah.
+> **"Free nutritious meals… and free food poisoning."**
+> An independent monitor tracking mass food-poisoning incidents from Indonesia's flagship free-meals program.
 
 **Live map: [https://mbg-monitor.pages.dev](https://mbg-monitor.pages.dev)**
 
+**🌏 Read this in [Bahasa Indonesia](README.id.md)**
+
 ---
 
-## Apa ini?
+## What is this?
 
-Proyek ini mengumpulkan dan memetakan **insiden keracunan makanan** yang terkait dengan program **Makan Bergizi Gratis (MBG)** — program nasional yang digadang-gadang sebagai solusi gizi anak Indonesia. Data dikumpulkan dari **media massa Indonesia** dan **Wikipedia**, lalu ditampilkan di peta interaktif.
+This project collects and maps **food-poisoning incidents** linked to the **Makan Bergizi Gratis (MBG)** program — the national initiative touted as Indonesia's answer to child malnutrition. Data is gathered from **Indonesian media outlets** and **Wikipedia**, then visualized on an interactive map.
 
-Kami tidak menilai programnya. Data yang berbicara.
+We don't judge the program. The data does.
 
-## Fakta (per pembaruan terakhir)
+## Facts (as of the latest update)
 
-| Metrik | Angka |
+| Metric | Value |
 |---|---|
-| Total insiden | **377** |
-| Total korban | **48.399** orang |
-| Korban meninggal | **2** jiwa |
-| Provinsi terdampak | Hampir seluruh Indonesia |
+| Total incidents | **377** |
+| Total victims | **48,399** people |
+| Deaths | **2** |
+| Affected provinces | Nearly all of Indonesia |
 
-*"Korban vs populasi: 0,0168% — masih aman."* — pemerintah, mungkin.
+## Does MBG work?
 
-## Apakah MBG berhasil?
+The program is designed to feed **+82 million recipients** nationwide. And it does — it's doing a great job putting **hundreds of schools** on the food-poisoning incident map.
 
-Program ini dirancang untuk memberi makan **+82 juta penerima** di seluruh Indonesia. Dan memang berhasil — berhasil membuat **ratusan sekolah** masuk daftar insiden keracunan.
+Achievements worth celebrating:
 
-Beberapa pencapaian yang patut dibanggakan:
+- 🥇 **48,399 victims** in record time — a social-program record hard to beat
+- 🏫 **130+ schools** affected, from elementary schools to Islamic boarding schools — impressive equity
+- 🍗 A lunch menu that's **unforgettable** — in the most literal sense
+- 📰 **Plentiful media coverage** — every incident gets warm coverage, free of charge
 
-- 🥇 **48.399 korban** dalam kurun waktu singkat — rekor program sosial yang sulit ditandingi
-- 🏫 **130+ sekolah** terdampak, dari SD hingga pesantren — pemerataan yang mengagumkan
-- 🍗 Menu makan siang yang **tak terlupakan** — dalam arti yang paling literal
-- 📰 **Media berlimpah** — setiap insiden mendapat liputan hangat, gratis untuk semua
+This is not opinion. It's the work of journalists, volunteers, and Wikipedians recording every single event.
 
-Data ini bukan opini. Ini hasil kerja keras para wartawan, relawan, dan Wikipediawan yang mencatat setiap kejadian.
-
-## Cara kerja
+## How it works
 
 ```
 Wikipedia + media → scraper (Python) → data/wiki_incidents.json → D1 database (Cloudflare)
                                                         ↓
-Peta interaktif (React + Leaflet) ← Cloudflare Pages ← frontend
+Interactive map (React + Leaflet) ← Cloudflare Pages ← frontend
 ```
 
-1. **Scraper** (`scripts/scrape_wiki.py`) menarik data insiden dari halaman Wikipedia
-2. **Deduplikasi** — insiden multi-sekolah digabung, korban dihitung sekali (48k, bukan 117k)
-3. **Frontend** (React + Vite + Leaflet) menampilkan peta, statistik, dan feed insiden
-4. **Deploy** ke Cloudflare Pages + D1 untuk data produksi
+1. **Scraper** (`scripts/scrape_wiki.py`) pulls incident data from Wikipedia's MBG poisoning table
+2. **Deduplication** — multi-school incidents merge, victims counted once (48k, not 117k)
+3. **Frontend** (React + Vite + Leaflet) renders the map, stats, and incident feed
+4. **Deploy** to Cloudflare Pages + D1 for production data
 
 ## Tech stack
 
 - **Frontend**: React 19, Vite, Leaflet, Tailwind CSS, daisyUI
 - **Icons**: lucide-react
 - **Backend**: Cloudflare Pages Functions + D1 + Workers
-- **Data**: scraper Python → JSON → SQLite/D1
+- **Data**: Python scraper → JSON → SQLite/D1
 - **Hosting**: Cloudflare Pages
+- **CI/CD**: GitLab CI (see `.gitlab-ci.yml`)
 
-## Menjalankan secara lokal
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Buka `http://localhost:5173` — data lokal disajikan dari `data/wiki_incidents.json` (tanpa D1).
+Open `http://localhost:5173` — local data is served from `data/wiki_incidents.json` (no D1 needed).
 
 ## Deploy
 
@@ -73,15 +74,19 @@ Buka `http://localhost:5173` — data lokal disajikan dari `data/wiki_incidents.
 npm run deploy
 ```
 
-Membutuhkan kredensial Cloudflare (`wrangler login` / `CLOUDFLARE_API_TOKEN`). Build → upload ke Pages → deploy Functions.
+Requires Cloudflare credentials (`wrangler login` or `CLOUDFLARE_API_TOKEN`). Build → upload to Pages → deploy Functions.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) — setup, conventions, and how to open a merge request.
+
+## License
+
+[MIT](LICENSE) © 2026 Sukma Diki
 
 ## Disclaimer
 
-- Data dikumpulkan secara otomatis dari **media publik** dan **Wikipedia**
-- Bisa ada kesalahan, duplikasi, atau kelalaian — verifikasi sebelum dikutip
-- Ini **bukan** saran medis, bukan laporan resmi, dan bukan kampanye politik
-- Jika ada insiden yang salah atau perlu dikoreksi, silakan buka issue
-
----
-
-*Dibuat dengan ❤️ dan rasa penasaran. Tidak disponsori oleh Badan Gizi Nasional.*
+- Data is collected automatically from **public media** and **Wikipedia**
+- Errors, duplicates, or omissions are possible — verify before citing
+- This is **not** medical advice, an official report, or a political campaign
+- Spotted a wrong incident or missing correction? Open an issue.
