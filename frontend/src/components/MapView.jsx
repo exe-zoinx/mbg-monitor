@@ -193,22 +193,19 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       for (; i < end; i++) {
         const s = sppgData.sppg[i];
         if (!s.lat || !s.lng) continue;
-        const fill = s.meninggal_terkait ? '#bc8cff'
-          : s.risiko ? '#f85149'
-          : '#388bfd';
+        // All SPPG use blue; risiko/meninggal flags are shown in the sidebar list only
         const m = L.circleMarker([s.lat, s.lng], {
-          radius: s.risiko ? 5 : 4,
-          color: fill + '55',
+          radius: 4,
+          color: '#388bfd55',
           weight: 1,
-          fillColor: fill,
-          fillOpacity: s.risiko ? 0.7 : 0.45,
+          fillColor: '#388bfd',
+          fillOpacity: 0.45,
         })
           .bindPopup(
             `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
               <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
               <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
               ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-              ${s.risiko ? `<div style="font-family:var(--mo);font-size:9px;color:var(--red);margin-top:2px">${esc(s.meninggal_terkait ? 'Terkait korban meninggal' : 'Terdekat insiden keracunan')}</div>` : ''}
               ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">${esc(s.tanggal_pembangunan)}</div>` : ''}
             </div>`,
             { maxWidth: 260, closeButton: true }

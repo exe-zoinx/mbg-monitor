@@ -8,7 +8,16 @@ Lightweight: requests + wikitextparser only.
 WIKI_PAGE = "Daftar_kasus_keracunan_massal_makan_siang_gratis"
 import requests
 import wikitextparser as wwp
-import re, json, sys, os
+import re, json, sys, os, time, math, urllib.request, urllib.parse
+
+# Cache geocode results per query to avoid re-hitting the API (persisted to disk)
+GEO_CACHE = {}
+GEO_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'geo_cache.json')
+try:
+    with open(GEO_CACHE_FILE) as _f:
+        GEO_CACHE = json.load(_f)
+except Exception:
+    GEO_CACHE = {}
 
 # ── Config ────────────────────────────────────────────────────────────────────
 API_URL   = "https://id.wikipedia.org/w/api.php"
@@ -346,10 +355,7 @@ OUTLET_NAMES = {
     'infopublik.id': 'InfoPublik.id', 'www.infopublik.id': 'InfoPublik.id',
     'katadata.co.id': 'Katadata', 'radarbanyumas.com': 'Radar Banyumas',
     'radarjateng.com': 'Radarjateng.com', 'radarsemarang.com': 'Radar Semarang',
-    'radarsolo.com': 'Radar Solo',
 }
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def geo_lookup(text):
     t = text.lower().strip()
@@ -359,6 +365,60 @@ def geo_lookup(text):
         if key in t:
             return CITY_COORDS[key]
     return None, None
+
+
+def normalize_school_name(name):
+    """Expand Indonesian school abbreviations Nominatim understands:
+    SMKN 6 Semarang -> SMK Negeri 6 Semarang, SDN 1 X -> SD Negeri 1 X, etc."""
+    n = re.sub(r'\bSMKN\b', 'SMK Negeri', name, flags=re.I)
+    n = re.sub(r'\bSMK N\b', 'SMK Negeri', n, flags=re.I)
+    n = re.sub(r'\bSDN\b', 'SD Negeri', n, flags=re.I)
+    n = re.sub(r'\bSD N\b', 'SD Negeri', n, flags=re.I)
+    n = re.sub(r'\bSMPN\b', 'SMP Negeri', n, flags=re.I)
+    n = re.sub(r'\bSMP N\b', 'SMP Negeri', n, flags=re.I)
+    n = re.sub(r'\bMAN\b', 'Madrasah Aliyah Negeri', n, flags=re.I)
+    n = re.sub(r'\bMIN\b', 'Madrasah Ibtidaiyah Negeri', n, flags=re.I)
+    n = re.sub(r'\bMI\b', 'Madrasah Ibtidaiyah', n, flags=re.I)
+    n = re.sub(r'\bTK\b', 'Taman Kanak-Kanak', n, flags=re.I)
+    return n.strip()
+
+
+def geocode_nominatim(query):
+    """Geocode via Nominatim, cached. Returns (lat, lng) or (None, None).
+    Nominatim usage policy: max 1 request/sec. We sleep between cache misses."""
+    key = query.lower()
+    if key in GEO_CACHE:
+        return GEO_CACHE[key]
+    params = urllib.parse.urlencode({
+        'q': query + ', Indonesia', 'format': 'json', 'limit': 1, 'countrycodes': 'id',
+    })
+    url = 'https://nominatim.openstreetmap.org/search?' + params
+    try:
+        req = urllib.request.Request(url, headers=NOMINATIM_HEADERS)
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read())
+        result = (float(data[0]['lat']), float(data[0]['lon'])) if data else (None, None)
+    except Exception:
+        result = (None, None)
+    GEO_CACHE[key] = result
+    time.sleep(1.1)  # Nominatim 1 req/sec policy
+    if len(GEO_CACHE) % 25 == 0:
+        print(f'  ...geocoded {len(GEO_CACHE)} unique queries', flush=True)
+    return result
+
+
+def geo_lookup_enhanced(school, kabupaten, province):
+    """Best-effort geocode: exact school -> kabupaten/kelurahan -> static CITY_COORDS.
+    Returns (lat, lng)."""
+    if school and school.lower() not in ('tidak disebutkan', 'tba', 'spesifik tidak disebutkan'):
+        norm = normalize_school_name(school)
+        # Single query: school + kabupaten context (Nominatim resolves the school)
+        lat, lng = geocode_nominatim(f'{norm}, {kabupaten}')
+        if lat and lng:
+            return lat, lng
+    # Fallback: kabupaten or province from static dict
+    lat, lng = geo_lookup(kabupaten) or geo_lookup(province) or (None, None)
+    return lat, lng
 
 def unwikify(text):
     return re.sub(r'\[\[([^\]|]+?\|)?([^\]]+?)\]\]', r'\2', text)
@@ -468,7 +528,7 @@ def scrape(out_file="data/wiki_incidents.json"):
         note = f"{fmt_n(victims)} Keracunan"
         if deaths > 0:
             note += f" | {fmt_n(deaths)} Meninggal"
-
+        lat, lng = geo_lookup_enhanced(school, city, province)
         source = extract_outlet(url)
 
         incidents.append({
@@ -513,6 +573,21 @@ def scrape(out_file="data/wiki_incidents.json"):
         })
     incidents = merged
 
+    # ── Spiral offset: separate schools sharing the same kelurahan/kabupaten point ──
+    from collections import defaultdict
+    loc_groups = defaultdict(list)
+    for inc in incidents:
+        if inc['lat'] is not None and inc['lng'] is not None:
+            loc_groups[(round(inc['lat'], 3), round(inc['lng'], 3))].append(inc)
+    for group in loc_groups.values():
+        if len(group) > 1:
+            for idx, inc in enumerate(group):
+                # Golden-angle spiral, ~90m per step
+                angle = idx * 2.399963
+                radius = math.sqrt(idx) * 0.0012
+                inc['lat'] += radius * math.cos(angle)
+                inc['lng'] += radius * math.sin(angle)
+
     geo_count = sum(1 for i in incidents if i["lat"] is not None)
     url_count = sum(1 for i in incidents if i["source_url"])
     total_v = sum(i["victims"] for i in incidents)
@@ -523,6 +598,9 @@ def scrape(out_file="data/wiki_incidents.json"):
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump({"incidents": incidents}, f, ensure_ascii=False, indent=2)
+    # Persist geocode cache for fast re-runs
+    with open(GEO_CACHE_FILE, "w") as f:
+        json.dump(GEO_CACHE, f)
     print(f"OK {len(incidents)} -> {out_file}")
 
     for inc in incidents[:3]:
