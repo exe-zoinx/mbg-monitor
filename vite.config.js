@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite';
+import { readFileSync, copyFileSync, mkdirSync } from 'fs';
 import react from '@vitejs/plugin-react';
-import { readFileSync, copyFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { defineConfig } from 'vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -50,6 +50,8 @@ function copyCloudflareFiles() {
     name: 'copy-cloudflare-files',
     closeBundle() {
       try {
+        mkdirSync(resolve('dist/data'), { recursive: true });
+        copyFileSync(resolve('data/sppg.json'), resolve('dist/data/sppg.json'));
         copyFileSync(resolve('_headers'), resolve('dist/_headers'));
         copyFileSync(resolve('_redirects'), resolve('dist/_redirects'));
       } catch (e) {
