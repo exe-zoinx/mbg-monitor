@@ -168,9 +168,10 @@ export default function App() {
               Perhatian
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--tx)', marginBottom: 20 }}>
-              Seluruh data di situs ini murni hasil scraping otomatis dari pemberitaan
-              media Indonesia dan Wikipedia. Angka korban adalah estimasi dari laporan
-              berita dan dapat berubah; verifikasi silang dengan sumber berita asli.
+              Seluruh data di situs ini diperoleh dari pemberitaan media Indonesia,
+              Wikipedia, dan data resmi Kementerian Pertanian. Angka korban adalah
+              estimasi dari laporan berita dan dapat berubah. Jika ada data yang tidak
+              akurat, silakan buka issue di GitLab untuk perbaikan.
             </div>
             <button
               onClick={() => { localStorage.setItem('mbg_disclaimer_seen', '1'); setShowDisclaimer(false); }}
