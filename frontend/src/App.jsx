@@ -77,7 +77,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
+    <main style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
       {/* Mobile backdrop */}
       <div
         className="mobile-backdrop"
@@ -312,7 +312,7 @@ export default function App() {
           }
         }
       `}</style>
-    </div>
+    </main>
   );
 }
 

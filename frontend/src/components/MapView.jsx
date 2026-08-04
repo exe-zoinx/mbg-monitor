@@ -53,6 +53,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       disableClusteringAtZoom: 10,
+      chunkedLoading: true, // process 7.6k SPPG markers in async batches
       iconCreateFunction(cl) {
         const n = cl.getChildCount();
         const cls = n > 50 ? 'large' : n > 15 ? 'medium' : 'small';
@@ -134,7 +135,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         const lat = inc.lat + dLat;
         const lng = inc.lng + dLng;
 
-        const m = L.marker([lat, lng], { icon: mkIcon(inc.cat, inc.victims || 0) })
+        const m = L.marker([lat, lng], { icon: mkIcon(inc.cat, inc.victims || 0), title: inc.title || 'Insiden' })
           .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
           .on('click', () => focusInc(inc.id));
 
@@ -172,39 +173,54 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   }, [incidents, layers?.meninggal, focusInc]);
 
   // SPPG markers — sppg layer (behind incidents)
+  // Time-sliced: 7.6k markers built in chunks so the main thread
+  // never blocks long (pins appear progressively in the background).
   useEffect(() => {
     const cluster = sppgClusterRef.current;
     if (!cluster) return;
 
     cluster.clearLayers();
     if (layers?.sppg === false) return;
-
     if (!sppgData?.sppg?.length) return;
-    sppgData.sppg.forEach(s => {
-      if (!s.lat || !s.lng) return;
-      const fill = s.meninggal_terkait ? '#bc8cff'
-        : s.risiko ? '#f85149'
-        : '#388bfd';
-      const m = L.circleMarker([s.lat, s.lng], {
-        radius: s.risiko ? 5 : 4,
-        color: fill + '55',
-        weight: 1,
-        fillColor: fill,
-        fillOpacity: s.risiko ? 0.7 : 0.45,
-      })
-        .bindPopup(
-          `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
-            <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
-            <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
-            ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-            ${s.risiko ? `<div style="font-family:var(--mo);font-size:9px;color:var(--red);margin-top:2px">${esc(s.meninggal_terkait ? 'Terkait korban meninggal' : 'Terdekat insiden keracunan')}</div>` : ''}
-            ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">${esc(s.tanggal_pembangunan)}</div>` : ''}
-          </div>`,
-          { maxWidth: 260, closeButton: true }
-        );
-      markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
-      cluster.addLayer(m);
-    });
+
+    let cancelled = false;
+    let i = 0;
+    const CHUNK = 100;
+
+    const processChunk = () => {
+      if (cancelled) return;
+      const end = Math.min(i + CHUNK, sppgData.sppg.length);
+      for (; i < end; i++) {
+        const s = sppgData.sppg[i];
+        if (!s.lat || !s.lng) continue;
+        const fill = s.meninggal_terkait ? '#bc8cff'
+          : s.risiko ? '#f85149'
+          : '#388bfd';
+        const m = L.circleMarker([s.lat, s.lng], {
+          radius: s.risiko ? 5 : 4,
+          color: fill + '55',
+          weight: 1,
+          fillColor: fill,
+          fillOpacity: s.risiko ? 0.7 : 0.45,
+        })
+          .bindPopup(
+            `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
+              <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
+              <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
+              ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
+              ${s.risiko ? `<div style="font-family:var(--mo);font-size:9px;color:var(--red);margin-top:2px">${esc(s.meninggal_terkait ? 'Terkait korban meninggal' : 'Terdekat insiden keracunan')}</div>` : ''}
+              ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">${esc(s.tanggal_pembangunan)}</div>` : ''}
+            </div>`,
+            { maxWidth: 260, closeButton: true }
+          );
+        markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
+        cluster.addLayer(m);
+      }
+      if (i < sppgData.sppg.length) setTimeout(processChunk, 16);
+    };
+
+    processChunk();
+    return () => { cancelled = true; };
   }, [sppgData, layers?.sppg]);
   // Handle activeId changes (fly to marker)
   useEffect(() => {
@@ -335,7 +351,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              padding: '3px 0',
+              padding: '6px 0',
               cursor: 'pointer',
               color: 'var(--tx)',
               whiteSpace: 'nowrap',
@@ -345,7 +361,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
               type="checkbox"
               checked={!!layers[row.key]}
               onChange={() => setLayers(prev => ({ ...prev, [row.key]: !prev[row.key] }))}
-              style={{ accentColor: row.color, cursor: 'pointer', width: 13, height: 13 }}
+              style={{ accentColor: row.color, cursor: 'pointer', width: 16, height: 16 }}
             />
             <span style={{ color: row.color, fontWeight: layers[row.key] ? 700 : 400 }}>
               {row.label}

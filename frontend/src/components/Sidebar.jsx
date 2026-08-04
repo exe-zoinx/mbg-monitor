@@ -348,6 +348,7 @@ export default function Sidebar({
         <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>Dari</span>
         <input
           type="date"
+          aria-label="Tanggal dari"
           value={dateFrom}
           onChange={e => setDateFrom(e.target.value)}
           style={{
@@ -366,6 +367,7 @@ export default function Sidebar({
         <span style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)' }}>Sampai</span>
         <input
           type="date"
+          aria-label="Tanggal sampai"
           value={dateTo}
           onChange={e => setDateTo(e.target.value)}
           style={{
