@@ -36,7 +36,13 @@ export function useIncidents(data) {
           (i.note || '').toLowerCase().includes(q)
         );
       })
-      .sort((a, b) => b.date.localeCompare(a.date));
+      .sort((a, b) => {
+        // ISO dates sort descending (newest first); non-ISO dates ("Tidak Disebutkan",
+        // "September 2025", etc.) sort to the bottom
+        const aDate = /^\d{4}-\d{2}-\d{2}/.test(a.date) ? a.date : '0000-00-00';
+        const bDate = /^\d{4}-\d{2}-\d{2}/.test(b.date) ? b.date : '0000-00-00';
+        return bDate.localeCompare(aDate);
+      });
   }, [incidents, filterCat, search, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
