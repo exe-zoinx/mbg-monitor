@@ -42,3 +42,8 @@ logs/
 .lean-ctx
 .hive/
 .tmp/
+
+# Agent tooling artifacts (npx skills add …)
+.agents/
+.claude/
+skills-lock.json
