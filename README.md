@@ -43,6 +43,7 @@ Interactive map (React + Leaflet) ← Cloudflare Pages ← frontend
 ## Tech stack
 
 - **Frontend**: React 19, Vite, Leaflet, Tailwind CSS, daisyUI
+- **Basemap**: keyless Esri ArcGIS raster tiles (dark / light / satellite) with OpenStreetMap fallback — no API key anywhere
 - **Icons**: lucide-react
 - **Backend**: Cloudflare Pages Functions + D1 + Workers
 - **Data**: Python scraper → JSON → SQLite/D1
@@ -57,6 +58,13 @@ npm run dev
 ```
 
 Open `http://localhost:5173` — local data is served from `data/wiki_incidents.json` (no D1 needed).
+
+Refresh the dataset (Wikipedia + media, ~10s):
+
+```bash
+uv run --with wikitextparser --with requests python scripts/scrape_wiki.py
+# add --net to also resolve school-level coordinates through Nominatim (slow, 1 req/s)
+```
 
 ## Deploy
 
