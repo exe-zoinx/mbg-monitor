@@ -69,7 +69,8 @@ Rules:
 
 - **Icons**: use `lucide-react` — no Font Awesome, no emoji for UI elements.
 - **Number formatting**: use `fmtNum()` / `toLocaleString('id-ID')` — Indonesian thousands separators (`1.000`, not `1,000`).
-- **Map attribution**: the CARTO attribution must stay visible (tile ToS). You may restyle it, never remove it.
+- **Map attribution**: the Esri / OpenStreetMap attribution must stay visible (tile ToS). You may restyle it, never remove it.
+- **Basemaps**: all styles are keyless (Esri ArcGIS raster + OSM fallback). Do not reintroduce CARTO — `basemaps.cartocdn.com` now answers unkeyed clients with a placeholder tile.
 - **Localization**: new user-facing strings should appear in both English and Indonesian where the UI is bilingual.
 
 ## Submission workflow

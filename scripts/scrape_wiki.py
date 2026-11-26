@@ -358,9 +358,19 @@ OUTLET_NAMES = {
 }
 
 def geo_lookup(text):
-    t = text.lower().strip()
-    if t in CITY_COORDS:
-        return CITY_COORDS[t]
+    """Match a place name against CITY_COORDS, tolerating the 'Kabupaten '/'Kota '
+    prefixes that Wikipedia rows drop (table says 'Aceh Utara', the dict key is
+    'kabupaten aceh utara')."""
+    t = str(text or '').lower().strip().rstrip('.')
+    if not t:
+        return None, None
+    cands = [t, f'kabupaten {t}', f'kota {t}']
+    for pre in ('kabupaten ', 'kab. ', 'kab ', 'kota '):
+        if t.startswith(pre):
+            cands.append(t[len(pre):])
+    for c in cands:
+        if c in CITY_COORDS:
+            return CITY_COORDS[c]
     for key in sorted(CITY_COORDS.keys(), key=len, reverse=True):
         if key in t:
             return CITY_COORDS[key]
@@ -383,12 +393,16 @@ def normalize_school_name(name):
     return n.strip()
 
 
-def geocode_nominatim(query):
+def geocode_nominatim(query, allow_net=False):
     """Geocode via Nominatim, cached. Returns (lat, lng) or (None, None).
-    Nominatim usage policy: max 1 request/sec. We sleep between cache misses."""
+    Network calls are opt-in (`--net`): a normal refresh reuses the cache and
+    falls back to the static table, so a run finishes in seconds instead of
+    waiting on Nominatim's 1 req/sec budget."""
     key = query.lower()
     if key in GEO_CACHE:
         return GEO_CACHE[key]
+    if not allow_net:
+        return None, None
     params = urllib.parse.urlencode({
         'q': query + ', Indonesia', 'format': 'json', 'limit': 1, 'countrycodes': 'id',
     })
@@ -400,25 +414,25 @@ def geocode_nominatim(query):
         result = (float(data[0]['lat']), float(data[0]['lon'])) if data else (None, None)
     except Exception:
         result = (None, None)
-    GEO_CACHE[key] = result
+    if result[0] is not None:
+        GEO_CACHE[key] = result  # store hits only; misses retried on a --net run
     time.sleep(1.1)  # Nominatim 1 req/sec policy
     if len(GEO_CACHE) % 25 == 0:
         print(f'  ...geocoded {len(GEO_CACHE)} unique queries', flush=True)
     return result
 
 
-def geo_lookup_enhanced(school, kabupaten, province):
-    """Best-effort geocode: exact school -> kabupaten/kelurahan -> static CITY_COORDS.
-    Returns (lat, lng)."""
+def geo_lookup_enhanced(school, kabupaten, province, allow_net=False):
+    """Best-effort geocode: cached school point -> kabupaten -> province centroid."""
     if school and school.lower() not in ('tidak disebutkan', 'tba', 'spesifik tidak disebutkan'):
         norm = normalize_school_name(school)
-        # Single query: school + kabupaten context (Nominatim resolves the school)
-        lat, lng = geocode_nominatim(f'{norm}, {kabupaten}')
+        lat, lng = geocode_nominatim(f'{norm}, {kabupaten}', allow_net)
         if lat and lng:
             return lat, lng
-    # Fallback: kabupaten or province from static dict
-    lat, lng = geo_lookup(kabupaten) or geo_lookup(province) or (None, None)
-    return lat, lng
+    lat, lng = geo_lookup(kabupaten)
+    if lat and lng:
+        return lat, lng
+    return geo_lookup(province) or (None, None)
 
 def unwikify(text):
     return re.sub(r'\[\[([^\]|]+?\|)?([^\]]+?)\]\]', r'\2', text)
@@ -461,8 +475,17 @@ def extract_outlet(url):
     return name or 'Wikipedia'
 
 def parse_num(s):
-    m = re.sub(r'[^\d]', '', str(s)) if s else ''
-    return int(m) if m else 0
+    """'370 Siswa + 28 Guru' -> 398, '23-27 siswa' -> 25, '± 11.390' -> 11390.
+    Stripping digits blindly would turn the first one into 37028."""
+    raw = str(s or '')
+    nums = [int(n.replace('.', '').replace(',', '')) for n in re.findall(r'\d{1,3}(?:[.,]\d{3})+|\d+', raw)]
+    if not nums:
+        return 0
+    if '+' in raw:
+        return sum(nums)
+    if re.search(r'\d\s*[-–—]\s*\d', raw):
+        return round(sum(nums[:2]) / 2)
+    return nums[0]
 
 def fmt_n(n):
     """Indonesian thousands separator: 1333 -> '1.333'."""
@@ -484,7 +507,7 @@ def format_date(raw):
         return f"{year}-{month}-{day}"
     return raw
 
-def scrape(out_file="data/wiki_incidents.json"):
+def scrape(out_file="data/wiki_incidents.json", allow_net=False):
     print("Fetching wikitext from MediaWiki API...")
     resp = requests.get(API_URL, params={
         "action": "parse", "page": WIKI_PAGE, "prop": "wikitext", "format": "json",
@@ -523,12 +546,12 @@ def scrape(out_file="data/wiki_incidents.json"):
         title = school if not is_tba else city
         loc   = city
 
-        lat, lng = geo_lookup(city) or geo_lookup(province) or (None, None)
+        #
 
         note = f"{fmt_n(victims)} Keracunan"
         if deaths > 0:
             note += f" | {fmt_n(deaths)} Meninggal"
-        lat, lng = geo_lookup_enhanced(school, city, province)
+        lat, lng = geo_lookup_enhanced(school, city, province, allow_net)
         source = extract_outlet(url)
 
         incidents.append({
@@ -540,15 +563,16 @@ def scrape(out_file="data/wiki_incidents.json"):
             "source_url": url, "note": note,
         })
 
-    # Dedup: Wikipedia lists one row per school for a single incident, each row
-    # carrying the SAME total victim count. Treating rows independently inflates
-    # totals N-fold. Merge rows that share (date, kabupaten, source) into one
-    # incident; victims stay the incident total, counted exactly once.
+    # Dedup: Wikipedia lists one row per school for a single incident, and every
+    # row repeats the SAME total victim figure (rowspan). Grouping must therefore
+    # key on the victim totals, not the per-school reference URL — otherwise a
+    # 3-school outbreak with three citations is counted three times.
     from collections import OrderedDict
     groups = OrderedDict()
     for inc in incidents:
-        key = (inc["date"], inc["kabupaten"], inc["source_url"])
+        key = (inc["date"], inc["kabupaten"], inc["victims"], inc["deaths"])
         groups.setdefault(key, []).append(inc)
+
 
     merged = []
     for key, group in groups.items():
@@ -607,5 +631,6 @@ def scrape(out_file="data/wiki_incidents.json"):
         print(f"  {inc['title']} | {inc['loc']} | {inc['date']} | {inc['note']} | {inc['source']}")
 
 if __name__ == "__main__":
-    out = sys.argv[1] if len(sys.argv) > 1 else "data/wiki_incidents.json"
-    scrape(out)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    out = args[0] if args else "data/wiki_incidents.json"
+    scrape(out, allow_net="--net" in sys.argv)

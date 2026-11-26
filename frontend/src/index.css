@@ -248,3 +248,16 @@ html, body, #root {
     display: none !important;
   }
 }
+
+/* Basemap switcher + analytics panel — mobile layout */
+@media (max-width: 640px) {
+  .map-basemap-toggle {
+    top: auto !important;
+    bottom: 118px !important;
+  }
+  .map-basemap-toggle .bm-label { display: none; }
+  .mbg-insights[open] {
+    max-height: 42vh;
+    overflow-y: auto;
+  }
+}

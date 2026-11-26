@@ -29,7 +29,8 @@ export async function onRequestGet(ctx) {
   try {
     // Build incident query with optional date filters
     let incidentQuery = `
-      SELECT id, cat, date, lat, lng, title, loc, victims, deaths, source, url, source_url, schools_list, note, is_baseline
+      SELECT id, cat, date, lat, lng, title, loc, province, kabupaten,
+             victims, deaths, source, url, source_url, schools_list, note, is_baseline
       FROM incidents
     `;
     const params = [];

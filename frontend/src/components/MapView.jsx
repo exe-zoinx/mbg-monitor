@@ -1,8 +1,9 @@
-import { useEffect, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp } from 'lucide-react';
+import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp, Moon, Sun, Satellite } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
+import { BASEMAPS, FALLBACK_TILES } from '../lib/basemaps';
 
 export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers }) {
   const mapRef = useRef(null);
@@ -11,26 +12,32 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   const sppgClusterRef = useRef(null);
   const meninggalClusterRef = useRef(null);
   const markersRef = useRef(new Map());
+  const baseRef = useRef(null);
+  const labelRef = useRef(null);
+  const attrRef = useRef(null);
+  const tileErrRef = useRef(0);
+  const [mapReady, setMapReady] = useState(0);
+  const [basemap, setBasemap] = useState(() => {
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('mbg_basemap') : null;
+    return BASEMAPS[saved] ? saved : 'dark';
+  });
 
   // Initialize map once
   useEffect(() => {
-    if (mapInstance.current) return;
+    if (mapInstance.current || mapRef.current?._leaflet_id) return;
 
     const map = L.map(mapRef.current, {
       center: [-2.5, 118],
       zoom: 5,
+      maxZoom: 18, // markerClusterGroup needs a map maxZoom before tiles load
       zoomControl: false,
       attributionControl: false,
+      preferCanvas: true, // 7.6k SPPG circleMarkers render on one canvas
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd',
-    }).addTo(map);
-
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
-    L.control.attribution({ prefix: '&copy; <a href="https://carto.com" style="color:#7d8590">CARTO</a>' }).addTo(map);
-
+    // Attribution prefix is set per basemap below; Esri and OSM are keyless.
+    attrRef.current = L.control.attribution({ prefix: false }).addTo(map);
     const cluster = L.markerClusterGroup({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
@@ -88,6 +95,8 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     clusterRef.current = cluster;
     sppgClusterRef.current = sppgCluster;
     meninggalClusterRef.current = meninggalCluster;
+    setMapReady(v => v + 1);
+    map.invalidateSize();
 
     return () => {
       map.remove();
@@ -97,6 +106,38 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       meninggalClusterRef.current = null;
     };
   }, []);
+
+  // Basemap swap — keyless Esri layers, OSM as last-resort fallback.
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+    const bm = BASEMAPS[basemap] || BASEMAPS.dark;
+
+    for (const r of [baseRef, labelRef]) {
+      if (r.current) { map.removeLayer(r.current); r.current = null; }
+    }
+    tileErrRef.current = 0;
+
+    const base = L.tileLayer(bm.base, { maxZoom: bm.maxZoom, crossOrigin: true });
+    base.on('tileerror', () => {
+      // Esri unreachable/blocked → drop to keyless OSM instead of blank map
+      if (++tileErrRef.current < 4 || baseRef.current !== base) return;
+      map.removeLayer(base);
+      const fb = L.tileLayer(FALLBACK_TILES, { maxZoom: 19 }).addTo(map);
+      fb.bringToBack();
+      baseRef.current = fb;
+      if (attrRef.current) attrRef.current.setPrefix('&copy; OpenStreetMap contributors');
+    });
+    base.addTo(map);
+    base.bringToBack();
+    baseRef.current = base;
+
+    if (bm.labels) {
+      labelRef.current = L.tileLayer(bm.labels, { maxZoom: bm.maxZoom }).addTo(map);
+    }
+    if (attrRef.current) attrRef.current.setPrefix(bm.attribution);
+    try { localStorage.setItem('mbg_basemap', basemap); } catch { /* private mode */ }
+  }, [basemap, mapReady]);
 
 
   // Incident markers — keracunan layer
@@ -318,6 +359,54 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Basemap switcher — all keyless (Esri / OSM) */}
+      <div
+        className="map-basemap-toggle"
+        role="group"
+        aria-label="Gaya peta"
+        style={{
+          position: 'absolute',
+          top: 84,
+          right: 14,
+          zIndex: 500,
+          display: 'flex',
+          gap: 2,
+          background: 'rgba(13,17,23,0.92)',
+          border: '1px solid var(--bd2)',
+          borderRadius: 8,
+          padding: 3,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        {[
+          { id: 'dark', icon: Moon, label: 'Gelap' },
+          { id: 'light', icon: Sun, label: 'Terang' },
+          { id: 'sat', icon: Satellite, label: 'Satelit' },
+        ].map((b) => {
+          const on = basemap === b.id;
+          return (
+            <button
+              key={b.id}
+              onClick={() => setBasemap(b.id)}
+              aria-pressed={on}
+              title={`Peta ${b.label}`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: on ? 'rgba(56,139,253,0.18)' : 'transparent',
+                border: on ? '1px solid rgba(56,139,253,0.5)' : '1px solid transparent',
+                color: on ? 'var(--blu)' : 'var(--mu)',
+                borderRadius: 6, padding: '4px 7px', cursor: 'pointer',
+                fontFamily: 'var(--mo)', fontSize: 10, fontWeight: on ? 700 : 400,
+              }}
+            >
+              <b.icon size={12} strokeWidth={2} />
+              <span className="bm-label">{b.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Layer toggle control */}

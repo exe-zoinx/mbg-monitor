@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar } from 'lucide-react';
+import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar, Share2 } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
+import Insights from './Insights';
 export default function Sidebar({
   incidents,
   filtered,
@@ -22,9 +23,16 @@ export default function Sidebar({
   activeTab,
   setActiveTab,
   sppgData,
+  activeMonth,
+  onPickMonth,
+  onPickProvince,
+  newSinceVisit,
 }) {
 
   const [localSearch, setLocalSearch] = useState(search);
+
+  // Deep-link / province-click updates land on the prop; mirror them into the input.
+  useEffect(() => { setLocalSearch(search); }, [search]);
 
   const handleSearch = useCallback(() => {
     setSearch(localSearch.trim());
@@ -233,8 +241,9 @@ export default function Sidebar({
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
         <div style={{ position: 'relative' }}>
           <input
+            id="mbg-search"
             type="text"
-            placeholder={activeTab === 'sppg' ? 'Cari SPPG, provinsi' : 'Cari insiden, lokasi'}
+            placeholder={activeTab === 'sppg' ? 'Cari SPPG, provinsi' : 'Cari insiden, sekolah, lokasi'}
             autoComplete="off"
             spellCheck={false}
             value={localSearch}
@@ -385,6 +394,54 @@ export default function Sidebar({
         />
       </div>
 
+      {/* Quick ranges */}
+      <div style={{
+        display: 'flex', gap: 4, padding: '0 14px 6px', flexShrink: 0,
+        alignItems: 'center', flexWrap: 'wrap',
+      }}>
+        {[
+          { label: '7h', days: 7 }, { label: '30h', days: 30 },
+          { label: '90h', days: 90 }, { label: '1th', days: 365 },
+        ].map(p => (
+          <button
+            key={p.label}
+            onClick={() => {
+              const to = new Date();
+              const from = new Date(Date.now() - p.days * 864e5);
+              setDateFrom(from.toISOString().slice(0, 10));
+              setDateTo(to.toISOString().slice(0, 10));
+            }}
+            style={{
+              fontFamily: 'var(--mo)', fontSize: 9, padding: '3px 8px', borderRadius: 10,
+              cursor: 'pointer', border: '1px solid var(--bd2)',
+              background: 'var(--sf2)', color: 'var(--mu)',
+            }}
+          >
+            {p.label}
+          </button>
+        ))}
+        {newSinceVisit > 0 && (
+          <span
+            title={`${newSinceVisit} insiden baru sejak kunjungan terakhir`}
+            style={{
+              marginLeft: 'auto', fontFamily: 'var(--mo)', fontSize: 9,
+              color: 'var(--grn)', border: '1px solid var(--grn)44',
+              background: '#3fb95012', borderRadius: 10, padding: '3px 8px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            +{newSinceVisit} baru
+          </span>
+        )}
+      </div>
+
+      <Insights
+        incidents={incidents}
+        activeMonth={activeMonth}
+        onPickMonth={onPickMonth}
+        onPickProvince={onPickProvince}
+      />
+
       {/* Filter count */}
       {hasFilter && (
         <div style={{
@@ -400,7 +457,7 @@ export default function Sidebar({
         }}>
           <span>{filtered.length} dari {incidents.length} insiden</span>
           <button
-            onClick={() => { setFilterCat('all'); setDateFrom(''); setDateTo(''); }}
+            onClick={() => { setFilterCat('all'); setDateFrom(''); setDateTo(''); onPickMonth && onPickMonth(''); }}
             style={{
               fontFamily: 'var(--mo)',
               fontSize: 9,

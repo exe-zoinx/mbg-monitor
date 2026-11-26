@@ -5,7 +5,27 @@ All notable changes to this project are documented here. Format based on [Keep a
 ## [Unreleased]
 
 ### Added
+- Basemap switcher (Gelap / Terang / Satelit) — keyless Esri ArcGIS raster tiles, OSM last-resort fallback, choice persisted in `localStorage`
+- Analytics panel in the sidebar: monthly case trend (click a bar to filter that month) + hardest-hit provinces (click to search)
+- Quick date ranges (7h / 30h / 90h / 1th) and a "+N baru" badge for incidents since the previous visit
+- Shareable deep links: `?q=&cat=&from=&to=&tab=&id=` restored on load and kept in sync
+- GeoJSON export (QGIS/kepler.gl-ready) next to the CSV exports
+- Keyboard shortcuts: `/` focuses search, `Esc` closes overlays
+- `province` / `kabupaten` stored in D1 and returned by `/api/data`
+
+### Changed
+- Search now covers province, kabupaten, school name and the multi-school `schools_list`
+- Stats row shows school venues affected (multi-school rows expanded)
+
+### Fixed
+- **Map tiles**: CARTO started answering unkeyed clients with an "API key required" placeholder tile, so every tile was identical. Replaced with keyless Esri tiles
+- Victim parsing: `"370 Siswa + 28 Guru"` was parsed as `37028`; ranges are now averaged, sums added
+- Incident dedup keys on the victim totals instead of the per-school reference URL, so multi-school outbreaks are no longer counted once per school
+- Geocoding matches regency names without the `Kabupaten`/`Kota` prefix; a refresh now completes in seconds (Nominatim is cache-only unless `--net`)
 - GitLab project hosting, LICENSE (MIT), CONTRIBUTING.md, README.id.md (Bahasa Indonesia), GitLab CI/CD pipeline
+
+### Data
+- Reseeded D1 from Wikipedia: **520 incidents**, **51.362 korban**, 3 fatalities, coverage through **24 Nov 2026** (was 377 incidents through 31 Jul 2026)
 
 ## [2026-08-03]
 

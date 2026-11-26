@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Menu, Download, Database, X, Info, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Menu, Download, Database, X, Info, AlertTriangle, FileJson } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import { useData } from './hooks/useData';
@@ -43,6 +43,63 @@ export default function App() {
     if (data.meta?.refreshed_at) return { cls: 'r', text: lastSync || 'Lama' };
     return { cls: '', text: 'DB live' };
   })();
+
+  // ── Month drill-down (Insights chart) ──────────────────────────────────────
+  const [activeMonth, setActiveMonth] = useState('');
+  const pickMonth = useCallback((key) => {
+    setActiveMonth(key);
+    if (!key) { setDateFrom(''); setDateTo(''); return; }
+    const [y, m] = key.split('-').map(Number);
+    const lastDay = new Date(y, m, 0).getDate();
+    setDateFrom(`${key}-01`);
+    setDateTo(`${key}-${String(lastDay).padStart(2, '0')}`);
+  }, [setDateFrom, setDateTo]);
+
+  // ── "New since last visit" badge ──────────────────────────────────────────
+  const newSinceVisit = useMemo(() => {
+    const last = Number(localStorage.getItem('mbg_last_visit') || 0);
+    if (!last) return 0;
+    return incidents.filter(i => i.date && Date.parse(i.date) > last).length;
+  }, [incidents]);
+  useEffect(() => { localStorage.setItem('mbg_last_visit', String(Date.now())); }, []);
+
+  // ── Deep link: ?q=&cat=&from=&to=&tab=&id= ────────────────────────────────
+  const [linksRestored, setLinksRestored] = useState(false);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('q')) setSearch(p.get('q'));
+    if (p.get('cat')) setFilterCat(p.get('cat'));
+    if (p.get('from')) setDateFrom(p.get('from'));
+    if (p.get('to')) setDateTo(p.get('to'));
+    if (p.get('tab') === 'sppg' || p.get('tab') === 'incidents') setActiveTab(p.get('tab'));
+    if (p.get('id')) focusInc(Number(p.get('id')));
+    setLinksRestored(true);
+  }, []);
+  useEffect(() => {
+    if (!linksRestored) return;
+    const p = new URLSearchParams();
+    if (search) p.set('q', search);
+    if (filterCat !== 'all') p.set('cat', filterCat);
+    if (dateFrom) p.set('from', dateFrom);
+    if (dateTo) p.set('to', dateTo);
+    if (activeTab !== 'incidents') p.set('tab', activeTab);
+    if (activeId) p.set('id', String(activeId));
+    const qs = p.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [linksRestored, search, filterCat, dateFrom, dateTo, activeTab, activeId]);
+
+  // ── Keyboard: "/" search, Esc closes overlays ─────────────────────────────
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') { setSidebarOpen(false); setShowDataModal(false); return; }
+      if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) {
+        e.preventDefault();
+        document.getElementById('mbg-search')?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   useEffect(() => {
     if (!localStorage.getItem('mbg_disclaimer_seen')) setShowDisclaimer(true);
@@ -75,6 +132,30 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // GeoJSON — drop-in for QGIS / kepler.gl / any GIS tool.
+  const downloadGeoJSON = () => {
+    const features = incidents
+      .filter(i => i.lat && i.lng)
+      .map(i => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [i.lng, i.lat] },
+        properties: {
+          id: i.id, date: i.date, title: i.title, loc: i.loc,
+          province: i.province, kabupaten: i.kabupaten, cat: i.cat,
+          victims: i.victims, deaths: i.deaths, schools: i.schools_list,
+          source: i.source, source_url: i.url || i.source_url, note: i.note,
+        },
+      }));
+    const fc = { type: 'FeatureCollection', features };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(fc)], { type: 'application/geo+json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mbg_monitor_incidents.geojson';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   return (
     <main style={{ display: 'flex', minHeight: '100vh', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
@@ -111,6 +192,10 @@ export default function App() {
         connectionStatus={connectionStatus}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        activeMonth={activeMonth}
+        onPickMonth={pickMonth}
+        onPickProvince={(name) => setSearch(name)}
+        newSinceVisit={newSinceVisit}
         onShowData={() => setShowDataModal(true)}
       />
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
@@ -297,6 +382,18 @@ export default function App() {
               }}
             >
               <Download size={14} /> Download CSV SPPG
+            </button>
+            <button
+              onClick={downloadGeoJSON}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 8, cursor: 'pointer',
+                background: 'transparent', color: 'var(--grn)', border: '1px solid var(--grn)44',
+                fontFamily: 'var(--mo)', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                marginTop: 8,
+              }}
+            >
+              <FileJson size={14} /> Download GeoJSON
             </button>
             <div style={{ marginTop: 12, fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', lineHeight: 1.5 }}>
               Data bukan saran medis. Angka korban adalah estimasi dari laporan berita. Verifikasi sebelum dikutip.

@@ -31,9 +31,13 @@ export function useIncidents(data) {
         if (dateTo && i.date > dateTo) return false;
         if (!q) return true;
         return (
-          i.title.toLowerCase().includes(q) ||
+          (i.title || '').toLowerCase().includes(q) ||
           (i.loc || '').toLowerCase().includes(q) ||
-          (i.note || '').toLowerCase().includes(q)
+          (i.province || '').toLowerCase().includes(q) ||
+          (i.kabupaten || '').toLowerCase().includes(q) ||
+          (i.school || '').toLowerCase().includes(q) ||
+          (i.note || '').toLowerCase().includes(q) ||
+          (i.schools_list || []).some(s => String(s).toLowerCase().includes(q))
         );
       })
       .sort((a, b) => {
@@ -50,9 +54,11 @@ export function useIncidents(data) {
     let totalVictims = 0;
     let keracunanVictims = 0;
     let totalDeaths = 0;
+    let schools = 0;
     for (const i of incidents) {
       cats[i.cat] = (cats[i.cat] || 0) + 1;
       totalVictims += i.victims || 0;
+      schools += (i.schools_list?.length) || 1;
       if (i.cat === 'keracunan') {
         keracunanVictims += i.victims || 0;
         totalDeaths += i.deaths || 0;
@@ -63,6 +69,7 @@ export function useIncidents(data) {
       victims: totalVictims,
       keracunan: keracunanVictims,   // total poisoned victims (not incident count)
       deaths: totalDeaths,            // total death victims
+      schools,                        // school venues affected (multi-school rows expanded)
       keracunan_cases: cats.keracunan || 0,
       sppg: (cats.sppg || 0) + (cats.sppg_opened || 0) + (cats.sppg_temp_closed || 0) + (cats.sppg_closed || 0),
       sppg_opened: cats.sppg_opened || 0,
