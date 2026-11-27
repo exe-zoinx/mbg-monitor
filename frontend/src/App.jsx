@@ -333,18 +333,28 @@ export default function App() {
                 SPPG ↔ insiden &amp; penyelenggara
               </div>
               <div style={{ fontSize: 11, lineHeight: 1.7, color: 'var(--mu)' }}>
-                Nama dapur yang dituduh, yayasan/PT penyelenggara, dan tautan buktinya berasal dari
-                dataset terbuka{' '}
+                Nama dapur yang dituduh dan artikel buktinya berasal dari dataset terbuka{' '}
                 <a href="https://jejakmbg.id/data/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
                   JejakMBG
                 </a>{' '}
-                (CC BY 4.0) dan artikel yang dikutip di dalamnya. Garis putus-putus menghubungkan
-                lokasi insiden dengan titik SPPG yang namanya disebut.
+                (CC BY 4.0). Yayasan penyelenggara diambil dari{' '}
+                <a
+                  href={linkIndex?.meta?.roster?.source || 'https://www.bgn.go.id/sppg-march-deleted/'}
+                  target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}
+                >
+                  daftar resmi BGN “SPPG Bulan Maret 2025”
+                </a>{' '}
+                (315 unit, dicocokkan per kecamatan + kelurahan) dan dari artikel yang menyebut
+                yayasannya. Garis putus-putus menghubungkan lokasi insiden dengan titik SPPG yang
+                namanya disebut.
                 {linkIndex?.operatorCount
                   ? ` ${linkIndex.operatorCount} SPPG sudah punya penyelenggara bernama sumber; ${linkIndex.accusedCount} insiden terhubung ke dapur tertentu.`
                   : ''}
-                {' '}Bila penyelenggara belum dipublikasikan, situs ini tidak menebak — BGN belum
-                merilis daftar mitra/yayasan per SPPG.
+                {' '}Keyakinan tautan insiden→SPPG: <strong>100%</strong> bila sumber menyebut nama unit
+                itu langsung; selain itu skor dari jumlah kata nama yang sama, jarak, dan jumlah
+                kandidat saingan (makin rendah = makin tidak pasti). Bila penyelenggara belum
+                dipublikasikan, situs ini tidak menebak — BGN belum merilis daftar mitra/yayasan
+                untuk seluruh SPPG.
               </div>
             </div>
             <div style={{

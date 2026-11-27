@@ -39,6 +39,7 @@ Interactive map (React + Leaflet) ← Cloudflare Pages ← frontend
 2. **Deduplication** — multi-school incidents merge, victims counted once (48k, not 117k)
 3. **Frontend** (React + Vite + Leaflet) renders the map, stats, and incident feed
 4. **Deploy** to Cloudflare Pages + D1 for production data
+5. **Ownership & culprit links** (`scripts/fetch_bgn_roster.py`, `scripts/build_sppg_links.py`) attach a yayasan/PT to an SPPG only when a source names it — BGN's official *SPPG Bulan Maret 2025* table (315 units, matched by kecamatan/kelurahan) or the cited article. Each incident→SPPG link carries a confidence: **100%** when the source names that unit directly, otherwise a score from shared name tokens, distance and rival candidates. No source, no owner.
 
 ## Tech stack
 

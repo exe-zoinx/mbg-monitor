@@ -1,0 +1,2218 @@
+{
+ "generated_at": "2026-11-27T08:54:56Z",
+ "meta": {
+  "title": "SPPG Bulan Maret 2025 — satuan pelayanan siap operasional 17 Maret 2025",
+  "rows": 315,
+  "distinct_yayasan": 176,
+  "source": "https://www.bgn.go.id/sppg-march-deleted/",
+  "source_wayback": "https://web.archive.org/web/20260519000326/https://www.bgn.go.id/sppg-march-deleted/",
+  "note": "BGN publishes no per-unit owner roster beyond this batch; absence here means unpublished, not ownerless."
+ },
+ "rows": [
+  {
+   "no": 1,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Barat",
+   "alamat": "Desa Langung Meurebo, Aceh Barat",
+   "yayasan": "Yayasan Pemuda Santri Aceh Barat"
+  },
+  {
+   "no": 2,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Besar",
+   "alamat": "Jl. Banda Aceh 0 Medan Desa Lampreh Ingin Jaya Aceh Besar",
+   "yayasan": "Yayasan Kurnia Jaya Abadi"
+  },
+  {
+   "no": 3,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Jaya",
+   "alamat": "Jl. Meulaboh Banda Aceh Desa Leupe Jaya Aceh Jaya",
+   "yayasan": "Yayasan Kurnia Jaya Abadi"
+  },
+  {
+   "no": 4,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Selatan",
+   "alamat": "Desa Tanjung Harapan",
+   "yayasan": "Yayasan Berkah Cahaya"
+  },
+  {
+   "no": 5,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Tamiang",
+   "alamat": "Jl. Banda Aceh 0 Medan Ds Tualang Cut Manyak Payed Aceh Tamiang",
+   "yayasan": "Yayasan Makmur Maju Bersama"
+  },
+  {
+   "no": 6,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Tengah",
+   "alamat": "Jln. Putri Pukes, Kp. Lut Kala, Kebayakan",
+   "yayasan": "Yayasan Bebesen Gayo Bergizi Nusantara"
+  },
+  {
+   "no": 7,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Tenggara",
+   "alamat": "Desa Biak Muli Pantai",
+   "yayasan": "Yayasan Alfaruqul Faqih Al Aziziyah"
+  },
+  {
+   "no": 8,
+   "provinsi": "Aceh",
+   "kabupaten": "Aceh Timur",
+   "alamat": "Jl. Alue Ie Mirah Desa Blang Paoh Julok Aceh Timur",
+   "yayasan": "Yayasan Nasabe Pangan Bergizi"
+  },
+  {
+   "no": 9,
+   "provinsi": "Aceh",
+   "kabupaten": "Bener Meriah",
+   "alamat": "Kp. Purwosari, Bandar, Bener Meriah",
+   "yayasan": "Yayasan Bebesen Gayo Bergizi Nusantara"
+  },
+  {
+   "no": 10,
+   "provinsi": "Aceh",
+   "kabupaten": "Gayo Lues",
+   "alamat": "Jln Kutapanjang0blangkejeren Dusun Turun Junte Desa Rema Kutapanjang Gayo Lues",
+   "yayasan": "Yayasan Bebesen Gayo Bergizi Nusantara"
+  },
+  {
+   "no": 11,
+   "provinsi": "Aceh",
+   "kabupaten": "Kota Banda Aceh",
+   "alamat": "Jl. Pendidikan Desa Lamjabat Meuraxa Kota Banda Aceh",
+   "yayasan": "Yayasan Kurnia Cahaya Permata"
+  },
+  {
+   "no": 12,
+   "provinsi": "Aceh",
+   "kabupaten": "Kota Banda Aceh",
+   "alamat": "Jl. Seulanga Jurong Panglima Nyak Raja No. 318 Desa Lamlagang Banda Raya Kota Banda Aceh",
+   "yayasan": "Yayasan Makmur Maju Bersama"
+  },
+  {
+   "no": 13,
+   "provinsi": "Aceh",
+   "kabupaten": "Kota Langsa",
+   "alamat": "Desa Matang Seulimeng Langsa Barat Kota Langsa",
+   "yayasan": "Yayasan Makmur Maju Bersama"
+  },
+  {
+   "no": 14,
+   "provinsi": "Aceh",
+   "kabupaten": "Kota Lhokseuma we",
+   "alamat": "Jl. Pesantren Babul Huda Aceh Dusun Lhokumbang Desa Meunasah Alue",
+   "yayasan": "Yayasan Babul Huda Aceh Indonesia"
+  },
+  {
+   "no": 15,
+   "provinsi": "Aceh",
+   "kabupaten": "Kota Sabang",
+   "alamat": "Desa Ie Meulee Suka Jaya Kota Sabang",
+   "yayasan": "Yayasan Kurnia Cahaya Permata"
+  },
+  {
+   "no": 16,
+   "provinsi": "Aceh",
+   "kabupaten": "Nagan Raya",
+   "alamat": "Desa Blang Baro Kuala Nagan Raya",
+   "yayasan": "Yayasan Putri Ratu Ana"
+  },
+  {
+   "no": 17,
+   "provinsi": "Aceh",
+   "kabupaten": "Pidie",
+   "alamat": "Komplek Pemda No 12 Blang Paseh",
+   "yayasan": "Yayasan Cahaya Semesta Bersama"
+  },
+  {
+   "no": 18,
+   "provinsi": "Aceh",
+   "kabupaten": "Pidie Jaya",
+   "alamat": "Jl. Rel Desa Meunasayah Keudeu Bandar Baru Pidie Jaya",
+   "yayasan": "Yayasan Bustanul Fakri Aceh"
+  },
+  {
+   "no": 19,
+   "provinsi": "Aceh",
+   "kabupaten": "Simeulue",
+   "alamat": "Desa Labuhan Bakti Teupah Selatan",
+   "yayasan": "Yayasan Rumah Kita Indonesia"
+  },
+  {
+   "no": 20,
+   "provinsi": "Bali",
+   "kabupaten": "Denpasar",
+   "alamat": "Jl. Sokasati, Gang Menori No.11, Sumerta Kelod, Kec. Denpasar Timur, Kota Denpasar, Bali",
+   "yayasan": "Yayasan Pendidikan Cakra Cemerlang Internasional"
+  },
+  {
+   "no": 21,
+   "provinsi": "Bali",
+   "kabupaten": "Denpasar",
+   "alamat": "Jl.Tukad Petanu, Gang Pipit No.8, Sidakarya, Denpasar Selatan, Bali",
+   "yayasan": "Yayasan Pendidikan Cakra Cemerlang Internasional"
+  },
+  {
+   "no": 22,
+   "provinsi": "Banten",
+   "kabupaten": "Kabupaten Serang",
+   "alamat": "Jl. Kh Abdul Kabier Rt 012 Rw 003 Desa Kemuning Kec. Tunjung Teja Serang Prov Banten",
+   "yayasan": "Yayasan Shohibul Muslimin"
+  },
+  {
+   "no": 23,
+   "provinsi": "Banten",
+   "kabupaten": "Kabupaten Tangerang",
+   "alamat": "Kp Korelet Desa Ranca Kelapa Kec. Panongan, Tangerang",
+   "yayasan": "Yayasan Hidayatul Hikmah Rajeg"
+  },
+  {
+   "no": 24,
+   "provinsi": "Banten",
+   "kabupaten": "Kabupaten Tangerang",
+   "alamat": "Jalan - Cisoka, Cisoka, Kecamatan Cisoka Kabupaten Tangerang 15730",
+   "yayasan": "Yayasan Al- Munawwir Cendekia Mulia"
+  },
+  {
+   "no": 25,
+   "provinsi": "Banten",
+   "kabupaten": "Kabupaten Tangerang",
+   "alamat": "Jalan Aria Jaya Santika Pasir Nangka Kecamatan Tigaraksa, Kabupaten Tangerang Banten, 15720",
+   "yayasan": "Yayasan Al- Munawwir Cendekia Mulia"
+  },
+  {
+   "no": 26,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Serang",
+   "alamat": "Jl. Ayip Usman No. 27 Serang, Kota Serang - Banten",
+   "yayasan": "Yayasan Puspa Indah Mitra Kreatif"
+  },
+  {
+   "no": 27,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Serang",
+   "alamat": "Jl. Kh Abdul Hadi, Cipare, Kec. Serang, Kota Serang, Banten 42117",
+   "yayasan": "Yayasan Puspa Indah Mitra Kreatif"
+  },
+  {
+   "no": 28,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Serang",
+   "alamat": "Jl. Penancangan Lama No.01, Rt.001/Rw.001, Panancangan, Kec. Cipocok Jaya, Kota Serang, Banten 42124",
+   "yayasan": "Yayasan Hidayatul Mubtadiin"
+  },
+  {
+   "no": 29,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Serang",
+   "alamat": "Jl. Raya Cilegon Drangong Serang, Banten No. Km 4, Drangong Kota Serang Banten",
+   "yayasan": "Yayasan Kemala Bhayangkari"
+  },
+  {
+   "no": 30,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Tangerang",
+   "alamat": "Perum Griya Permata Jl. Kh. Ahmad Dahlan Blok B1 No. 9a Kelurahan Petir Cipondoh Kota Tangerang Provinsi Banten",
+   "yayasan": "Persada Nusa Bakti"
+  },
+  {
+   "no": 31,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Tangerang",
+   "alamat": "Jl. Marsekal Suryadarma Rt.04/ Rw.07",
+   "yayasan": "Yayasan Hidayatul Hikmah Rajeg"
+  },
+  {
+   "no": 32,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Tangerang Selatan",
+   "alamat": "Jl. Ki Hajar Dewantara No. 12 Rt 03 Rw 07 Kel. Sawah, Kec. Ciputat, Tangerang Selatan",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 33,
+   "provinsi": "Banten",
+   "kabupaten": "Kota Tangerang Selatan",
+   "alamat": "Jl. Bayangkara No.1, Rt.003/Rw.002, Desa/Kelurahan Pakujaya",
+   "yayasan": "Yayasan Indonesia Kulina Emas"
+  },
+  {
+   "no": 34,
+   "provinsi": "Banten",
+   "kabupaten": "Serang",
+   "alamat": "Jl. Trip Jamaksari Komp. Bungur Indah Gg. Garuda No.17 Sumurpecung, Serang, Kota Serang, Banten",
+   "yayasan": "Yayasan Bina Prestasi"
+  },
+  {
+   "no": 35,
+   "provinsi": "Diy",
+   "kabupaten": "Gunungkid ul",
+   "alamat": "Jl. Taman Bakti, Jeruksari, Wonosari",
+   "yayasan": "Yayasan Tunas Mekar Cianjur"
+  },
+  {
+   "no": 36,
+   "provinsi": "Diy",
+   "kabupaten": "Kulon Progo",
+   "alamat": "Karangwuluh Lor, Rt005/Rw003, Karangwuluh, Temon",
+   "yayasan": "Yayasan Mugi Berkah Lestari"
+  },
+  {
+   "no": 37,
+   "provinsi": "Diy",
+   "kabupaten": "Sleman",
+   "alamat": "Jalan Godean Km. 8, Sidokarto, Kec. Godean, Sleman, Diy",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 38,
+   "provinsi": "Diy",
+   "kabupaten": "Yogyakarta",
+   "alamat": "Jl Surami No 845, Mantrijeron",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 39,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Selatan",
+   "alamat": "Jalan Kebayoran Lama Raya No. 35a Rt.004 Rw.010, Grogol Selatan Kebayoran Lama",
+   "yayasan": "Yayasan Taruna Mandiri Riau"
+  },
+  {
+   "no": 40,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Selatan",
+   "alamat": "Jl. Siaga No.14, Rt.16/Rw.4, Pejaten Barat, Pasar Minggu, Jakarta Selatan, Daerah Khusus Ibujakarta 12510",
+   "yayasan": "Yayasan Kemala Bhayangkari"
+  },
+  {
+   "no": 41,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Selatan",
+   "alamat": "Jl. Samali Ujung 1. Rt 011 Rw 04 Nomor 36 Pejaten Barat, Pasar Minggu",
+   "yayasan": "Yayasan Bakti Ibu Sejahtera"
+  },
+  {
+   "no": 42,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Jl. Cipinang Lontar Indah, Rt.10/Rw.6, Kelurahan Cipinang Muara, Jatinegara, Jakarta Timur, Daerah Khusus Ibukota Jakarta",
+   "yayasan": "Yayasan Pendidikan Al Qur&#39;an Nurul Huda"
+  },
+  {
+   "no": 43,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Kampung Rawaterate Rt 001/002, Nomor 112",
+   "yayasan": "Pemuda Pewaris Kebaikan"
+  },
+  {
+   "no": 44,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Jl. Merpati 2, Rt.2/Rw.2, Kp. Tengah, Kec. Kramat Jati, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta",
+   "yayasan": "Yayasan Lumbung Unnati Utama"
+  },
+  {
+   "no": 45,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Jl. Raya Jatiwaringin, No. 42, Rt.05/Rw.05, Cipinang Melayu, Kec. Makasar, Jakarta Timur",
+   "yayasan": "Yayasan Rahmatan Lil Alamin Indonesia"
+  },
+  {
+   "no": 46,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Jl. Bekasi Timur Raya No.86, Rt.8/Rw.6, Cipinang, Kec. Pulo Gadung, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta.",
+   "yayasan": "Yayasan Kemala Bhayangkari"
+  },
+  {
+   "no": 47,
+   "provinsi": "Dki Jakarta",
+   "kabupaten": "Jakarta Timur",
+   "alamat": "Jl. Merpati 2, Rt.2/Rw.2, Kp. Tengah, Kec. Kramat Jati, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta",
+   "yayasan": "Yayasan Lumbung Unnati Utama"
+  },
+  {
+   "no": 48,
+   "provinsi": "Gorontalo",
+   "kabupaten": "Gorontalo",
+   "alamat": "Jl. Husin Bilondato, Ds. Mongolato, Telaga, Gorontalo, Prov. Gorontalo",
+   "yayasan": "Rumah Nurul Ilm"
+  },
+  {
+   "no": 49,
+   "provinsi": "Gorontalo",
+   "kabupaten": "Pohuwato",
+   "alamat": "Jl. Umahani, Desa Marisa Utara, Marisa, Pohuwato",
+   "yayasan": "Rumah Nurul Ilm"
+  },
+  {
+   "no": 50,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bekasi",
+   "alamat": "Kp Cimahi Rt 07/Rw 03, Desa Sukamahi, Kecamatan Cikarang Pusat, Kabupaten Bekasi, Jawa Barat",
+   "yayasan": "Yayasan Timur Bangkit Peduli"
+  },
+  {
+   "no": 51,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bogor",
+   "alamat": "Jl.M Bakri No 5b Rt 01/ Rw 02 Singajaya Jonggol Bogor 16830",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 52,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Garut",
+   "alamat": "Jl. Garut - Tasikmalaya No.36, Rt.001/Rw.002, Ngamplangsari, Kec. Cilawu, Kabupaten Garut, Jawa Barat",
+   "yayasan": "Persyarikatan Muhammadiyah"
+  },
+  {
+   "no": 53,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jl. Pasundan No. 101, Adiarsa Barat, Kec. Karawang Barat, Karawang, Jawa Barat",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 54,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bandung",
+   "alamat": "Kp Cimenteng Rt 02 Rw 16 Kel. Jagabaya Kec Cimaung",
+   "yayasan": "Yayasan Muhammad Ar Ravi Al Khaidar"
+  },
+  {
+   "no": 55,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bandung",
+   "alamat": "Kp Pesanggrahan Rt 01 Rw 07 Ds Pangalengan Kec Pangalengan Bandung",
+   "yayasan": "Yayasan Buana Mutiara Insani"
+  },
+  {
+   "no": 56,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bandung",
+   "alamat": "Ereng Wetan Rt01/Rw12 Ds Bojongemas Kec Solokan Jeruk Bandung",
+   "yayasan": "Yayasan Buana Mutiara Insani"
+  },
+  {
+   "no": 57,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bandung Barat",
+   "alamat": "Jl. Permata Cimahi Blok A No.7, Rt.005 Rw.012, Kelurahan Tanimulya",
+   "yayasan": "Yayasan Farisa Bakti Persada"
+  },
+  {
+   "no": 58,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bekasi",
+   "alamat": "Perum Vila Mutiara Cikarang B2 No 34 Desa Ciantra, Kec Cikarang Selatan, Bekasi Jawa Barat",
+   "yayasan": "Yayasan Nurut Thoyibah"
+  },
+  {
+   "no": 59,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bekasi",
+   "alamat": "Jl Bawang Raya 11 No 64 Rt 004 Rw 08 Desan Cimuning, Kec Mustikajaya, Kota Bekasi, Jawa Barat",
+   "yayasan": "Yayasan Nurut Thoyibah"
+  },
+  {
+   "no": 60,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Bekasi",
+   "alamat": "Perumahan Bumi Anggrek Blok Q No 8 Desa Rancasari Kec Tambun Utara Bekasi",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 61,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Ciamis",
+   "alamat": "Jl. Ahmad Yani No.221 Rt 002 / Rw 002, Kel. Kertasari, Kec. Ciamis, Ciamis",
+   "yayasan": "Arroja Alarif Ciamis"
+  },
+  {
+   "no": 62,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Ciamis",
+   "alamat": "Dsn. Mekarmulya Rt 004 Rw 005 Ds. Jelat Kec. Baregbeg",
+   "yayasan": "Asra Bakti Maritim"
+  },
+  {
+   "no": 63,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Ciamis",
+   "alamat": "Jl. Puspalubis Bolenglang Kertasari Ciamis",
+   "yayasan": "Yayasan Pendidikan Pondok Pesantren Al Hasan"
+  },
+  {
+   "no": 64,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Ciamis",
+   "alamat": "Dusun Gunungrasa Rt 13 Rw 007 Desa Gunungcupu Kec Sindangkasih Ciamis",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 65,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Cianjur",
+   "alamat": "Jl. Abdullah Bin Nuh Rt 03 Rw 07 Desa Nagrak Kec Cianjur Jawa Barat 43211",
+   "yayasan": "Yayasan Tunas Mekar Cianjur"
+  },
+  {
+   "no": 66,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Cianjur",
+   "alamat": "Kp Rancagoong Rt 002 Rw 005 Desa Rancagoong Kec Cilaku Cianjur Jawa Barat 43285",
+   "yayasan": "Yayasan Tunas Mekar Cianjur"
+  },
+  {
+   "no": 67,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Cianjur",
+   "alamat": "Kp. Sukawening Rt/Rw 003/001, Kelurahan Sukamekar, Desa Sukamekar, Kecamatan Sukanagara",
+   "yayasan": "Yayasan Aku Cinta Cianjur"
+  },
+  {
+   "no": 68,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Cirebon",
+   "alamat": "Jl. Pamengkang Raya No. 111 Rt 001/Rw 004",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 69,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Garut",
+   "alamat": "Jl. Garut - Tasikmalaya No.36, Rt.001/Rw.002, Ngamplangsari, Kec. Cilawu, Kabupaten Garut, Jawa Barat",
+   "yayasan": "Persyarikatan Muhammadiyah"
+  },
+  {
+   "no": 70,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Garut",
+   "alamat": "Jl. Raya Bayongbong - Garut No.Km, Rw. 1, Muara Sanding, Kec. Garut Kota, Kabupaten Garut, Jawa Barat 44119",
+   "yayasan": "Yayasan Mualaf Indonesia Timur"
+  },
+  {
+   "no": 71,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Garut",
+   "alamat": "Jl. Limbangan Barat No.16 Da. Cigagade",
+   "yayasan": "Yayasan Cahaya Wirabangsa"
+  },
+  {
+   "no": 72,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Indramayu",
+   "alamat": "Jl. Pesisir Syek Sama&#39;un Rt 01 /Rw 08 Desa Dadap Kecamatan Juntinyuat Kabupaten Indramayu Provinsi Jawa Barat",
+   "yayasan": "Yayasan Buana Mutiara Insani"
+  },
+  {
+   "no": 73,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Indramayu",
+   "alamat": "Jln. Raya Jatibarang Kadipaten Desa Lajer Kec. Tukdana Indramayu",
+   "yayasan": "Yayasan Buana Mutiara Insani"
+  },
+  {
+   "no": 74,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Dusun Krajan Rt 03 Rw 01 Desa Batujaya, Kec Batujaya, Karawang, Jawa Barat",
+   "yayasan": "Yayasan Nurut Thoyibah"
+  },
+  {
+   "no": 75,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jl. H. Mochamad Toyib, Dusun Cibuaya 1, Rt001/Rw001, Desa Cibuaya, Kec. Cibuaya, Karawang",
+   "yayasan": "Yayasan Pendidikan Islam Al Faridiyah"
+  },
+  {
+   "no": 76,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Kp. Babakan Bogor Rt 01 Rw 05 Desa Dawuan Barat, Kec. Cikampek, Karawang",
+   "yayasan": "Yayasan Al Insyirah Firdausy Mobarok"
+  },
+  {
+   "no": 77,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jln.Anjun Kanoman Kel.Karawang Kulon Kec.Karawang Barat",
+   "yayasan": "Yayasan Nurut Thoyibah"
+  },
+  {
+   "no": 78,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jl. Manunggal Xix, Pasirjengkol, Kec. Majalaya, Karawang, Jawa Barat 41388",
+   "yayasan": "Yayasan Pendidikan Alam Jaya"
+  },
+  {
+   "no": 79,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jl.Raya Pangkalan, Ds.Jatilaksana, Kec. Pangkalan, Karawang",
+   "yayasan": "Yayasan Alinsyirah Firdausy Mobarok"
+  },
+  {
+   "no": 80,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Dsn. Barugbug Rt 003/002 Desa Wanasari, Kec.Telukjambe Barat, Karawang",
+   "yayasan": "Yayasan Alinsyirah Firdausy Mobarok"
+  },
+  {
+   "no": 81,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Kp. Budaya Ds. Wadas, Kec. Telukjambe Timur, Karawang",
+   "yayasan": "Yayasan Alinsyirah Firdausy Mobarok"
+  },
+  {
+   "no": 82,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Karawang",
+   "alamat": "Jl. Pasir Panggang Dusun Gempol Girang Rt 12 /Rw 7 Desa Sukamakmur, Telukjambe Timur, Karawang, Jawa Barat",
+   "yayasan": "Yayasan Naraya Jati Luhur"
+  },
+  {
+   "no": 83,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl Elang No 37 Rt/Rw 03/11 Kelurahan Maleber Kecamatan Andir",
+   "yayasan": "Yayasan Suyono Mihartawijaya"
+  },
+  {
+   "no": 84,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl. Sahardjo, Kel. Sukamiskin, Kec. Arcamanik, Kota Bandung, Jawa Barat",
+   "yayasan": "Yayasan Kemala Bhayangkari"
+  },
+  {
+   "no": 85,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl.Raya Kopo No.176 , Babakan Asih , Kec. Bojong Loa Kaler , Kota Bandung,40232",
+   "yayasan": "Darul Akrim Inayah"
+  },
+  {
+   "no": 86,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl. Brantas No. 30 Kota Bandung",
+   "yayasan": "Yayasan Desa Wisata Qur&#39;an (Hamasah)"
+  },
+  {
+   "no": 87,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl.Rereongan Sarupi",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 88,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jalan Pajajaran No 42, Pasir Kaliki, Bandung",
+   "yayasan": "Yayasan Cahaya Solid Berdaya"
+  },
+  {
+   "no": 89,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl.Reog 21 Turangga Bandung",
+   "yayasan": "Amanah Puri Annisa"
+  },
+  {
+   "no": 90,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl. Ciwastra No. 189 Rt 006 Rw 008, Kel. Mekarjaya, Kec. Rancasari, Kota Bandung",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 91,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bandung",
+   "alamat": "Jl. Setrawangi Selatan I No.1 Rt 02 Rw 04 Sukagalih Sukajadi",
+   "yayasan": "Yayasan Suyono Mihartawijaya"
+  },
+  {
+   "no": 92,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Banjar",
+   "alamat": "Jln.Ps Langensari Desa Muktisari",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 93,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Banjar",
+   "alamat": "Dusun Pananjung Timur Rt 25 Rw 06",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 94,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Bekasi",
+   "alamat": "Jl. Kh. Agus Salim Gg. Angsana 1 No.158 Rt.008/Rw.007, Bekasi Jaya,",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 95,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Depok",
+   "alamat": "Jl. Alternatif Transyogi No. 23 Kel. Harjamukti, Kec. Cimanggis Depok",
+   "yayasan": "Yayasan Salam Mughni Abadi"
+  },
+  {
+   "no": 96,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Depok",
+   "alamat": "Jl. Mekarsari Raya No.15, Kel. Mekarsari, Cimanggis, Depok",
+   "yayasan": "Yayasan Bina Trubus Swadaya"
+  },
+  {
+   "no": 97,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Depok",
+   "alamat": "Jl. H. Sulaiman No.4, Rt.003/Rw.002, Bedahan, Kec. Sawangan, Kota Depok",
+   "yayasan": "Pt. Jak Farm Nusantara (Jj Catering)"
+  },
+  {
+   "no": 98,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Depok",
+   "alamat": "Jl. K.H.M. Yusuf Raya No.3, Mekar Jaya, Kec. Sukmajaya, Kota Depok",
+   "yayasan": "Yayasan Salam Mughni Abadi"
+  },
+  {
+   "no": 99,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Sukabumi",
+   "alamat": "Jl Arif Rahman Hakim No 75",
+   "yayasan": "Project Local Sukabumi"
+  },
+  {
+   "no": 100,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Perum Griya Mangin Persada Blok. C No 37 Rt.04 Rw.05 Kel. Bungursari Kec. Bungursari Kota Tasikmalaya",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 101,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Kp. Ranggon Rt. 001 Rw 003 Kel. Setianagara Kec. Cibeureum",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 102,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl. Terusan Bca No.8, Tuguraja, Kec. Cihideung, Tasikmalaya, Jawa Barat",
+   "yayasan": "Yayasan Madaarisul ‘Uluum Cihideung Balong"
+  },
+  {
+   "no": 103,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl. Cihideung Balong No. 46 Kel. Nagarawangi Kec.Cihideung Kota Tasikmalaya",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 104,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl. Ir. H. Juanda, Kel. Panglayungan, Kec. Cipedes, Kotatasikmalaya",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 105,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jalan Noenoeng Tisnasaputra No. 29, Kahuripan, Tawang, Kota Tasikmalaya, Jawa Barat",
+   "yayasan": "Yayasan Madaarisul ‘Uluum Cihideung Balong"
+  },
+  {
+   "no": 106,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl. Batik-Raya, Karsamenak, Kec. Kawalu, Tasikmalaya, Jawa Barat",
+   "yayasan": "Yayasan Madaarisul ‘Uluum Cihideung Balong"
+  },
+  {
+   "no": 107,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl. Setiawargi, Setiawargi, Kec. Tamansari, Tasikmalaya, Jawa Barat",
+   "yayasan": "Yayasan Madaarisul ‘Uluum Cihideung Balong"
+  },
+  {
+   "no": 108,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jl Setia Mulya Rt. 01 Rw 06 Kel. Setia Mulya Kec. Tamansari",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 109,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kota Tasikmalay a",
+   "alamat": "Jalan Siliwangi No.97a/B Rt 01 Rw 08",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 110,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kuningan",
+   "alamat": "Jl. Desa Sindangsuka Rt 003 Rw 002 Blok Puhun",
+   "yayasan": "Permata Bunda"
+  },
+  {
+   "no": 111,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Pangandara n",
+   "alamat": "Desa Kertajaya, Dusun Kertajaya Rt/04, Rw/04, Kec. Mangunjaya, Pangandaran",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 112,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Purwakarta",
+   "alamat": "Jl. Raya Ciwangi Desa Ciwangi Kec. Bungur Sari Purwakarta",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 113,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Dusun Binong Tengah Rt/Rw 014/004, Desa Citrajaya, Kec. Binong",
+   "yayasan": "Yayasan Al Khawarizmi Eco Pedagogik"
+  },
+  {
+   "no": 114,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Raya Jungklang No.08 Ds. Mulyasari Kec. Binong Subang 41253",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 115,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Dusun Kertamukti Rt 06 Rw 2 Desa Jayamukti Kecamatan Blanakan Kabupaten Subang",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 116,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Dusun Dukuh Tengah Rt.1 Rw.3 Ds. Dukuh Kec. Ciasem",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 117,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Kp. Babakan Simpar Rt/Rw 015/006, Desa Simpar, Kec. Cipunagara,",
+   "yayasan": "Yayasan Al Khawarizmi Eco Pedagogik"
+  },
+  {
+   "no": 118,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Raya Dawuan Cisampih Desa. Dawuan Kidul Kecamatan Dawuan",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 119,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Kp. Sukagalih Desa Sukamulya Kec. Pagaden Subang",
+   "yayasan": "Yayasan Graha Prima Kencana"
+  },
+  {
+   "no": 120,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Raya Rancasari Km.4 Rt.10 / Rw.4 Ds. Rancasari",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 121,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Cece Zakaria - Pamanukan",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 122,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Ra Kartini No.55 Kel. Pasirkareumbi Kec. Subang",
+   "yayasan": "Yayasan Graha Prima Kencana"
+  },
+  {
+   "no": 123,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Jl. Raya Pantura No. 09 Desa Batangsari Kecamatan Sukasari Kabupaten Subang",
+   "yayasan": "Yayasan Mishbahul Huda Pamanukan"
+  },
+  {
+   "no": 124,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Subang",
+   "alamat": "Kp. Kapol Desa Sirap Rt 19 Rw 05 Kec. Tanjungsiang",
+   "yayasan": "Yayasan Graha Prima Kencana"
+  },
+  {
+   "no": 125,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sukabumi",
+   "alamat": "Jl. Kadudampit No.Km. 3, Rt.16/Rw.03, Gunungjaya,",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 126,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sukabumi",
+   "alamat": "Jl. Cikiray Kidul, Sukamanah, Kec. Cisaat, Kabupaten Sukabumi, Jawa Barat 43152",
+   "yayasan": "Yayasan Sunanul Fitroh"
+  },
+  {
+   "no": 127,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sukabumi",
+   "alamat": "Jl. Merbabu No. 7, Kp Babakan Jampang Rt002/Rw010, Karang Tengah, Gunung Puyuh, Sukabumi, Jawa Barat",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 128,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sukabumi",
+   "alamat": "Jl Sukabumi Cianjur Km 7 Kp Cipetir No 888 Desa. Prianganjaya Kec. Sukalarang",
+   "yayasan": "Gianty Kartika Jembar"
+  },
+  {
+   "no": 129,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sukabumi",
+   "alamat": "Jl. Pelabuhan Ratu Kp. Baeud Rt01/Rw03 Desa. Warungkiara Kecamatan Warungkiara Kabupaten Sukabumi Prov. Jawa Barat",
+   "yayasan": "Yayasan Kiara Untuk Bangsa"
+  },
+  {
+   "no": 130,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sumedang",
+   "alamat": "Jl. Palasari No 15 003/001 Kotakulon, Sumedang Selatan, Sumedang",
+   "yayasan": "Yayasan Buana Mutiara Insani"
+  },
+  {
+   "no": 131,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sumedang",
+   "alamat": "Marga Mulya I Rt.01 Rw.08 Desa Mekar Rahayu",
+   "yayasan": "Yayasan Insan Digdaya Mandala"
+  },
+  {
+   "no": 132,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Sumedang",
+   "alamat": "Jl. Raya Raden Ali Sadikin Ex Bengkel Lisna Motor",
+   "yayasan": "Kuwu Asti"
+  },
+  {
+   "no": 133,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Kp. Madur Rt. 002 Rw. 001 Bojongasih Kec. Bojongasih Tasikmalaya Jawa Barat",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 134,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Kp. Ranca Kuya Rt03/Rw03 Ds. Sukamantri",
+   "yayasan": "Yayasan Al- Hidayah Babakan Ciselang"
+  },
+  {
+   "no": 135,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Kp. Banceuy, Rt. 04 Rw. 07 Desa. Singajaya, Kec. Cibalong, Tasikmalaya Jawa Barat 46185",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 136,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl.Cigalontang Rt 005 Rw 002 Desa Jayapura",
+   "yayasan": "Yayasan Al- Hidayatuttaufik"
+  },
+  {
+   "no": 137,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl Cilembang Rt.01 Rw.15 Kel. Cilembang Kec.Cihideung Tasikmalaya",
+   "yayasan": "Farnatul Muflihin"
+  },
+  {
+   "no": 138,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Kp. Anggalasan Rt 001/ Rw 001, Desa Kertarahayu, Kec. Jatiwaras, Tasikmalaya",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 139,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl. Karaha Bodas, Cirando 03/01, Desa Kadipaten, Kec Kadipaten",
+   "yayasan": "Yayasan Suyono Mihartawijaya"
+  },
+  {
+   "no": 140,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl. Rta. Prawira Adiningrat No.11, Margaluyu, Kec. Manonjaya,",
+   "yayasan": "Yayasan Madaarisul ‘Uluum Cihideung Balong"
+  },
+  {
+   "no": 141,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl. Warung Sumedang Rt 31 Rw O4 Desa Manonjaya Kec Manonjaya Tasikmalaya",
+   "yayasan": "Yayasan Asra Bakti Maritim"
+  },
+  {
+   "no": 142,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Kp. Cisumur Rt 21 Rw 07 Desa Margalaksana Kecamatan Sukaraja Kabupaten Tasikmalaya",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 143,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl. Raya Sukarame No . 08 Sukarame Tasikmalaya",
+   "yayasan": "Yayasan Amanah Puri Annisa"
+  },
+  {
+   "no": 144,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Tasikmalay a",
+   "alamat": "Jl. Raya Cikalong, Kp Mangkabaya, Rt 005/ Rw 006 Desa Mandalajaya, Kec. Cikalong, Tasikmalaya",
+   "yayasan": "Yayasan Suyono Mihartawijaya"
+  },
+  {
+   "no": 145,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kab. Bogor",
+   "alamat": "Ruko Citra Indah Bukit Permai Blok O 01-12 Rt 00 Rw 012, Sukamaju,Jonggol Kab Bogor",
+   "yayasan": "Yayasan Olivia Alaniasi Bagi Pendidikan"
+  },
+  {
+   "no": 146,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kab. Purwakarta",
+   "alamat": "Jl. Gn. Sunda, kapling PEMDA, RT 005/RW 005, Kel. Ciseureuh, Kec. Purwakarta, Kab. Purwakarta",
+   "yayasan": "Yayasan AL Insyirah Firdausi Mubarok"
+  },
+  {
+   "no": 147,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kab. Purwakarta",
+   "alamat": "Kp. Gandasari RT 08 RW 03 Ds Cigelam, Kec. Babakancikaok Kab. Purwakarta",
+   "yayasan": "Yayasan AL Insyirah Firdausi Mubarok"
+  },
+  {
+   "no": 148,
+   "provinsi": "Jawa Barat",
+   "kabupaten": "Kabupaten Bandung Barat",
+   "alamat": "Jl. Permata Cimahi Blok A No.7, Rt.005 Rw.012, Kelurahan Tanimulya",
+   "yayasan": "Yayasan Farisa Bakti Persada"
+  },
+  {
+   "no": 149,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl.Raya Ajibarang - Bumiayu,Ds.Cikawung Rt 001 Rw 003. Kec.Pekuncen Banyumas",
+   "yayasan": "Bentang Banyumas Sejahtera"
+  },
+  {
+   "no": 150,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl Jend Soedirman Gg Ceremai No 12 Rt 01 Rw 09 Kel Rejasari Kec Purwokerto Barat Banyumas Jawa Tengah",
+   "yayasan": "Bentang Banyumas Sejahtera"
+  },
+  {
+   "no": 151,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Dusun Ii Karangmangu Desa Karangmangu Kec Baturraden Banyumas Jawatengah",
+   "yayasan": "Bentang Banyumas Sejahtera"
+  },
+  {
+   "no": 152,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl Wahid Hasyim No 77 Rt 03 Rw 10 Karang Klesem Kec Purwokerto Selatan Banyumas Jawa Tengah",
+   "yayasan": "Bentang Banyumas Sejahtera"
+  },
+  {
+   "no": 153,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl. Stasiun, Nusamangir Rt 02 Rw 01, Kemranjen, Banyumas , Jawa Tengah",
+   "yayasan": "Bentang Banyumas Sejahtera"
+  },
+  {
+   "no": 154,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl Stadion Mini I, Rt 005 Rw 004, Kel. Purwokerto Kulon",
+   "yayasan": "Alrahma Bhakti Jatisaba"
+  },
+  {
+   "no": 155,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Banyumas",
+   "alamat": "Jl A Yani Rt 02 Re 03, No 4 , Dusun Ii Sokaraja Kidul, Sokaraja Kidul, Kec. Sokaraja, Kabupaten Banyumas, Jawa Tengah",
+   "yayasan": "Alrahma Bhakti Jatisaba"
+  },
+  {
+   "no": 156,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "BATANG",
+   "alamat": "Jl. RE Martadinata No.250, Panjangkaran Kidul, Karangasem Utara, Kec. Batang, Kabupaten Batang, Jawa Tengah 51216",
+   "yayasan": "Yayasan Tirto Mirah Asih"
+  },
+  {
+   "no": 157,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Blora",
+   "alamat": "Jl Taman Makam Pahlawan, Kelurahan Tegalgunung, Kec. Blora, Blora",
+   "yayasan": "Yayasan Tri Boga Nusantara"
+  },
+  {
+   "no": 158,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Blora",
+   "alamat": "Jl. Randublatung - Cepu Km.4 Dukuh Jape Desa Sumberejo, Randublatung",
+   "yayasan": "Ittibaa Ul Ihsan"
+  },
+  {
+   "no": 159,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Brebes",
+   "alamat": "Karangsawah, Ds.Larangan, Kec. Larangan, Brebes",
+   "yayasan": "Yayasan Cahaya Al Barkah Bambuduri"
+  },
+  {
+   "no": 160,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Brebes",
+   "alamat": "Jl. Kyai Haji Muhtadi No.10 Rt.03/Rw.04 Desa Karangmalang, Kec.Ketanggungan,Brebes",
+   "yayasan": "Yayasan Nawa Bhakti Pertiwi Kuta (Ganti Yayasan)"
+  },
+  {
+   "no": 161,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Brebes",
+   "alamat": "Jl. D Sudrajat No.4 Rt 01 Rw 01 Desa Grinting Kec. Bulakamba Brebes",
+   "yayasan": "Bumdes &quot;Moncer Bae&quot;"
+  },
+  {
+   "no": 162,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Brebes",
+   "alamat": "Jl. Raya Benda, Benda Kec Sirampog Brebes Jawa Tengah",
+   "yayasan": "Yayasan Pendidikan Pondok Pesantren Al Hikmah 1"
+  },
+  {
+   "no": 163,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Jepara",
+   "alamat": "Jl. Ahmad Yani No.14, Rt 03 Rw 01, Kec. Jepara",
+   "yayasan": "Yayasan Annajah Insan Cendekia"
+  },
+  {
+   "no": 164,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Jepara",
+   "alamat": "Jl. Raya Welahan, Desa Kriyan, Rt 12 Rw 03, Kec. Kalinyamatan",
+   "yayasan": "Yayasan Annajah Insan Cendekia"
+  },
+  {
+   "no": 165,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Karangany ar",
+   "alamat": "Grenjeng Rt 03 Rw 02. Desa Dayu. Kec. Gondangrejo. Karanganyar",
+   "yayasan": "Yayasan Melati Santina Utama"
+  },
+  {
+   "no": 166,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Kota Semarang",
+   "alamat": "Jl. Pengilon Ii, Bringin, Kec. Ngaliyan, Kota Semarang, Jawa Tengah 50189",
+   "yayasan": "Yayasan Tirto Mirah Asih"
+  },
+  {
+   "no": 167,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Kudus",
+   "alamat": "Dusun Pecinan Rt 3 Rw 1 Desa Bulungcangkring Kec. Jekulo Kudus",
+   "yayasan": "Yayasan Al Chalimi"
+  },
+  {
+   "no": 168,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Pati",
+   "alamat": "Tambakromo,Kec Tambakromo",
+   "yayasan": "Yayasan Panji Merah Putih 07"
+  },
+  {
+   "no": 169,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Purbalingg a",
+   "alamat": "Rt 2/Rw 10 Dusun 5, Desa Kajongan, Kec. Bojongsari, Purbalingga",
+   "yayasan": "Yayasan Al Amin Brubahan Barokah"
+  },
+  {
+   "no": 170,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Purworejo",
+   "alamat": "Jl. Magelang Km 11, Rt 003/004, Kaliboto, Kecamatan Bener, Kabupaten Purworejo, Jawa Tengah",
+   "yayasan": "Yayasan Nastiti Harapan Mulia"
+  },
+  {
+   "no": 171,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Purworejo",
+   "alamat": "Rt 01/ Rw 05, Bandung, Kutoarjo, Purworejo",
+   "yayasan": "Yayasan Dapur Khadija Aisyah"
+  },
+  {
+   "no": 172,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Purworejo",
+   "alamat": "Depokrejo Rt01 / Rw01, Kecamatan Ngombol, Kabupaten Purworejo",
+   "yayasan": "Yayasan Miftahus Shudur Kedunglo"
+  },
+  {
+   "no": 173,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Surakarta",
+   "alamat": "Jl. Brigjen Slamet Riyadi No. 392",
+   "yayasan": "Yayasan Sri Abadi Makmur"
+  },
+  {
+   "no": 174,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Kota Tegal",
+   "alamat": "Perumahan Jaya Permai Jl. Abdul Syukur No.6 Rt.01 Rw. 13 Kel. Margadana Kec. Margadana Kota Tegal - Jateng",
+   "yayasan": "Yayasan Insan Membangun Indonesia"
+  },
+  {
+   "no": 175,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Magelang",
+   "alamat": "Jl. Mayjend Bambang Soegeng Km 5, Sumberrejo, Mertoyudan, Magelang",
+   "yayasan": "Persyarikatan Muhammadiyah"
+  },
+  {
+   "no": 176,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Sragen",
+   "alamat": "Jl Batanghari Sumengko, Sragen Tengah, Sragen",
+   "yayasan": "Persyarikatan Muhammadiyah"
+  },
+  {
+   "no": 177,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Grobogan",
+   "alamat": "Jl. D. I. Panjaitan No.11, Brambangan, Purwodadi, Kec. Purwodadi, Kabupaten Grobogan, Jawa Tengah",
+   "yayasan": "Yayasan Insan Membangun Indonesia"
+  },
+  {
+   "no": 178,
+   "provinsi": "Jawa Tengah",
+   "kabupaten": "Kota Semarang",
+   "alamat": "Kawasan Atem Technopark Jl. Kol. Warsito Soegiarto Km 2,5 Kelurahan Sadeng, Kecamatan Gunungpati, Kota Semarang, Jawa Tengah",
+   "yayasan": "Yayasan Bina Bangsa"
+  },
+  {
+   "no": 179,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Bondowos o",
+   "alamat": "Jl. Raya Dadapan No. 17- 19 Km 07, Dadapan, Kec. Grujugan",
+   "yayasan": "Yayasan Al- Ishlah Bondowoso"
+  },
+  {
+   "no": 180,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Gresik",
+   "alamat": "Perumahan Jaya Permai Jl. Abdul Syukur No.6 Rt.01 Rw. 13 Kel. Margadana Kec. Margadana Kota Tegal - Jateng",
+   "yayasan": "Yayasan Sentra Tama Edukasi Indonesia"
+  },
+  {
+   "no": 181,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Jember",
+   "alamat": "Jl. Cempedak No. 97, Rt 04/Rw 06, Lingkungan Kreongan Atas, Kel Jember Lor, Kec Patrang, Jember, Jawa Timur",
+   "yayasan": "Yayasan Pondok Pesantren Bustanul Ulum"
+  },
+  {
+   "no": 182,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Kediri",
+   "alamat": "Jl. Imam Bonjol, Ngadirejo, Kec. Kota, Kota Kediri, Jawa Timur 64122",
+   "yayasan": "Yayasan Harapan Anak Sekolah Sukses"
+  },
+  {
+   "no": 183,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Madiun",
+   "alamat": "Jl. Sedoro No.20, Banjarejo, Kec.Taman, Kota Madiun",
+   "yayasan": "Yayasan Karya Indonesia Emas"
+  },
+  {
+   "no": 184,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Malang",
+   "alamat": "Jl. Yos Sudarso No 14 Kasin Kec.Klojen Kota Malang",
+   "yayasan": "Yayasan Salman Peduli Berkarya"
+  },
+  {
+   "no": 185,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Surabaya",
+   "alamat": "Kesatrian Marinir Ewa Pangalila Kodikmar Jl. Golf 1 No 1, Kelurahan Gunung Sari, Kecamatan Dukuh Pakis, Kota Surabaya, Provinsi Jawa Timur 60224",
+   "yayasan": "Yayasan Salman Peduli Berkarya"
+  },
+  {
+   "no": 186,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Surabaya",
+   "alamat": "Jl Kesatrian Sutedi Senaputra, Kel Karangpilang, Kec Karangpilang, Kota Surabaya, Jawa Timur",
+   "yayasan": "Yayasan Salman Peduli Berkarya"
+  },
+  {
+   "no": 187,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Kota Surabaya",
+   "alamat": "Jl Ngagel Jaya Barat No.8 Kel Pucang Sewu Kec Gubeng Kota Surabaya Jawa Timur",
+   "yayasan": "Yayasan Oda Masa Depan Utama"
+  },
+  {
+   "no": 188,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Lamongan",
+   "alamat": "Jl. Raya Plaosan - Babat No. 51, Kec. Babat, Lamongan, Jawa Timur",
+   "yayasan": "Yayasan As - Salaam"
+  },
+  {
+   "no": 189,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Mojokerto",
+   "alamat": "Komplek Pp. Amanatul Ummah, Jl. Raya Kh. Abdul Chalim No.1, Paras, Kembangbelor, Kec. Pacet, Mojokerto, Jawa Timur 61374",
+   "yayasan": "Yayasan Amanatul Ummah Surabaya"
+  },
+  {
+   "no": 190,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Mojokerto",
+   "alamat": "Jl. Tirtowening No. 2 Kembang, Belor, Kembangbelor, Kec. Pacet, Kabupaten Mojokerto, Jawa Timur",
+   "yayasan": "Yayasan Amanatul Ummah Surabaya"
+  },
+  {
+   "no": 191,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Pamekasan",
+   "alamat": "Jl. Raya Banyubulu Rt004 Rw004, Desa Banyubulu, Kec. Proppo, Pamekasan",
+   "yayasan": "Yayasan Abdul Mu&#39;thi Pamekasan"
+  },
+  {
+   "no": 192,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Pamekasan",
+   "alamat": "Jl. Raya Teja, Rw. 03 Desa Jungcangcan, Kec Pamekasan, Pamekasan, Jawa Timur",
+   "yayasan": "Yayasan Insan Kamil"
+  },
+  {
+   "no": 193,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Banyuwan gi",
+   "alamat": "Dusun Krajan-Desa Tamansari",
+   "yayasan": "Mas Ami Internasional"
+  },
+  {
+   "no": 194,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Pamekasan",
+   "alamat": "Jl. Raya Sotabar, Dsn. Rokem Barat, Ds. Sotabar, Kec. Pasean, Pamekasan, Jawa Timur",
+   "yayasan": "Yayasan Pendidikan Sosial Dan Dakwah Darus Salam"
+  },
+  {
+   "no": 195,
+   "provinsi": "Jawa Timur",
+   "kabupaten": "Pamekasan",
+   "alamat": "Dusun Bagunung, Desa Ponjanan Timur, Kec Batu Marmar Pamekasan",
+   "yayasan": "Yayasan Pendidikan Sosial Dan Dakwah Darus Salam"
+  },
+  {
+   "no": 196,
+   "provinsi": "Kalimantan Barat",
+   "kabupaten": "Ketapang",
+   "alamat": "Jl. Irama Samudra Desa Suka Baru, Kec. Benua Kayong, Ketapang",
+   "yayasan": "Yasasan Ibnul Hasan Bercita"
+  },
+  {
+   "no": 197,
+   "provinsi": "Kalimantan Barat",
+   "kabupaten": "Ketapang",
+   "alamat": "Jl. Gatot Subroto Desa Paya Kumang, Kec.Delta Pawan, No. 140",
+   "yayasan": "Yasasan Ibnul Hasan Bercita"
+  },
+  {
+   "no": 198,
+   "provinsi": "Kalimantan Barat",
+   "kabupaten": "Ketapang",
+   "alamat": "Jl. Pesaguan Kanan, Kec Matan Hilir Selatan, Kab. Ketapang",
+   "yayasan": "Yayasan Nur Ilahi Al-Islami"
+  },
+  {
+   "no": 199,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Hulu Sungai Selatan",
+   "alamat": "Jl. A. Yani Km. 4 Rt.002 Rw.001 Gambah Luar, Kandangan",
+   "yayasan": "Yayasan Al Futuwwah Kandangan"
+  },
+  {
+   "no": 200,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Hulu Sungai Tengah",
+   "alamat": "Jl. P. H. M. Noor, Kelurahan Barabai Barat",
+   "yayasan": "Yayasan Al Futuwwah Kandangan"
+  },
+  {
+   "no": 201,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Kota Banjarmasi n",
+   "alamat": "Jl. Simpang Telawang No. 52 Rt. 07 Rw.01 Kelurahan Kertak Baru Ilir",
+   "yayasan": "Yayasan Cahaya Kesejahteraan Madani"
+  },
+  {
+   "no": 202,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Kotabaru",
+   "alamat": "Jl Hidayah Rt 013, Semayap",
+   "yayasan": "Yayasan Cahaya Kesejahteraan Madani"
+  },
+  {
+   "no": 203,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Tanah Bumbu",
+   "alamat": "Jl. Kodeko Km.2 Desa Gunung Antasari",
+   "yayasan": "Yayasan Cahaya Kesejahteraan Madani"
+  },
+  {
+   "no": 204,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Tanah Laut",
+   "alamat": "Jl. Empat Lima No.18 Sarang Halang",
+   "yayasan": "Yayasan Cahaya Kesejahteraan Madani"
+  },
+  {
+   "no": 205,
+   "provinsi": "Kalimantan Selatan",
+   "kabupaten": "Tapin",
+   "alamat": "Jl. Jendral Sudirman Komplek Griya Rantau Asri Blok C No 05",
+   "yayasan": "Yayasan Forum Relawan Jaber"
+  },
+  {
+   "no": 206,
+   "provinsi": "Kepulaua n Bangka Belitung",
+   "kabupaten": "Bangka Barat",
+   "alamat": "Jl. Gang Bioskop Rt 15 Rw 15 Kelurahan Kelapa",
+   "yayasan": "Yayasan Prabu Center Kosong Delapan"
+  },
+  {
+   "no": 207,
+   "provinsi": "Kepulaua n Bangka Belitung",
+   "kabupaten": "Pangkal Pinang",
+   "alamat": "Jl. Adhiyaksa Kelurahan Kacang Pedang Kec. Gerunggang Kota Pangkalpinang Provinsi Bangka Belitung",
+   "yayasan": "Yayasan Prabu Center Kosong Delapan"
+  },
+  {
+   "no": 208,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Karimun",
+   "alamat": "Perumahan Bukit Balai Permai. Jln Kenanga No 53. Kelurahan Kapling Rt 01 Rw 02 Tebing Kanupaten Karimun Provinsi Kepulauan Riau",
+   "yayasan": "Yayasan Kali Kedua Indonesia"
+  },
+  {
+   "no": 209,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Kota Batam",
+   "alamat": "Blok D No. 18, Jl. Tiban I, Patam Lestari",
+   "yayasan": "Yayasan Mataram Jaya Sentosa"
+  },
+  {
+   "no": 210,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Kota Batam",
+   "alamat": "Teluk Pandan Blok G No 5 Kec. Batu Aji Kota Batam",
+   "yayasan": "Pasundan Bakti Pertiwi"
+  },
+  {
+   "no": 211,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Batam",
+   "alamat": "Pantai Mak Dare Kampung Melayu Rt.01 / Rw.08. Kelurahan Batu Besar Kecamatan Nongsa Batam",
+   "yayasan": "Darush Sholihin Batam"
+  },
+  {
+   "no": 212,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Karimun",
+   "alamat": "Jl. Parit Baru Rt 005/Rw 001, Desa Sei Sebesi, Kab. Karimun, Kundur",
+   "yayasan": "Darush Sholihin Batam"
+  },
+  {
+   "no": 213,
+   "provinsi": "Kepulaua n Riau",
+   "kabupaten": "Kota Batam",
+   "alamat": "Ruko Greenland Block V No. 4 Rt 005 /Rw002, Kel. Teluk Tering, Kec, Batam Kota",
+   "yayasan": "Darush Sholihin Batam"
+  },
+  {
+   "no": 214,
+   "provinsi": "Lampung",
+   "kabupaten": "Bandar Lampung",
+   "alamat": "Pengajaran",
+   "yayasan": "Yayasan Alrafaeyza Malik Nurman"
+  },
+  {
+   "no": 215,
+   "provinsi": "Lampung",
+   "kabupaten": "Bandar Lampung",
+   "alamat": "Sukarame",
+   "yayasan": "Yayasan Alrafaeyza Malik Nurman"
+  },
+  {
+   "no": 216,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Lampung Selatan",
+   "alamat": "Jl.Raya Pemanggilan Dusun, Jl. Srimulyo 2 Gg. Sejahtera 5, Pemanggilan,Kec.Natar,La mpung Selatan",
+   "yayasan": "Bassam Catering"
+  },
+  {
+   "no": 217,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Lampung Selatan",
+   "alamat": "Dusun Iv Rt012/007 Gg. Kutilang, Way Hui, Kec. Jati Agung, Lampung Selatan",
+   "yayasan": "Juno Catering"
+  },
+  {
+   "no": 218,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Mesuji",
+   "alamat": "Brabasan, Kec. Tj. Raya, Kabupaten Mesuji, Lampung",
+   "yayasan": "Berkah Manfaat"
+  },
+  {
+   "no": 219,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Pesawaran",
+   "alamat": "Jl. A. Yani, Ds. Tamansari, Kec. Gedong Tataan, Pesawaran",
+   "yayasan": "Dapur Syalu"
+  },
+  {
+   "no": 220,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Tulang Bawang",
+   "alamat": "Jl. Ethanol Rt. 01 Rw.06 Ds. Tunggal Warga, Kec. Banjar Agung, Tulang Bawang",
+   "yayasan": "Dapur Berlian"
+  },
+  {
+   "no": 221,
+   "provinsi": "Lampung",
+   "kabupaten": "Kabupaten Tulang Bawang Barat",
+   "alamat": "Pulung Kencana Rk 2/Rt 3, Kec. Tulang Bawang Tengah, Tulang Bawang Barat",
+   "yayasan": "Catering Barokah Permai"
+  },
+  {
+   "no": 222,
+   "provinsi": "Lampung",
+   "kabupaten": "Lampung Selatan",
+   "alamat": "Natar",
+   "yayasan": "Yayasan Alrafaeyza Malik Nurman"
+  },
+  {
+   "no": 223,
+   "provinsi": "Lampung",
+   "kabupaten": "Lampung Timur",
+   "alamat": "Desa Taman Cari, Kec. Purbolinggo, Lampung Timur, Rt/Rw: 015/07",
+   "yayasan": "Yayasan Indonesia Food Security Review"
+  },
+  {
+   "no": 224,
+   "provinsi": "Lampung",
+   "kabupaten": "Lampung Timur",
+   "alamat": "Srimenanti",
+   "yayasan": "Ahmad Faisol Sb"
+  },
+  {
+   "no": 225,
+   "provinsi": "Lampung",
+   "kabupaten": "Pesawaran",
+   "alamat": "Kurungan Nyawa",
+   "yayasan": "Yayasan Alrafaeyza Malik Nurman"
+  },
+  {
+   "no": 226,
+   "provinsi": "Lampung",
+   "kabupaten": "Pringsewu",
+   "alamat": "Tulung Agung",
+   "yayasan": "Yayasan Bangun Sukses Mandiri"
+  },
+  {
+   "no": 227,
+   "provinsi": "Lampung",
+   "kabupaten": "Way Kanan",
+   "alamat": "Lembahsung",
+   "yayasan": "Yayasan Prabu Center Kosong Delapan"
+  },
+  {
+   "no": 228,
+   "provinsi": "Lampung",
+   "kabupaten": "Way Kanan",
+   "alamat": "Tamansari",
+   "yayasan": "Yayasan Prabu Center Kosong Delapan"
+  },
+  {
+   "no": 229,
+   "provinsi": "Lampung",
+   "kabupaten": "Way Kanan",
+   "alamat": "Bakti Nagara",
+   "yayasan": "Yayasan Cahaya Langowan Nusantara"
+  },
+  {
+   "no": 230,
+   "provinsi": "Maluku",
+   "kabupaten": "Kota Ambon",
+   "alamat": "Jl. Raya Stain, Batu Merah, Kota Ambon",
+   "yayasan": "Yayasan Seram Raya Al Aziz"
+  },
+  {
+   "no": 231,
+   "provinsi": "Maluku",
+   "kabupaten": "Kota Ambon",
+   "alamat": "Jl.Amanhuse, Lorong Sipadore Desa Erie",
+   "yayasan": "Yayasan Pelangi Maluku"
+  },
+  {
+   "no": 232,
+   "provinsi": "Maluku",
+   "kabupaten": "Kota Ambon",
+   "alamat": "Jl. Dr. Kayadoe, Kel Kudamati, Nusaniwe Kota Ambon",
+   "yayasan": "Yayasan Pelangi Maluku"
+  },
+  {
+   "no": 233,
+   "provinsi": "Maluku",
+   "kabupaten": "Seram Bagian Barat",
+   "alamat": "Desa Kamal, Kairatu Barat",
+   "yayasan": "Yayasan Seram Raya Al Aziz"
+  },
+  {
+   "no": 234,
+   "provinsi": "Papua",
+   "kabupaten": "Kab. Jayapura",
+   "alamat": "Puspenka Hawai Sentani Kab. Jayapura",
+   "yayasan": "Yayasan Prabu 08"
+  },
+  {
+   "no": 235,
+   "provinsi": "Papua",
+   "kabupaten": "Kab. Jayapura",
+   "alamat": "Jl. Raya Kemiri Sentani Kab. Jayapura Samping Saga Fresh Pasar Baru",
+   "yayasan": "Yayasan Prabu 08"
+  },
+  {
+   "no": 236,
+   "provinsi": "Papua",
+   "kabupaten": "Jayapura",
+   "alamat": "Kompleks Sit Insan Cendekia Jayapura, Jl. Yowanibi, Rt.001/Rw.011, Doyo Baru, Distrik Waibu, Kabupaten Jayapura, Papua 99369",
+   "yayasan": "Yayasan Insan Cendikia Jayapura"
+  },
+  {
+   "no": 237,
+   "provinsi": "Papua",
+   "kabupaten": "Jayapura",
+   "alamat": "Jalan Samping Kantor Kelurahan Sentani Kota, Kec. Sentani, Kabupaten Jayapura, Papua 99359",
+   "yayasan": "Yayasa Kasih Iman Samuel Papua"
+  },
+  {
+   "no": 238,
+   "provinsi": "Papua",
+   "kabupaten": "Kabupaten Sarmi",
+   "alamat": "Jl. Basecamp Sarmi",
+   "yayasan": "Yayasan Pendidikan Dan Persekolahan Katolik Fransiskus Asisi"
+  },
+  {
+   "no": 239,
+   "provinsi": "Papua",
+   "kabupaten": "Kepulauan Yapen",
+   "alamat": "Jln. Pertamina, Rt.001/001, Barawaikap, Yapen Selatan.",
+   "yayasan": "Kitong Bisa"
+  },
+  {
+   "no": 240,
+   "provinsi": "Papua",
+   "kabupaten": "Kota Jayapura",
+   "alamat": "Jl. Raya Abepura(Depan Kantor Samsat), Kel. Kotabaru , Kec. Abepura, Kota Jayapura, Papua",
+   "yayasan": "Yayasan Bersama Berkarya Papua"
+  },
+  {
+   "no": 241,
+   "provinsi": "Papua",
+   "kabupaten": "Kota Jayapura",
+   "alamat": "Jl. Tobati Holtekamp Pantai Hamadi, Kec. Jayapura Selatan",
+   "yayasan": "Yayasan Anak Sehat Berkualitas"
+  },
+  {
+   "no": 242,
+   "provinsi": "Papua Barat",
+   "kabupaten": "Kaimana",
+   "alamat": "Jl. Perumahan Dpr Air Tiba, Kelurahan Krooy, Kecamatan Kaimana, Kaimana",
+   "yayasan": "Yayasan Kasih El- Shaday"
+  },
+  {
+   "no": 243,
+   "provinsi": "Papua Barat",
+   "kabupaten": "Kaimana",
+   "alamat": "Jl Pasir Lombo, Bantemi, Kelurahan Krooy, Kecamatan Kaimana, Kaimana",
+   "yayasan": "Yayasan Kasih El- Shaday"
+  },
+  {
+   "no": 244,
+   "provinsi": "Papua Barat",
+   "kabupaten": "Teluk Bintuni",
+   "alamat": "Jalur 1 Sp.5 Kampung Argosigemerai",
+   "yayasan": "Rannuan Sangtorayaan Manokwari"
+  },
+  {
+   "no": 245,
+   "provinsi": "Papua Barat Daya",
+   "kabupaten": "Kota Sorong",
+   "alamat": "Jl. Pendidikan No. 22, Kel. Klabulu, Distrik Malaimsimsa, Kota Sorong Papua Barat Daya",
+   "yayasan": "Yayasan Keadilan Papua Sejahtera"
+  },
+  {
+   "no": 246,
+   "provinsi": "Papua Pegunung an",
+   "kabupaten": "Jayawijaya",
+   "alamat": "Jl. Bhayangkara, Distrik Wamena Kota, Kel. Sinakma, Jayawijaya, Prov. Papua Pegunungan.",
+   "yayasan": "Yayasan Kitong Bisa"
+  },
+  {
+   "no": 247,
+   "provinsi": "Papua Pegunung an",
+   "kabupaten": "Jayawijaya",
+   "alamat": "Jl. Bhayangkara, Kec. Wamena, Jayawijaya",
+   "yayasan": "Yayasan Pendidikan Islam ( Yapis ) Di Tanah Papua"
+  },
+  {
+   "no": 248,
+   "provinsi": "Papua Tengah",
+   "kabupaten": "Mimika",
+   "alamat": "Jl. Cendrawasih Sp.3 Kuala Kendana Kelurahan Karang Senang Papua Tengah",
+   "yayasan": "Yayasan Kitong Bisa"
+  },
+  {
+   "no": 249,
+   "provinsi": "Riau",
+   "kabupaten": "Kabupaten Indragiri Hilir",
+   "alamat": "Jl. Kapten Mukhtar No. 12, Tagaraja, Kateman, Indragiri Hilir, Riau",
+   "yayasan": "Yayasan Komunitas Emak Sehat Inhil"
+  },
+  {
+   "no": 250,
+   "provinsi": "Riau",
+   "kabupaten": "Kota Pekanbaru",
+   "alamat": "Jl Ega V No 7-8 Kel Sidomulyo Barat Kec Tuah Madani Kota Pekanbaru",
+   "yayasan": "Yayasan Sinergi Setia Tani"
+  },
+  {
+   "no": 251,
+   "provinsi": "Riau",
+   "kabupaten": "Rokan Hilir",
+   "alamat": "Jl. Lintas Ujung Tanjung - Bagan Siapiapi. Km 35. Pematang Batu Hampar. Kec. Batu Hampar. Rokan. Hilir",
+   "yayasan": "Yayasan Intan Permata Rokan Hilir"
+  },
+  {
+   "no": 252,
+   "provinsi": "Sulawesi Barat",
+   "kabupaten": "Majene",
+   "alamat": "Sirindu",
+   "yayasan": "Yayasan Pundi Amal Nusantara"
+  },
+  {
+   "no": 253,
+   "provinsi": "Sulawesi Barat",
+   "kabupaten": "Polewali Mandar",
+   "alamat": "Jl. H. Andi Depu Kel. Takatidung",
+   "yayasan": "Darul Ilhamiyah Nusantara"
+  },
+  {
+   "no": 254,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bantaeng",
+   "alamat": "Jl. Bangau No. A31, Kel. Pallantikang",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 255,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bantaeng",
+   "alamat": "Panaikang Kel. Bonto Manai",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 256,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bone",
+   "alamat": "Jl. Reformasi",
+   "yayasan": "Wakaf Tunai Indonesia"
+  },
+  {
+   "no": 257,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bone",
+   "alamat": "Jl. Poros Laccori (Samping Pasar Baru Pattiro)",
+   "yayasan": "Wakaf Tunai Indonesia"
+  },
+  {
+   "no": 258,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bulukumba",
+   "alamat": "Jln. Dr. Samratulangi No.Lr.2, Caile",
+   "yayasan": "Darul Ilhamiyah Nusantara"
+  },
+  {
+   "no": 259,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bulukumba",
+   "alamat": "Jalanjang",
+   "yayasan": "Yayasan Perguruan Amanna Gappa Indonesia"
+  },
+  {
+   "no": 260,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bulukumba",
+   "alamat": "Kalumeme",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 261,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bulukumba",
+   "alamat": "Caile",
+   "yayasan": "Sinar Cerah Masa Kini"
+  },
+  {
+   "no": 262,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Sokkolia",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 263,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Bontocinde, Panakkukang",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 264,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Bili-Bili",
+   "yayasan": "Wakaf Tunai Indonesia"
+  },
+  {
+   "no": 265,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Jl. Poros Galesong, Limbung",
+   "yayasan": "Nurul Ilham Makassar"
+  },
+  {
+   "no": 266,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Jln Sultan Hasanuddin No. 40, Pandang-Pandang",
+   "yayasan": "Nurul Ilham Makassar"
+  },
+  {
+   "no": 267,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Luwu Timur",
+   "alamat": "Ussu",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 268,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "Emy Saelan",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 269,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "Gunung Sari",
+   "yayasan": "Nurul Ilham Makassar"
+  },
+  {
+   "no": 270,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "Jl. Racing Centre",
+   "yayasan": "Nurul Ilham Makassar"
+  },
+  {
+   "no": 271,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "Bangkala",
+   "yayasan": "Yasika Center Indonesia"
+  },
+  {
+   "no": 272,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "Batua",
+   "yayasan": "Yayasan Perguruan Amanna Gappa Indonesia"
+  },
+  {
+   "no": 273,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Maros",
+   "alamat": "Jl. Jemb. Lama No. 75, Bontoa",
+   "yayasan": "Wakaf Tunai Indonesia"
+  },
+  {
+   "no": 274,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Maros",
+   "alamat": "Maccini Baji",
+   "yayasan": "Hikmah Lewai Berkah"
+  },
+  {
+   "no": 275,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Maros",
+   "alamat": "Bontoa",
+   "yayasan": "Yayasan Pesantren Mandiri Makasar"
+  },
+  {
+   "no": 276,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pangkajene Dan Kepulauan",
+   "alamat": "Jl. Poros Biringkassi",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 277,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pangkajene Dan Kepulauan",
+   "alamat": "Jl. Ambarala No 20, Tumampua",
+   "yayasan": "Cahaya Bumi Angkasa"
+  },
+  {
+   "no": 278,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Lanrisang",
+   "yayasan": "Berkah Ininnawa Nusantara"
+  },
+  {
+   "no": 279,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Maccorawalie",
+   "yayasan": "Yayasan Biharul Ulum Ma&#39;arif"
+  },
+  {
+   "no": 280,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Temmassarangnge",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 281,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Sindenreng Rappang",
+   "alamat": "Rijang Pittu",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 282,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Soppeng",
+   "alamat": "Jl. Kemakmuran No. 77 Lemba",
+   "yayasan": "Nurul Ilham Makassar"
+  },
+  {
+   "no": 283,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Jalan Poros Pallangga Desa Jenetallasa",
+   "yayasan": "Yayasan Cahaya Langowan Nusantara"
+  },
+  {
+   "no": 284,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bulukumba",
+   "alamat": "Jl. Dato Tiro Ela-ela, Kelurahan Kalumeme",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 285,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Temmassarangnge",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 286,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Makassar",
+   "alamat": "JL. PETTARANI 2 KEL. TAMAMAUNG KOTA MAKASSAR",
+   "yayasan": "YAYASAN TANGAN FATIMA BEKERJA"
+  },
+  {
+   "no": 287,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Bantaeng",
+   "alamat": "JL. GAGAK KEL. PALANTIKANG KAB. BANTAENG",
+   "yayasan": "Yayasan Pendidikan Akasyah"
+  },
+  {
+   "no": 288,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Kab. Pinrang",
+   "alamat": "Jl. Brigjen Katamso No. 27, Kel. Maccorawalie, Kode Pos 91212",
+   "yayasan": "Yayasan Organisasi Masyarakat Sipil Barisan Rakyat Peduli"
+  },
+  {
+   "no": 289,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Maros",
+   "alamat": "Jl. poros makassar maros Darul Istiqamh, KM 25, Kelurahan Bontoa",
+   "yayasan": "Yayasan Pesantren Mandiri Makassar"
+  },
+  {
+   "no": 290,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Jl. Ir Juanda, Kelurahan Maccorawalie, Kecamatan Watang Sawitto, Kabupaten Pinrang, Sulawesi Selatan",
+   "yayasan": "Yayasan Biharul Ulum Ma&#39;arif"
+  },
+  {
+   "no": 291,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Kota Makassar",
+   "alamat": "Jl. Asrama Haji Sudiang, Kel Bakung",
+   "yayasan": "Bentara Sejarah Sulawesi"
+  },
+  {
+   "no": 292,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Jl Tambora Land III Tamanyeleng Kec Barombong Kab Gowa",
+   "yayasan": "Yayasan Pendidikan Akasyah"
+  },
+  {
+   "no": 293,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Gowa",
+   "alamat": "Jl. Poros Sungguminasa Takalar, Kel. Mataallo, Kec. Bajeng, Kab. Gowa",
+   "yayasan": "Yayasan Pendidikan Akasyah"
+  },
+  {
+   "no": 294,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Toraja Utara",
+   "alamat": "Jln.Pongtiku No. 46 Ranteapo, Toraja Utara",
+   "yayasan": "Peleton Media Kasih"
+  },
+  {
+   "no": 295,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Kepulauan Selayar",
+   "alamat": "Jl. Sutoyo No. 4, Kel. Benteng, Kec. Benteng, Kab. Kepulauan Selayar",
+   "yayasan": "Yayasan Planet Bumi Indonesia"
+  },
+  {
+   "no": 296,
+   "provinsi": "Sulawesi Selatan",
+   "kabupaten": "Pinrang",
+   "alamat": "Jl. Monginsidi, Kel. Pacongang, Kec. Paleteang",
+   "yayasan": "Yayasan Wahana Penelitian dan Pengembangan Daerah"
+  },
+  {
+   "no": 297,
+   "provinsi": "Sulawesi Tengah",
+   "kabupaten": "Toli Toli",
+   "alamat": "Panasakan",
+   "yayasan": "Yayasan Berkat Gemilang Nusantara"
+  },
+  {
+   "no": 298,
+   "provinsi": "Sulawesi Tenggara",
+   "kabupaten": "Bombana",
+   "alamat": "Jln. Ahmad Yani, Kasipute",
+   "yayasan": "Darul Ilhamiyah Nusantara"
+  },
+  {
+   "no": 299,
+   "provinsi": "Sulawesi Tenggara",
+   "kabupaten": "Kendari",
+   "alamat": "Wowawanggu",
+   "yayasan": "Yayasan Lazuardi Kendari"
+  },
+  {
+   "no": 300,
+   "provinsi": "Sulawesi Tenggara",
+   "kabupaten": "Kolaka Timur",
+   "alamat": "Woha",
+   "yayasan": "Yayasan Bowo Garuda Indonesia"
+  },
+  {
+   "no": 301,
+   "provinsi": "Sulawesi Tenggara",
+   "kabupaten": "Muna Barat",
+   "alamat": "Barangka",
+   "yayasan": "Arman Hasa"
+  },
+  {
+   "no": 302,
+   "provinsi": "Sulawesi Utara",
+   "kabupaten": "Bolaang Mongondo w",
+   "alamat": "Jl. Trans Sulawesi, Desa Kosio, Kec. Dumoga Tengah, Bolaang Mongondow",
+   "yayasan": "-"
+  },
+  {
+   "no": 303,
+   "provinsi": "Sulawesi Utara",
+   "kabupaten": "Bolaang Mongondo w Utara",
+   "alamat": "Jln. Trans Sulawesi, Desa Tombulang Timur Kec. Pinogaluman Bolmut",
+   "yayasan": "-"
+  },
+  {
+   "no": 304,
+   "provinsi": "Sulawesi Utara",
+   "kabupaten": "Kotamobag u",
+   "alamat": "Jl. Adampe Dolot, Kelurahan Mogolaing Kec. Kotamobagu Barat",
+   "yayasan": "-"
+  },
+  {
+   "no": 305,
+   "provinsi": "Sumatera Barat",
+   "kabupaten": "Kota Payakumb uh",
+   "alamat": "Jalan Raya Gajah Mada Lingkar Utara, Koto Baru",
+   "yayasan": "-"
+  },
+  {
+   "no": 306,
+   "provinsi": "Sumatera Barat",
+   "kabupaten": "Pesisir Selatan",
+   "alamat": "Kampung Luhung, Nagari Pasar Baru, Bayang, Pesisir Selatan",
+   "yayasan": "Yayasan Tuah Cipta Berdaya"
+  },
+  {
+   "no": 307,
+   "provinsi": "Sumatera Selatan",
+   "kabupaten": "Banyuasin",
+   "alamat": "Jl. Thalib Wali No.03-04 Rt.10 Rw.04 Pangkalan Balai Banyuasin Iii Banyuasin",
+   "yayasan": "Yayasan Al Fatih Center Banyuasin"
+  },
+  {
+   "no": 308,
+   "provinsi": "Sumatera Selatan",
+   "kabupaten": "Ogan Komering Ilir",
+   "alamat": "Perumahan Palem Agung, Kel.Kutaraya Rt.011",
+   "yayasan": "Yayasan Sahabat Pelangi"
+  },
+  {
+   "no": 309,
+   "provinsi": "Sumatera Selatan",
+   "kabupaten": "Ogan Komering Ulu",
+   "alamat": "Jln. Imam Bonjol, Simpang 3 Lekis, Rt018/Rw006",
+   "yayasan": "Yayasan Sahabat Pelangi"
+  },
+  {
+   "no": 310,
+   "provinsi": "Sumatera Selatan",
+   "kabupaten": "Palembang",
+   "alamat": "Jl.Sukawinatan Rt.68 Rw.10 No.94",
+   "yayasan": "Yayasan Pendidikan Gani Nusantara"
+  },
+  {
+   "no": 311,
+   "provinsi": "Sumatera Utara",
+   "kabupaten": "Deli Serdang",
+   "alamat": "Jl. M. Yusuf Jintan Desa Percut",
+   "yayasan": "Yayasan Cahaya Semesta Bersama"
+  },
+  {
+   "no": 312,
+   "provinsi": "Sumatera Utara",
+   "kabupaten": "Asahan",
+   "alamat": "Jl. Merpati, Gambir Baru, Kisaran Timur, Asahan,",
+   "yayasan": "Yayasan Insan Mandiri Berkemajuan"
+  },
+  {
+   "no": 313,
+   "provinsi": "Sumatera Utara",
+   "kabupaten": "Kota Binjai",
+   "alamat": "Jl. T. Amir Hamzah, Jalan Pinus Lingkungan V, Kel. Jati Utomo",
+   "yayasan": "Yayasan Cahaya Semesta Bersama"
+  },
+  {
+   "no": 314,
+   "provinsi": "Sumatera Utara",
+   "kabupaten": "Kota Medan",
+   "alamat": "Jl. Perbatasan, Kelurahan Siti Rejo Ii",
+   "yayasan": "Yayasan Cahaya Semesta Bersama"
+  },
+  {
+   "no": 315,
+   "provinsi": "Sumatera Utara",
+   "kabupaten": "Nias",
+   "alamat": "Jl. Gunung Sitoli, Tulumbaho, Kec Gido, Nias",
+   "yayasan": "Yayasan Insan Mandiri Berkemajuan"
+  }
+ ]
+}

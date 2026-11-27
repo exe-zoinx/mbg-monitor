@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar, Share2 } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
 import Insights from './Insights';
-import { incidentKey, ownerFor, casesForSppg } from '../lib/links';
+import { incidentKey, ownerFor, casesForSppg, operatorName } from '../lib/links';
 export default function Sidebar({
   incidents,
   filtered,
@@ -53,23 +53,18 @@ export default function Sidebar({
     setSearch('');
   }, [setSearch]);
 
-  // Virtualization — RAF-batched scroll to avoid 60fps setState churn
-  const topRef = useRef(0);
-  const rafRef = useRef(0);
-  const [, setScrollTick] = useState(0);
+  // Progressive rendering: rows are content-sized (owner + case chips wrap), so
+  // fixed-height virtualization overlapped once those chips were added. Render a
+  // page, append another when the list nears its end.
+  const FEED_CHUNK = 150;
+  const [feedLimit, setFeedLimit] = useState(FEED_CHUNK);
+  useEffect(() => { setFeedLimit(FEED_CHUNK); }, [activeTab, search, filterCat, dateFrom, dateTo, onlyAccused]);
   const handleFeedScroll = useCallback((e) => {
-    topRef.current = e.target.scrollTop;
-    if (!rafRef.current) {
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = 0;
-        setScrollTick(t => t + 1);
-      });
+    const el = e.target;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 400) {
+      setFeedLimit(n => n + FEED_CHUNK);
     }
   }, []);
-  const INC_ITEM_H = 88;
-  const SPPG_ITEM_H = 100; // extra row: penyelenggara + kasus badges
-  const VIRT_BUFFER = 5;
-  const VIRT_VISIBLE = 18;
 
   const activeCats = useMemo(() => {
     const set = new Set(incidents.map(i => i.cat).filter(Boolean));
@@ -531,27 +526,25 @@ export default function Sidebar({
               Tidak ada insiden ditemukan
             </div>
           ) : (
-            (() => {
-              const h = INC_ITEM_H;
-              const start = Math.max(0, Math.floor(topRef.current / h) - VIRT_BUFFER);
-              const count = Math.min(VIRT_VISIBLE, filtered.length - start);
-              return (
-                <div style={{ height: filtered.length * h, position: 'relative' }}>
-                  {filtered.slice(start, start + count).map((inc, i) => (
-                    <div key={inc.id} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
-                      <FeedItem
-                        inc={inc}
-                        isActive={activeId === inc.id}
-                        focusInc={focusInc}
-                        onClick={() => {}}
-                        setSidebarOpen={setSidebarOpen}
-                        accused={linkIndex?.byIncident?.get(incidentKey(inc)) || null}
-                      />
-                    </div>
-                  ))}
+            <>
+              {filtered.slice(0, feedLimit).map(inc => (
+                <FeedItem
+                  key={inc.id}
+                  inc={inc}
+                  isActive={activeId === inc.id}
+                  focusInc={focusInc}
+                  onClick={() => {}}
+                  setSidebarOpen={setSidebarOpen}
+                  accused={linkIndex?.byIncident?.get(incidentKey(inc)) || null}
+                  linkIndex={linkIndex}
+                />
+              ))}
+              {filtered.length > feedLimit && (
+                <div style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
+                  {fmtNum(feedLimit)} dari {fmtNum(filtered.length)} — gulir untuk memuat lagi
                 </div>
-              );
-            })()
+              )}
+            </>
           )
         ) : !sppgData ? (
           /* Loading skeleton */
@@ -572,20 +565,16 @@ export default function Sidebar({
             Tidak ada SPPG ditemukan
           </div>
         ) : (
-          (() => {
-            const h = SPPG_ITEM_H;
-            const start = Math.max(0, Math.floor(topRef.current / h) - VIRT_BUFFER);
-            const count = Math.min(VIRT_VISIBLE, sppgFiltered.length - start);
-            return (
-              <div style={{ height: sppgFiltered.length * h, position: 'relative' }}>
-                {sppgFiltered.slice(start, start + count).map((s, i) => (
-                  <div key={s.id ?? s.kode} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
-                    <SppgItem sppg={s} focusInc={focusInc} setSidebarOpen={setSidebarOpen} linkIndex={linkIndex} />
-                  </div>
-                ))}
+          <>
+            {sppgFiltered.slice(0, feedLimit).map(s => (
+              <SppgItem key={s.id ?? s.kode} sppg={s} focusInc={focusInc} setSidebarOpen={setSidebarOpen} linkIndex={linkIndex} />
+            ))}
+            {sppgFiltered.length > feedLimit && (
+              <div style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)' }}>
+                {fmtNum(feedLimit)} dari {fmtNum(sppgFiltered.length)} — gulir untuk memuat lagi
               </div>
-            );
-          })()
+            )}
+          </>
         )}
       </div>
 
@@ -715,10 +704,14 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   );
 }
 
-function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen, accused }) {
+function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen, accused, linkIndex }) {
   const c = COL[inc.cat] || COL.lainnya;
   const hasArticle = !!safeUrl(inc.url);
   const hasCoords = inc.lat && inc.lng;
+  const a0 = accused?.[0] || null;
+  const accusedOwner = a0?.sppg_id != null ? linkIndex?.bySppg?.get(String(a0.sppg_id)) || null : null;
+  const accusedLabel = (a0?.operator || operatorName(accusedOwner) || a0?.sppg_nama || a0?.kitchen_label || '').replace(/^SPPG\s+/i, '');
+  const accusedConf = a0?.link_confidence != null ? `${a0.link_confidence}%` : '';
 
   return (
     <div
@@ -769,14 +762,14 @@ function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen, accused })
           </span>
           {accused && accused.length > 0 && (
             <span
-              title={accused.map(c => `${c.kitchen_label}${c.operator ? ` — ${c.operator}` : ''}`).join('\n')}
+              title={accused.map(c => `${c.kitchen_label || ''}${c.link_confidence != null ? ` — keyakinan ${c.link_confidence}% (${c.link_basis || ''})` : ''}`).join('\n')}
               style={{
                 fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
                 letterSpacing: '0.03em', background: 'rgba(188,140,255,0.14)',
                 color: 'var(--pur)', border: '1px solid rgba(188,140,255,0.4)', whiteSpace: 'nowrap',
               }}
             >
-              SPPG: {accused[0].operator ? accused[0].operator.slice(0, 22) : (accused[0].sppg_nama || accused[0].kitchen_label || '').slice(0, 22)}
+              SPPG: {accusedLabel.slice(0, 20)}{accusedConf ? ` · ${accusedConf}` : ''}
             </span>
           )}
           {inc.schools_list && inc.schools_list.length > 0 && (
@@ -868,6 +861,7 @@ function SppgItem({ sppg, focusInc, setSidebarOpen, linkIndex }) {
   const operator = owner?.operators?.[0]?.name || null;
   const accused = casesForSppg(linkIndex, sppg);
   const evidence = owner?.operators?.[0]?.sources?.[0]?.url || null;
+  const maxConf = accused.reduce((m, c) => Math.max(m, c.link_confidence || 0), 0);
   return (
     <div
       onClick={() => {
@@ -920,12 +914,15 @@ function SppgItem({ sppg, focusInc, setSidebarOpen, linkIndex }) {
               </span>
             )}
             {accused.length > 0 && (
-              <span style={{
-                fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
-                background: 'rgba(248,81,73,0.12)', color: 'var(--red)',
-                border: '1px solid rgba(248,81,73,0.35)', whiteSpace: 'nowrap',
-              }}>
-                {accused.length} kasus
+              <span
+                title={accused.map(c => `${c.event_date || ''} ${c.school_or_site || ''}${c.link_confidence != null ? ` — keyakinan ${c.link_confidence}% (${c.link_basis || ''})` : ''}`).join('\n')}
+                style={{
+                  fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
+                  background: 'rgba(248,81,73,0.12)', color: 'var(--red)',
+                  border: '1px solid rgba(248,81,73,0.35)', whiteSpace: 'nowrap',
+                }}
+              >
+                {accused.length} kasus{maxConf ? ` · ${maxConf}%` : ''}
               </span>
             )}
           </div>

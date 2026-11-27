@@ -4,7 +4,7 @@ import 'leaflet.markercluster';
 import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp, Moon, Sun, Satellite } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 import { BASEMAPS, FALLBACK_TILES } from '../lib/basemaps';
-import { incidentKey, ownerFor, casesForSppg, operatorName } from '../lib/links';
+import { incidentKey, ownerFor, casesForSppg, operatorName, operatorEvidence } from '../lib/links';
 
 export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers, linkIndex }) {
   const mapRef = useRef(null);
@@ -187,7 +187,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         const lng = inc.lng + dLng;
 
         const m = L.marker([lat, lng], { icon: mkIcon(inc.cat, inc.victims || 0), title: inc.title || 'Insiden' })
-          .bindPopup(popHTML(inc, linkIndex?.byIncident), { maxWidth: 290, closeButton: true })
+          .bindPopup(popHTML(inc, linkIndex), { maxWidth: 290, closeButton: true })
           .on('click', () => focusInc(inc.id));
 
         markersRef.current.set(inc.id, { marker: m, inc });
@@ -217,7 +217,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         fillColor: '#bc8cff',
         fillOpacity: 0.85,
       })
-        .bindPopup(popHTML(inc, linkIndex?.byIncident), { maxWidth: 290, closeButton: true })
+        .bindPopup(popHTML(inc, linkIndex), { maxWidth: 290, closeButton: true })
         .on('click', () => focusInc(inc.id));
       markersRef.current.set(`meninggal-${inc.id}`, { marker: m, inc });
       cluster.addLayer(m);
@@ -510,13 +510,17 @@ function mkIcon(cat, v) {
   });
 }
 
-function accusedBlock(cases) {
+function accusedBlock(cases, linkIndex) {
   if (!cases?.length) return '';
   return cases.slice(0, 2).map(c => {
-    const op = c.operator || '';
-    const src = (c.operator_sources && c.operator_sources[0]) || (c.sources && c.sources[0]) || null;
-    const srcLink = src?.url
-      ? ` <a href="${esc(safeUrl(src.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">bukti &rarr;</a>`
+    const owner = c.sppg_id != null ? linkIndex?.bySppg?.get(String(c.sppg_id)) : null;
+    const ev = operatorEvidence(owner);
+    const op = c.operator || ev?.name || '';
+    const src = c.operator ? ((c.operator_sources && c.operator_sources[0]) || (c.sources && c.sources[0])) : null;
+    const srcUrl = src?.url || ev?.url || null;
+    const srcLabel = src?.outlet || ev?.label || 'bukti';
+    const srcLink = srcUrl
+      ? ` <a href="${esc(safeUrl(srcUrl))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">${esc(srcLabel)} &rarr;</a>`
       : '';
     const match = c.sppg_nama
       ? `<div style="font-size:10px;color:var(--mu);font-family:var(--mo)">&#8594; ${esc(c.sppg_nama)}${c.sppg_distance_km != null ? ` &middot; ${c.sppg_distance_km} km` : ''}${c.match_confidence ? ` &middot; ${c.match_confidence}` : ''}</div>`
@@ -525,6 +529,7 @@ function accusedBlock(cases) {
       <div style="font-family:var(--mo);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--pur)">SPPG disebut</div>
       <div style="font-size:11px;color:var(--tx);line-height:1.45;margin-top:2px">${esc(c.kitchen_label || '')}</div>
       ${match}
+      ${c.link_confidence != null ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px;color:${c.link_confidence >= 80 ? 'var(--grn)' : c.link_confidence >= 60 ? 'var(--amb)' : 'var(--mu)'}">keyakinan ${c.link_confidence}% &middot; ${esc(c.link_basis || '')}</div>` : ''}
       ${op ? `<div style="font-size:11px;color:var(--tx);margin-top:3px">Penyelenggara: <strong>${esc(op)}</strong>${srcLink}</div>` : ''}
     </div>`;
   }).join('');
@@ -534,10 +539,13 @@ function accusedBlock(cases) {
 function sppgPopHTML(s, linkIndex) {
   const owner = ownerFor(linkIndex, s);
   const accused = casesForSppg(linkIndex, s);
-  const op = operatorName(owner);
-  const opSrc = owner?.operators?.[0]?.sources?.[0];
-  const opLink = opSrc?.url
-    ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px"><a href="${esc(safeUrl(opSrc.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Sumber: ${esc(opSrc.outlet || 'berita')} &rarr;</a></div>`
+  const ev = operatorEvidence(owner);
+  const op = ev?.name || operatorName(owner);
+  const opLink = ev?.url
+    ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px"><a href="${esc(safeUrl(ev.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Sumber: ${esc(ev.label)} &rarr;</a></div>`
+    : '';
+  const sharedNote = ev && ev.siteShared > 1
+    ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">BGN mencantumkan satu unit di kelurahan ini; data peta memuat ${ev.siteShared} titik</div>`
     : '';
   const accusedHtml = accused.length
     ? `<div style="border-top:1px solid var(--red)44;margin-top:6px;padding-top:6px">
@@ -549,21 +557,21 @@ function sppgPopHTML(s, linkIndex) {
       <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
       <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
       ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-      ${op ? `<div style="font-size:11px;color:var(--tx);margin-top:4px">Yayasan/penyelenggara: <strong>${esc(op)}</strong></div>${opLink}` : ''}
+      ${op ? `<div style="font-size:11px;color:var(--tx);margin-top:4px">Yayasan/penyelenggara: <strong>${esc(op)}</strong></div>${opLink}${sharedNote}` : ''}
       ${accusedHtml}
       ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:4px">${esc(s.tanggal_pembangunan)}</div>` : ''}
     </div>`;
 }
 
 
-function popHTML(inc, byIncident) {
+function popHTML(inc, linkIndex) {
   const c = COL[inc.cat] || COL.lainnya;
   const url = safeUrl(inc.url || '');
   const WIKI_URL = 'https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis#Makan_Bergizi_Gratis';
   const srcUrl = url || WIKI_URL;
   const srcLabel = url ? 'Baca &rarr;' : 'Wiki &rarr;';
   const srcColor = url ? 'var(--blu)' : 'var(--mu)';
-  const accused = byIncident?.get(incidentKey(inc)) || null;
+  const accused = linkIndex?.byIncident?.get(incidentKey(inc)) || null;
   return `<div>
     <span style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:2px 7px;margin-bottom:8px;display:inline-block;background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat] || inc.cat)}</span>
     <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:7px;color:var(--tx)">${esc(inc.title)}</div>
@@ -572,7 +580,7 @@ function popHTML(inc, byIncident) {
     ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(fmtNum(inc.victims))} korban</span></div>` : ''}
     <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
     ${(inc.schools_list && inc.schools_list.length) ? `<div style="border-top:1px solid var(--bd);padding-top:6px;margin-top:6px;font-family:var(--mo);font-size:10px;color:var(--mu)"><div style="margin-bottom:3px;color:var(--tx)">${fmtNum(inc.schools_list.length)} sekolah terdampak:</div>${inc.schools_list.slice(0, 8).map(s => `&middot; ${esc(s)}`).join('<br/>')}${inc.schools_list.length > 8 ? `<br/>&middot; +${fmtNum(inc.schools_list.length - 8)} lainnya` : ''}</div>` : ''}
-    ${accusedBlock(accused)}
+    ${accusedBlock(accused, linkIndex)}
     <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || 'Wikipedia')} &middot; <a href="${esc(srcUrl)}" target="_blank" rel="noopener noreferrer" style="color:${srcColor}">${srcLabel}</a></div>
   </div>`;
 }

@@ -7,9 +7,10 @@ Data sources
 ------------
 * data/sppg.json          7.642 SPPG points (Kementan snapshot, 2025-09-30)
 * data/wiki_incidents.json  520 incidents (Wikipedia)
+* data/bgn_sppg_yayasan.json  315 SPPG with their managing yayasan (BGN, March 2025 batch)
+  produced by scripts/fetch_bgn_roster.py
 * jejakmbg.id open data (CC BY 4.0) — cases + sources CSVs
   https://jejakmbg.id/data/
-
 Output: data/sppg_links.json
 
 Nothing is inferred silently: every operator carries the article that names it,
@@ -246,6 +247,41 @@ def match_kitchen(case: dict, by_regency: dict[str, list[dict]]) -> dict | None:
         confidence = "medium"
     else:
         confidence = "low"
+
+    # How sure are we that THIS unit fed the poisoned school? A news label that
+    # names the unit outright is treated as fact (100); everything else is a
+    # score built from shared name tokens, distance and rival candidates.
+    label_toks = tokens(label)
+    row_toks = tokens(f"{best['row'].get('nama','')} {best['row'].get('kecamatan','')} {best['row'].get('kelurahan','')}")
+    snum = trailing_num(best["row"].get("nama") or "")
+    num_compatible = (knum is None and snum is None) or (bool(knum and snum and knum == snum))
+    exact = (label_toks and row_toks
+             and (label_toks <= row_toks or row_toks <= label_toks)
+             and len(label_toks & row_toks) >= 2
+             and num_compatible)
+    if exact:
+        link_conf, link_basis = 100, "nama SPPG disebut langsung oleh sumber"
+    else:
+        base = {"high": 92, "medium": 78, "low": 58}[confidence]
+        if best["num_ok"]:
+            base += 4
+        dist = best["dist"]
+        if dist is None:
+            base -= 10
+        else:
+            base -= int(min(25, max(0.0, dist - 0.5) * 4))
+        if best["score"] < 2:
+            base -= 8
+        base -= min(24, 12 * (len(top) - 1))
+        link_conf = max(35, min(99, base))
+        bits = [f"{best['score']} kata nama sama"]
+        if best["num_ok"]:
+            bits.append("nomor unit cocok")
+        bits.append(f"{round(dist, 2)} km" if dist is not None else "jarak tak diketahui")
+        if len(top) > 1:
+            bits.append(f"{len(top) - 1} kandidat lain")
+        link_basis = ", ".join(bits)
+
     return {
         "sppg": best["row"],
         "score": best["score"],
@@ -254,6 +290,8 @@ def match_kitchen(case: dict, by_regency: dict[str, list[dict]]) -> dict | None:
         "rule": "name+distance" if near and best["score"] < 2 else "name",
         "confidence": confidence,
         "ambiguous": len(top) - 1,
+        "link_confidence": link_conf,
+        "link_basis": link_basis,
     }
 
 
@@ -299,6 +337,135 @@ def match_incident(case: dict, incidents: list[dict]) -> dict | None:
         "distance_km": round(dist, 2) if dist is not None else None,
         "day_gap": gap,
     }
+
+
+  # ── BGN roster: SPPG → yayasan (official, one March-2025 batch) ─────────────
+
+BGN_ROSTER = ROOT / "data/bgn_sppg_yayasan.json"
+
+
+def squash(s: str) -> str:
+    return norm(s).replace(" ", "")
+
+
+def kabkey(s: str) -> str:
+    return re.sub(r"^(kota|kabupaten|kab|adm|administrasi)\s+", "", norm(s)).replace(" ", "")
+
+
+def match_roster(rows: list[dict], sppg_rows: list[dict]) -> tuple[dict[str, dict], dict]:
+    """Map roster rows (which carry a free-text address) to SPPG points.
+
+    A roster address only names provinsi/kabupaten + a street address, so the
+    unit is identified by kecamatan inside the address, then by kelurahan. When
+    the kecamatan is missing we fall back to a kelurahan that is unique inside
+    the kabupaten. Rows that cannot be pinned, or whose site carries two
+    different yayasan, are dropped — a wrong owner is worse than none.
+    """
+    import difflib
+    from collections import defaultdict
+
+    by_kab: dict[str, list[dict]] = defaultdict(list)
+    for s in sppg_rows:
+        by_kab[kabkey(s.get("kabupaten") or "")].append(s)
+
+    kec_vocab: dict[str, set[str]] = {}
+    kel_by_kec: dict[str, dict[str, set[str]]] = {}
+    kel_global: dict[str, dict[str, set[str]]] = {}
+    for k, cands in by_kab.items():
+        kec_vocab[k] = {norm(c.get("kecamatan") or "") for c in cands if c.get("kecamatan")}
+        kel_by_kec[k] = defaultdict(set)
+        kel_global[k] = defaultdict(set)
+        for c in cands:
+            if c.get("kecamatan") and c.get("kelurahan"):
+                kk = squash(c["kelurahan"])
+                kel_by_kec[k][norm(c["kecamatan"])].add(kk)
+                kel_global[k][kk].add(norm(c["kecamatan"]))
+
+    def resolve_kab(name: str) -> str | None:
+        k = kabkey(name)
+        if k in by_kab:
+            return k
+        close = difflib.get_close_matches(k, list(by_kab), n=1, cutoff=0.86)
+        return close[0] if close else None
+
+    def addr_tokens(text: str) -> set[str]:
+        return {t for t in norm(text).split() if len(t) > 3 and t not in STOP}
+
+    sites: dict[tuple[str, str, str], list[str]] = defaultdict(list)
+    stats = {"rows": len(rows), "kabupaten_missing": 0, "site_missing": 0,
+             "kelurahan_fallback": 0, "resolved": 0}
+
+    for r in rows:
+        k = resolve_kab(r.get("kabupaten") or "")
+        if not k:
+            stats["kabupaten_missing"] += 1
+            continue
+        addr = r.get("alamat") or ""
+        atoks = addr_tokens(addr)
+        hit = sorted((len(set(kc.split())), kc) for kc in kec_vocab[k]
+                     if set(kc.split()) and set(kc.split()) <= atoks)
+        kec = None
+        if hit:
+            best = hit[-1][0]
+            kecs = [kc for n, kc in hit if n == best]
+            if len(kecs) > 1:
+                sq = squash(addr)
+                narrowed = [kc for kc in kecs if any(kk in sq for kk in kel_by_kec[k][kc])]
+                kecs = narrowed or kecs
+            kec = kecs[0]
+        kel = None
+        if kec:
+            sq = squash(addr)
+            hits = [kk for kk in kel_by_kec[k][kec] if kk and kk in sq]
+            if hits:
+                kel = max(hits, key=len)
+        if not (kec and kel):
+            sq = squash(addr)
+            cands = sorted(((len(kk), kk, kecs) for kk, kecs in kel_global[k].items()
+                            if len(kk) >= 5 and kk in sq), reverse=True)
+            if cands and len(cands[0][2]) == 1:
+                kec, kel = next(iter(cands[0][2])), cands[0][1]
+                stats["kelurahan_fallback"] += 1
+            else:
+                stats["site_missing"] += 1
+                continue
+        sites[(k, kec, kel)].append(r.get("yayasan") or "")
+        stats["resolved"] += 1
+
+    owner_by_site: dict[tuple[str, str, str], str] = {}
+    conflicts = 0
+    for site, names in sites.items():
+        uniq = {n for n in names if n}
+        if len(uniq) == 1:
+            owner_by_site[site] = uniq.pop()
+        elif len(uniq) > 1:
+            conflicts += 1
+
+    site_points: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    for s in sppg_rows:
+        if not s.get("kecamatan") or not s.get("kelurahan"):
+            continue
+        site_points[(kabkey(s.get("kabupaten") or ""), norm(s["kecamatan"]), squash(s["kelurahan"]))].append(s)
+
+    hits: dict[str, dict] = {}
+    for site, points in site_points.items():
+        owner = owner_by_site.get(site)
+        if not owner:
+            continue
+        for s in points:
+            sid = s.get("id")
+            hits[str(sid)] = {
+                "sppg_id": sid,
+                "nama": s.get("nama"),
+                "kabupaten": s.get("kabupaten"),
+                "provinsi": s.get("provinsi"),
+                "yayasan": owner,
+                # BGN lists one kitchen per address; when our point data has
+                # several units at that kelurahan the owner is site-level.
+                "site_shared": len(points),
+            }
+    stats.update({"sites": len(owner_by_site), "conflicts": conflicts, "units": len(hits)})
+    return hits, stats
 
 
 # ── main build ──────────────────────────────────────────────────────────────
@@ -437,6 +604,8 @@ def main() -> int:
                 "match_ambiguous": m["ambiguous"],
                 "match_shared": m["shared"],
                 "sppg_distance_km": m["distance_km"],
+                "link_confidence": m["link_confidence"],
+                "link_basis": m["link_basis"],
             })
             slot = owners.setdefault(str(sid), {
                 "sppg_id": sid,
@@ -473,17 +642,61 @@ def main() -> int:
 
         out_cases.append(rec)
 
+    # 2) official BGN roster — per-unit yayasan for the March-2025 batch
+    roster_stats: dict = {}
+    roster = None
+    if BGN_ROSTER.exists():
+        roster = json.loads(BGN_ROSTER.read_text())
+        roster_hits, roster_stats = match_roster(roster.get("rows") or [], sppg_rows)
+        roster_src = {
+            "url": (roster.get("meta") or {}).get("source") or "https://www.bgn.go.id/sppg-march-deleted/",
+            "url_archive": (roster.get("meta") or {}).get("source_wayback"),
+            "outlet": "BGN",
+            "title": "Daftar SPPG Bulan Maret 2025",
+        }
+        roster_stats["source"] = roster_src["url"]
+        roster_stats["source_archive"] = roster_src.get("url_archive")
+        for sid, hit in roster_hits.items():
+            slot = owners.get(sid)
+            if slot is None:
+                slot = owners[sid] = {
+                    "sppg_id": hit["sppg_id"],
+                    "nama": hit["nama"],
+                    "kabupaten": hit["kabupaten"],
+                    "provinsi": hit["provinsi"],
+                    "operators": [],
+                    "case_ids": [],
+                    "sources": [],
+                    "named_parties": [],
+                    "head_removed": False,
+                }
+            if hit["yayasan"] not in [o["name"] for o in slot["operators"]]:
+                slot["operators"].append({
+                    "name": hit["yayasan"],
+                    "source_type": "bgn_roster",
+                    "site_shared": hit.get("site_shared", 1),
+                    "sources": [roster_src],
+                })
+            if roster_src["url"] not in [x.get("url") for x in slot["sources"]]:
+                slot["sources"].append(roster_src)
+
+    for slot in owners.values():
+        for op in slot["operators"]:
+            op.setdefault("source_type", "article")
+
     payload = {
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "attribution": {
             "cases": "JejakMBG (jejakmbg.id), CC BY 4.0",
             "sppg_points": "Kementan AWR snapshot 2025-09-30 (data/sppg.json)",
             "incidents": "Wikipedia + media (data/wiki_incidents.json)",
+            "owners": "BGN 'Daftar SPPG Bulan Maret 2025' (315 units with yayasan), plus media articles that name an operator",
         },
         "method": {
             "kitchen_match": "shared name tokens inside the same regency; 1 token needs <=3 km",
             "incident_match": "same regency (or <=8 km) and <=21 days",
             "operator": "explicit operator_foundation field, else Yayasan/PT/Koperasi named near SPPG context in a linked article",
+            "roster_match": "roster address -> kecamatan inside address -> kelurahan; fallback to a kelurahan unique in the kabupaten; sites with two different yayasan are dropped",
         },
         "meta": {
             "cases_total": len(cases),
@@ -492,8 +705,16 @@ def main() -> int:
             "cases_linked_to_incident": n_linked,
             "operators_from_case_field": n_op_csv,
             "operators_from_article": n_op_article,
-            "sppg_matched": len(owners),
+            "sppg_matched": sum(1 for v in owners.values() if v["case_ids"]),
             "sppg_with_operator": sum(1 for v in owners.values() if v["operators"]),
+            "operators_by_source": {
+                "bgn_roster": sum(1 for v in owners.values()
+                                  for o in v["operators"] if o.get("source_type") == "bgn_roster"),
+                "article": sum(1 for v in owners.values()
+                               for o in v["operators"] if o.get("source_type") != "bgn_roster"),
+            },
+            "roster": roster_stats,
+            "sppg_points_total": len(sppg_rows),
             "articles_fetched": len(texts),
         },
         "sppg": owners,

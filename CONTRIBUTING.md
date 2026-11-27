@@ -68,14 +68,18 @@ Rules:
 ## Adding SPPG ownership data
 
 ```bash
-python3 scripts/build_sppg_links.py            # cached
-python3 scripts/build_sppg_links.py --refresh  # re-download JejakMBG + articles
+python3 scripts/fetch_bgn_roster.py            # cached HTML in data/raw/bgn/
+python3 scripts/fetch_bgn_roster.py --refresh   # re-download BGN's table
+python3 scripts/build_sppg_links.py             # cached JejakMBG + articles
+python3 scripts/build_sppg_links.py --refresh   # re-download JejakMBG + articles
 ```
 
-- **Never guess an owner.** BGN publishes no per-SPPG mitra/yayasan roster, so an operator is only attached when a case field or a cited article names it. A missing owner renders as nothing, never as a plausible-looking guess.
+- **Official roster first.** BGN publishes a 315-row table of SPPG with their yayasan at `https://www.bgn.go.id/sppg-march-deleted/` (also on Wayback). `fetch_bgn_roster.py` saves it as `data/bgn_sppg_yayasan.json`; `build_sppg_links.py` matches a roster row to our points by kecamatan + kelurahan (`match_roster`) and tags the operator `source_type: "bgn_roster"`. Anything else keeps its article-derived owner only.
+- **Never guess an owner.** Without a roster hit and without a case/article naming the operator, no owner is attached. A missing owner renders as nothing, never as a plausible-looking guess.
+- **Confidence is arithmetic, not vibes.** `link_confidence` is 100 only when the source's SPPG label and our row are token subsets (≥2 shared tokens, compatible unit numbers); otherwise it is scored from shared tokens, distance and rival candidates, with `link_basis` explaining the number. Do not hand-edit a percentage.
 - Every operator shown in the UI must carry a source URL (`operators[].sources`). If you cannot cite it, do not add it.
 - JejakMBG data is CC BY 4.0 — keep the attribution in the Tentang & Data modal.
-- `data/raw/` (downloaded CSV + article text) is gitignored; only the derived `data/sppg_links.json` is committed.
+- `data/raw/` (downloaded CSV, article text, BGN HTML) is gitignored; only the derived `data/sppg_links.json` and `data/bgn_sppg_yayasan.json` are committed.
 
 ## Working on the frontend
 
