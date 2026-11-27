@@ -65,6 +65,20 @@ Rules:
 - **Keep Indonesian number formatting** in notes (`fmt_n` helper).
 - After changing the scraper, regenerate the JSON and verify counts change sensibly (current baseline: 520 incidents, 51.362 victims, 3 deaths).
 
+## Locations on the map
+
+```bash
+python3 scripts/geocode_schools.py              # cache-only (scripts/geo_cache.json)
+python3 scripts/geocode_schools.py --net        # Nominatim, ≤1 request/second
+python3 scripts/seed_d1_coords.py --dry-run     # inspect the generated SQL
+python3 scripts/seed_d1_coords.py               # write coords + precision into D1
+```
+
+- **Resolve, never invent.** `geocode_schools.py` walks school → kelurahan/desa → kecamatan → kabupaten → province, validates every hit against the named kabupaten/province, and stores `geo_precision`. There is no random jitter: a coarse point says so.
+- **Photon is blocked** from this host after a few hundred queries; Nominatim is the working provider. Respect the 1 req/s policy or the IP gets throttled.
+- **D1 is the production source** (`functions/api/data.js` reads it). After regenerating coordinates, run `seed_d1_coords.py`; it matches rows on `(date, kabupaten, title)` and never inserts, so incident ids stay stable.
+- Overlapping pins are spread in the frontend only (18/36/54 m rings); stored coordinates stay untouched.
+
 ## Adding SPPG ownership data
 
 ```bash

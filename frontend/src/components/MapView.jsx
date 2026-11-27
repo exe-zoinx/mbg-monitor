@@ -6,6 +6,15 @@ import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 import { BASEMAPS, FALLBACK_TILES } from '../lib/basemaps';
 import { incidentKey, ownerFor, casesForSppg, operatorName, operatorEvidence } from '../lib/links';
 
+const GEO_LABEL = {
+  school: 'titik sekolah',
+  kelurahan: 'tingkat kelurahan/desa',
+  kecamatan: 'tingkat kecamatan',
+  kabupaten: 'perkiraan pusat kabupaten/kota',
+  province: 'perkiraan pusat provinsi',
+  missing: 'lokasi belum diketahui',
+};
+
 export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers, linkIndex }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -160,29 +169,34 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
 
     const filteredIds = new Set(filtered.map(i => i.id));
 
-    // ── Group by exact lat/lng ────────────────────────────────────────────────
-    const byLoc = new Map(); // key "lat,lng" → [inc, inc, ...]
+    // ── Group nearby points (~60 m) so co-located incidents don't stack ──────
+    const BUCKET = 0.0006; // ≈ 66 m of latitude
+    const byLoc = new Map();
     for (const inc of incidents) {
       if (!inc.lat || !inc.lng) continue;
-      const key = `${inc.lat},${inc.lng}`;
+      const key = `${Math.round(inc.lat / BUCKET)},${Math.round(inc.lng / BUCKET)}`;
       if (!byLoc.has(key)) byLoc.set(key, []);
       byLoc.get(key).push(inc);
     }
 
-    // ── Spiral offset so overlapping pins fan out ──────────────────────────────
-    // Returns [dLat, dLng] in degrees (~67m per 0.001 at equator)
-    const spiralOffsets = (index) => {
+    // ── Ring offsets: 18 m / 36 m / 54 m so each pin stays clickable ─────────
+    // The data keeps its true coordinates; only the drawn marker moves, and
+    // never more than ~60 m, so a pin still reads as its kelurahan.
+    const ringOffset = (index, lat) => {
       if (index === 0) return [0, 0];
-      const GA = Math.PI * (3 - Math.sqrt(5)); // golden angle ≈ 2.399 rad
-      const radius = Math.sqrt(index) * 0.0012; // ~134m per step at equator
-      const angle = index * GA;
-      return [radius * Math.cos(angle), radius * Math.sin(angle)];
+      const ring = Math.ceil(index / 6);
+      const slot = index - (ring - 1) * 6;
+      const angle = (slot / 6) * 2 * Math.PI + ring * 0.7;
+      const meters = 18 * ring;
+      const dLat = (meters * Math.cos(angle)) / 111320;
+      const dLng = (meters * Math.sin(angle)) / (111320 * Math.cos((lat * Math.PI) / 180));
+      return [dLat, dLng];
     };
 
     // ── Add markers ───────────────────────────────────────────────────────────
     for (const [, incs] of byLoc) {
       incs.forEach((inc, idx) => {
-        const [dLat, dLng] = spiralOffsets(idx);
+        const [dLat, dLng] = ringOffset(idx, inc.lat);
         const lat = inc.lat + dLat;
         const lng = inc.lng + dLng;
 
@@ -521,6 +535,7 @@ function accusedBlock(cases, linkIndex) {
     const srcLabel = src?.outlet || ev?.label || 'bukti';
     const srcLink = srcUrl
       ? ` <a href="${esc(safeUrl(srcUrl))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">${esc(srcLabel)} &rarr;</a>`
+        + (!src && ev?.archiveUrl ? ` <a href="${esc(safeUrl(ev.archiveUrl))}" target="_blank" rel="noopener noreferrer" style="color:var(--mu)">arsip</a>` : '')
       : '';
     const match = c.sppg_nama
       ? `<div style="font-size:10px;color:var(--mu);font-family:var(--mo)">&#8594; ${esc(c.sppg_nama)}${c.sppg_distance_km != null ? ` &middot; ${c.sppg_distance_km} km` : ''}${c.match_confidence ? ` &middot; ${c.match_confidence}` : ''}</div>`
@@ -541,8 +556,11 @@ function sppgPopHTML(s, linkIndex) {
   const accused = casesForSppg(linkIndex, s);
   const ev = operatorEvidence(owner);
   const op = ev?.name || operatorName(owner);
+  const archiveLink = ev?.archiveUrl
+    ? ` &middot; <a href="${esc(safeUrl(ev.archiveUrl))}" target="_blank" rel="noopener noreferrer" style="color:var(--mu)">arsip</a>`
+    : '';
   const opLink = ev?.url
-    ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px"><a href="${esc(safeUrl(ev.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Sumber: ${esc(ev.label)} &rarr;</a></div>`
+    ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px"><a href="${esc(safeUrl(ev.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Sumber: ${esc(ev.label)} &rarr;</a>${archiveLink}</div>`
     : '';
   const sharedNote = ev && ev.siteShared > 1
     ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">BGN mencantumkan satu unit di kelurahan ini; data peta memuat ${ev.siteShared} titik</div>`
@@ -550,7 +568,7 @@ function sppgPopHTML(s, linkIndex) {
   const accusedHtml = accused.length
     ? `<div style="border-top:1px solid var(--red)44;margin-top:6px;padding-top:6px">
         <div style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--red)">${accused.length} kasus keracunan terkait</div>
-        ${accused.slice(0, 3).map(c => `<div style="font-size:10px;color:var(--mu);line-height:1.5">&middot; ${esc(c.event_date || '')} ${esc(c.school_or_site || '')}</div>`).join('')}
+        ${accused.slice(0, 3).map(c => `<div style="font-size:10px;color:var(--mu);line-height:1.5">&middot; ${esc(c.event_date || '')} ${esc(c.school_or_site || '')}${c.link_confidence != null ? ` <span style="color:var(--mu)">(${c.link_confidence}%)</span>` : ''}</div>`).join('')}
       </div>`
     : '';
   return `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:190px">
@@ -580,6 +598,7 @@ function popHTML(inc, linkIndex) {
     ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(fmtNum(inc.victims))} korban</span></div>` : ''}
     <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
     ${(inc.schools_list && inc.schools_list.length) ? `<div style="border-top:1px solid var(--bd);padding-top:6px;margin-top:6px;font-family:var(--mo);font-size:10px;color:var(--mu)"><div style="margin-bottom:3px;color:var(--tx)">${fmtNum(inc.schools_list.length)} sekolah terdampak:</div>${inc.schools_list.slice(0, 8).map(s => `&middot; ${esc(s)}`).join('<br/>')}${inc.schools_list.length > 8 ? `<br/>&middot; +${fmtNum(inc.schools_list.length - 8)} lainnya` : ''}</div>` : ''}
+    ${inc.geo_precision ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:4px">Lokasi: ${esc(GEO_LABEL[inc.geo_precision] || inc.geo_precision)}${inc.geo_kelurahan ? ` · ${esc(inc.geo_kelurahan)}` : ''}${inc.geo_kecamatan && inc.geo_kecamatan !== inc.geo_kelurahan ? ` · ${esc(inc.geo_kecamatan)}` : ''}</div>` : ''}
     ${accusedBlock(accused, linkIndex)}
     <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || 'Wikipedia')} &middot; <a href="${esc(srcUrl)}" target="_blank" rel="noopener noreferrer" style="color:${srcColor}">${srcLabel}</a></div>
   </div>`;

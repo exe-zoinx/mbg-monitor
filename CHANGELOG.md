@@ -19,6 +19,9 @@ All notable changes to this project are documented here. Format based on [Keep a
 - **BGN roster ingestion** (`scripts/fetch_bgn_roster.py` → `data/bgn_sppg_yayasan.json`): the official 315-unit "SPPG Bulan Maret 2025" table, matched to our points by kecamatan/kelurahan, lifts operator coverage from 12 to ~330 SPPG with a citable source URL (+ Wayback copy)
 - **Link confidence** on every incident→SPPG link: `100%` when the source names that unit directly, otherwise a score from shared name tokens, distance and rival candidates, shown with a one-line basis (`link_confidence`, `link_basis`)
 - Confidence shown in incident popups, feed badges (`SPPG: <nama> · N%`) and SPPG case chips (`N kasus · max%`); Tentang & Data documents the roster source and the scale
+- **Honest locations**: `scripts/geocode_schools.py` resolves every incident through school → kelurahan → kecamatan → kabupaten → provinsi (Nominatim, validated against the named kabupaten) and stores `geo_precision`; popups state the level, so a regency centroid no longer reads as a school pin
+- `scripts/seed_d1_coords.py` pushes coordinates + precision into D1, matched on `(date, kabupaten, title)` with no re-insert
+- Nearby pins fan out on 18/36/54 m rings (grouped within ~66 m) so co-located incidents stay individually clickable
 
 ### Changed
 - Search now covers province, kabupaten, school name and the multi-school `schools_list`
@@ -33,6 +36,7 @@ All notable changes to this project are documented here. Format based on [Keep a
 - Geocoding matches regency names without the `Kabupaten`/`Kota` prefix; a refresh now completes in seconds (Nominatim is cache-only unless `--net`)
 - Sidebar rows overlapped once owner chips were added: fixed `INC_ITEM_H`/`SPPG_ITEM_H` no longer matched real row height
 - GitLab project hosting, LICENSE (MIT), CONTRIBUTING.md, README.id.md (Bahasa Indonesia), GitLab CI/CD pipeline
+- **Coordinates**: old pins were a rounded regency centroid plus a fixed ~133 m pseudo-random offset — 104 incident pairs sat exactly 133 m apart and 12 incidents were 60–236 km outside their own kabupaten
 
 ### Data
 - Reseeded D1 from Wikipedia: **520 incidents**, **51.362 korban**, 3 fatalities, coverage through **24 Nov 2026** (was 377 incidents through 31 Jul 2026)

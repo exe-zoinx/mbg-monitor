@@ -1,0 +1,11 @@
+{
+  "incidents": 520,
+  "precision": {
+    "kecamatan": 135,
+    "kabupaten": 147,
+    "kelurahan": 148,
+    "school": 90
+  },
+  "pairs_within_50m": 101,
+  "pairs_total": 134940
+}
