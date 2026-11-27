@@ -52,6 +52,7 @@ function copyCloudflareFiles() {
       try {
         mkdirSync(resolve('dist/data'), { recursive: true });
         copyFileSync(resolve('data/sppg.json'), resolve('dist/data/sppg.json'));
+        copyFileSync(resolve('data/sppg_links.json'), resolve('dist/data/sppg_links.json'));
         copyFileSync(resolve('_headers'), resolve('dist/_headers'));
         copyFileSync(resolve('_redirects'), resolve('dist/_redirects'));
       } catch (e) {
@@ -132,6 +133,24 @@ function serveLocalData() {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ error: 'LOCAL_SPPG_ERROR', message: err.message }));
+        }
+      });
+      // Static data assets (sppg_links.json …) — in production these are real
+      // files under dist/data, copied by copyCloudflareFiles().
+      server.middlewares.use('/data/', (req, res) => {
+        const name = String(req.url || '').replace(/^\/+/, '').split('?')[0];
+        if (!/^[\w.-]+\.json$/.test(name)) {
+          res.statusCode = 404;
+          return res.end('not found');
+        }
+        try {
+          const raw = readFileSync(resolve(__dirname, 'data', name), 'utf-8');
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.end(raw);
+        } catch (err) {
+          res.statusCode = 404;
+          res.end(JSON.stringify({ error: 'NOT_FOUND', message: err.message }));
         }
       });
     },

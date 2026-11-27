@@ -47,3 +47,6 @@ logs/
 .agents/
 .claude/
 skills-lock.json
+
+# JejakMBG scraper cache (scripts/build_sppg_links.py)
+data/raw/

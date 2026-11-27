@@ -5,14 +5,17 @@ import MapView from './components/MapView';
 import { useData } from './hooks/useData';
 import { useIncidents } from './hooks/useIncidents';
 import { useSppg } from './hooks/useSppg';
+import { useLinks } from './hooks/useLinks';
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('incidents'); // 'incidents' | 'sppg'
-  const [layers, setLayers] = useState({ keracunan: true, meninggal: true, sppg: true });
+  const [onlyAccused, setOnlyAccused] = useState(false);
+  const [layers, setLayers] = useState({ keracunan: true, meninggal: true, sppg: true, links: true });
   const { data, isLoading, error } = useData();
   const sppgQuery = useSppg();
   const sppgData = sppgQuery.data;
+  const { data: linkIndex } = useLinks();
   const {
     incidents,
     filtered,
@@ -27,7 +30,7 @@ export default function App() {
     setDateFrom,
     dateTo,
     setDateTo,
-  } = useIncidents(data);
+  } = useIncidents(data, linkIndex, onlyAccused);
 
   const connectionStatus = (() => {
     if (error) return { cls: '', text: error.message?.slice(0, 24) || 'Error' };
@@ -72,6 +75,7 @@ export default function App() {
     if (p.get('from')) setDateFrom(p.get('from'));
     if (p.get('to')) setDateTo(p.get('to'));
     if (p.get('tab') === 'sppg' || p.get('tab') === 'incidents') setActiveTab(p.get('tab'));
+    if (p.get('acc') === '1') setOnlyAccused(true);
     if (p.get('id')) focusInc(Number(p.get('id')));
     setLinksRestored(true);
   }, []);
@@ -83,10 +87,11 @@ export default function App() {
     if (dateFrom) p.set('from', dateFrom);
     if (dateTo) p.set('to', dateTo);
     if (activeTab !== 'incidents') p.set('tab', activeTab);
+    if (onlyAccused) p.set('acc', '1');
     if (activeId) p.set('id', String(activeId));
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [linksRestored, search, filterCat, dateFrom, dateTo, activeTab, activeId]);
+  }, [linksRestored, search, filterCat, dateFrom, dateTo, activeTab, activeId, onlyAccused]);
 
   // ── Keyboard: "/" search, Esc closes overlays ─────────────────────────────
   useEffect(() => {
@@ -180,6 +185,9 @@ export default function App() {
         setActiveTab={setActiveTab}
         sppgData={sppgData}
         activeId={activeId}
+        linkIndex={linkIndex}
+        onlyAccused={onlyAccused}
+        setOnlyAccused={setOnlyAccused}
         search={search}
         setSearch={setSearch}
         focusInc={focusInc}
@@ -210,6 +218,7 @@ export default function App() {
           sppgData={sppgData}
           layers={layers}
           setLayers={setLayers}
+          linkIndex={linkIndex}
         />
         <button
           onClick={() => setShowDataModal(true)}
@@ -256,7 +265,7 @@ export default function App() {
               Seluruh data di situs ini diperoleh dari pemberitaan media Indonesia,
               Wikipedia, dan data resmi Kementerian Pertanian. Angka korban adalah
               estimasi dari laporan berita dan dapat berubah. Jika ada data yang tidak
-              akurat, silakan buka issue di GitLab untuk perbaikan.
+              akurat, silakan buka issue di GitHub untuk perbaikan.
             </div>
             <button
               onClick={() => { localStorage.setItem('mbg_disclaimer_seen', '1'); setShowDisclaimer(false); }}
@@ -316,6 +325,29 @@ export default function App() {
               dan pengambil kebijakan — memahami dampak program dan terus memperbaikinya.
             </div>
             <div style={{
+              marginTop: 14, background: 'rgba(188,140,255,0.08)',
+              border: '1px solid rgba(188,140,255,0.35)', borderRadius: 8,
+              padding: '12px 14px',
+            }}>
+              <div style={{ fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 600, color: 'var(--tx)', marginBottom: 6 }}>
+                SPPG ↔ insiden &amp; penyelenggara
+              </div>
+              <div style={{ fontSize: 11, lineHeight: 1.7, color: 'var(--mu)' }}>
+                Nama dapur yang dituduh, yayasan/PT penyelenggara, dan tautan buktinya berasal dari
+                dataset terbuka{' '}
+                <a href="https://jejakmbg.id/data/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  JejakMBG
+                </a>{' '}
+                (CC BY 4.0) dan artikel yang dikutip di dalamnya. Garis putus-putus menghubungkan
+                lokasi insiden dengan titik SPPG yang namanya disebut.
+                {linkIndex?.operatorCount
+                  ? ` ${linkIndex.operatorCount} SPPG sudah punya penyelenggara bernama sumber; ${linkIndex.accusedCount} insiden terhubung ke dapur tertentu.`
+                  : ''}
+                {' '}Bila penyelenggara belum dipublikasikan, situs ini tidak menebak — BGN belum
+                merilis daftar mitra/yayasan per SPPG.
+              </div>
+            </div>
+            <div style={{
               marginTop: 16, marginBottom: 16, background: 'rgba(56,139,253,0.08)',
               border: '1px solid rgba(56,139,253,0.35)', borderRadius: 8,
               padding: '14px 16px',
@@ -336,12 +368,12 @@ export default function App() {
               </div>
               <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', lineHeight: 1.6 }}>
                 Kode sumber tersedia di
-                <a href="https://gitlab.com/sukma-diki/mbg-monitor" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
-                  GitLab
+                <a href="https://github.com/exe-zoinx/mbg-monitor" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  GitHub
                 </a>.
                 Masukan, saran, dan koreksi dapat disampaikan melalui
-                <a href="https://gitlab.com/sukma-diki/mbg-monitor/-/issues" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
-                  issue di GitLab
+                <a href="https://github.com/exe-zoinx/mbg-monitor/issues" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blu)' }}>
+                  issue di GitHub
                 </a>.
               </div>
             </div>

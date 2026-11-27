@@ -4,19 +4,25 @@ import 'leaflet.markercluster';
 import { MapPin, AlertTriangle, Skull, Building2, ExternalLink, Menu, Globe, TrendingUp, Moon, Sun, Satellite } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, esc, safeUrl } from '../lib/constants';
 import { BASEMAPS, FALLBACK_TILES } from '../lib/basemaps';
+import { incidentKey, ownerFor, casesForSppg, operatorName } from '../lib/links';
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers, linkIndex }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
   const sppgClusterRef = useRef(null);
   const meninggalClusterRef = useRef(null);
+  const linkLayerRef = useRef(null);
   const markersRef = useRef(new Map());
   const baseRef = useRef(null);
   const labelRef = useRef(null);
   const attrRef = useRef(null);
   const tileErrRef = useRef(0);
   const [mapReady, setMapReady] = useState(0);
+  // Bumped once incident markers are (re)built, so a deep-linked ?id= can fly
+  // to a marker that did not exist yet when activeId first arrived.
+  const [markersVersion, setMarkersVersion] = useState(0);
+  const focusedRef = useRef(null);
   const [basemap, setBasemap] = useState(() => {
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('mbg_basemap') : null;
     return BASEMAPS[saved] ? saved : 'dark';
@@ -87,6 +93,8 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         });
       },
     });
+    const linkLayer = L.layerGroup();
+    map.addLayer(linkLayer);         // bottom — incident→accused-SPPG connectors
     map.addLayer(sppgCluster);       // back
     map.addLayer(cluster);           // middle — all incidents
     map.addLayer(meninggalCluster);  // top — deaths only
@@ -95,6 +103,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     clusterRef.current = cluster;
     sppgClusterRef.current = sppgCluster;
     meninggalClusterRef.current = meninggalCluster;
+    linkLayerRef.current = linkLayer;
     setMapReady(v => v + 1);
     map.invalidateSize();
 
@@ -104,6 +113,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       clusterRef.current = null;
       sppgClusterRef.current = null;
       meninggalClusterRef.current = null;
+      linkLayerRef.current = null;
     };
   }, []);
 
@@ -177,7 +187,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         const lng = inc.lng + dLng;
 
         const m = L.marker([lat, lng], { icon: mkIcon(inc.cat, inc.victims || 0), title: inc.title || 'Insiden' })
-          .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
+          .bindPopup(popHTML(inc, linkIndex?.byIncident), { maxWidth: 290, closeButton: true })
           .on('click', () => focusInc(inc.id));
 
         markersRef.current.set(inc.id, { marker: m, inc });
@@ -186,7 +196,8 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         }
       });
     }
-  }, [incidents, filtered, focusInc, layers?.keracunan]);
+    setMarkersVersion(v => v + 1);
+  }, [incidents, filtered, focusInc, layers?.keracunan, linkIndex]);
 
   // Meninggal layer — deaths > 0, purple, on top
   useEffect(() => {
@@ -206,12 +217,12 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
         fillColor: '#bc8cff',
         fillOpacity: 0.85,
       })
-        .bindPopup(popHTML(inc), { maxWidth: 290, closeButton: true })
+        .bindPopup(popHTML(inc, linkIndex?.byIncident), { maxWidth: 290, closeButton: true })
         .on('click', () => focusInc(inc.id));
       markersRef.current.set(`meninggal-${inc.id}`, { marker: m, inc });
       cluster.addLayer(m);
     });
-  }, [incidents, layers?.meninggal, focusInc]);
+  }, [incidents, layers?.meninggal, focusInc, linkIndex]);
 
   // SPPG markers — sppg layer (behind incidents)
   // Time-sliced: 7.6k markers built in chunks so the main thread
@@ -242,15 +253,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           fillColor: '#388bfd',
           fillOpacity: 0.45,
         })
-          .bindPopup(
-            `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:180px">
-              <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
-              <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
-              ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
-              ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:2px">${esc(s.tanggal_pembangunan)}</div>` : ''}
-            </div>`,
-            { maxWidth: 260, closeButton: true }
-          );
+          .bindPopup(sppgPopHTML(s, linkIndex), { maxWidth: 280, closeButton: true });
         markersRef.current.set(`sppg-${s.id ?? s.kode}`, { marker: m, inc: s });
         cluster.addLayer(m);
       }
@@ -259,13 +262,40 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
 
     processChunk();
     return () => { cancelled = true; };
-  }, [sppgData, layers?.sppg]);
+  }, [sppgData, layers?.sppg, linkIndex]);
+  // Incident → accused SPPG connectors (JejakMBG cases). Dashed, non-interactive,
+  // drawn on their own layer so the 7.6k SPPG markers stay untouched.
+  useEffect(() => {
+    const layer = linkLayerRef.current;
+    if (!layer) return;
+    layer.clearLayers();
+    if (layers?.links === false) return;
+    if (!linkIndex?.cases?.length) return;
+
+    for (const c of linkIndex.cases) {
+      const from = c.incident_lat != null && c.incident_lng != null
+        ? [c.incident_lat, c.incident_lng]
+        : (c.lat != null && c.lng != null ? [c.lat, c.lng] : null);
+      const to = c.sppg_lat != null && c.sppg_lng != null ? [c.sppg_lat, c.sppg_lng] : null;
+      if (!from || !to) continue;
+      if (Math.abs(from[0] - to[0]) < 1e-6 && Math.abs(from[1] - to[1]) < 1e-6) continue;
+      L.polyline([from, to], {
+        color: '#bc8cff',
+        weight: 1.2,
+        opacity: 0.45,
+        dashArray: '3 4',
+        interactive: false,
+      }).addTo(layer);
+    }
+  }, [linkIndex, layers?.links, mapReady]);
+
   // Handle activeId changes (fly to marker)
   useEffect(() => {
-    if (!activeId) return;
+    if (!activeId || focusedRef.current === activeId) return;
     const entry = markersRef.current.get(activeId);
     const map = mapInstance.current;
     if (!entry || !map) return;
+    focusedRef.current = activeId;
 
     const { marker, inc } = entry;
     // SPPG markers live in sppgClusterRef, incidents in clusterRef.
@@ -281,7 +311,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     } else {
       marker.openPopup();
     }
-  }, [activeId]);
+  }, [activeId, markersVersion]);
 
   return (
     <>
@@ -430,6 +460,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           { key: 'keracunan', label: 'Keracunan', color: 'var(--red)' },
           { key: 'meninggal', label: 'Meninggal', color: 'var(--pur)' },
           { key: 'sppg', label: 'SPPG', color: 'var(--blu)' },
+          { key: 'links', label: 'SPPG dituduh', color: 'var(--pur)' },
         ].map(row => (
           <label
             key={row.key}
@@ -479,13 +510,60 @@ function mkIcon(cat, v) {
   });
 }
 
-function popHTML(inc) {
+function accusedBlock(cases) {
+  if (!cases?.length) return '';
+  return cases.slice(0, 2).map(c => {
+    const op = c.operator || '';
+    const src = (c.operator_sources && c.operator_sources[0]) || (c.sources && c.sources[0]) || null;
+    const srcLink = src?.url
+      ? ` <a href="${esc(safeUrl(src.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">bukti &rarr;</a>`
+      : '';
+    const match = c.sppg_nama
+      ? `<div style="font-size:10px;color:var(--mu);font-family:var(--mo)">&#8594; ${esc(c.sppg_nama)}${c.sppg_distance_km != null ? ` &middot; ${c.sppg_distance_km} km` : ''}${c.match_confidence ? ` &middot; ${c.match_confidence}` : ''}</div>`
+      : '';
+    return `<div style="border-top:1px dashed var(--pur)55;padding-top:6px;margin-top:6px">
+      <div style="font-family:var(--mo);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--pur)">SPPG disebut</div>
+      <div style="font-size:11px;color:var(--tx);line-height:1.45;margin-top:2px">${esc(c.kitchen_label || '')}</div>
+      ${match}
+      ${op ? `<div style="font-size:11px;color:var(--tx);margin-top:3px">Penyelenggara: <strong>${esc(op)}</strong>${srcLink}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+
+function sppgPopHTML(s, linkIndex) {
+  const owner = ownerFor(linkIndex, s);
+  const accused = casesForSppg(linkIndex, s);
+  const op = operatorName(owner);
+  const opSrc = owner?.operators?.[0]?.sources?.[0];
+  const opLink = opSrc?.url
+    ? `<div style="font-family:var(--mo);font-size:9px;margin-top:2px"><a href="${esc(safeUrl(opSrc.url))}" target="_blank" rel="noopener noreferrer" style="color:var(--blu)">Sumber: ${esc(opSrc.outlet || 'berita')} &rarr;</a></div>`
+    : '';
+  const accusedHtml = accused.length
+    ? `<div style="border-top:1px solid var(--red)44;margin-top:6px;padding-top:6px">
+        <div style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--red)">${accused.length} kasus keracunan terkait</div>
+        ${accused.slice(0, 3).map(c => `<div style="font-size:10px;color:var(--mu);line-height:1.5">&middot; ${esc(c.event_date || '')} ${esc(c.school_or_site || '')}</div>`).join('')}
+      </div>`
+    : '';
+  return `<div style="font-family:var(--fn);font-size:12px;color:var(--tx);min-width:190px">
+      <div style="font-weight:700;font-size:12px;line-height:1.4;margin-bottom:6px">${esc(s.nama || 'SPPG')}</div>
+      <div style="font-family:var(--mo);font-size:10px;color:var(--mu);margin-bottom:4px">${esc([s.provinsi, s.kabupaten, s.kecamatan].filter(Boolean).join(' · '))}</div>
+      ${s.alamat ? `<div style="font-size:11px;color:var(--mu);line-height:1.5;margin-bottom:4px">${esc(s.alamat)}</div>` : ''}
+      ${op ? `<div style="font-size:11px;color:var(--tx);margin-top:4px">Yayasan/penyelenggara: <strong>${esc(op)}</strong></div>${opLink}` : ''}
+      ${accusedHtml}
+      ${s.tanggal_pembangunan ? `<div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:4px">${esc(s.tanggal_pembangunan)}</div>` : ''}
+    </div>`;
+}
+
+
+function popHTML(inc, byIncident) {
   const c = COL[inc.cat] || COL.lainnya;
   const url = safeUrl(inc.url || '');
   const WIKI_URL = 'https://id.wikipedia.org/wiki/Daftar_kasus_keracunan_massal_makan_siang_gratis#Makan_Bergizi_Gratis';
   const srcUrl = url || WIKI_URL;
   const srcLabel = url ? 'Baca &rarr;' : 'Wiki &rarr;';
   const srcColor = url ? 'var(--blu)' : 'var(--mu)';
+  const accused = byIncident?.get(incidentKey(inc)) || null;
   return `<div>
     <span style="font-family:var(--mo);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-radius:3px;padding:2px 7px;margin-bottom:8px;display:inline-block;background:${c}22;color:${c};border:1px solid ${c}44">${esc(TLBL[inc.cat] || inc.cat)}</span>
     <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:7px;color:var(--tx)">${esc(inc.title)}</div>
@@ -494,6 +572,7 @@ function popHTML(inc) {
     ${(inc.victims || 0) > 0 ? `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-family:var(--mo);font-size:10px;color:var(--mu)"><span style="color:${c};font-weight:700">${esc(fmtNum(inc.victims))} korban</span></div>` : ''}
     <div style="font-size:11px;color:var(--mu);line-height:1.55;border-top:1px solid var(--bd);padding-top:8px;margin-top:8px">${esc((inc.note || '').slice(0, 150))}${(inc.note || '').length > 150 ? '...' : ''}</div>
     ${(inc.schools_list && inc.schools_list.length) ? `<div style="border-top:1px solid var(--bd);padding-top:6px;margin-top:6px;font-family:var(--mo);font-size:10px;color:var(--mu)"><div style="margin-bottom:3px;color:var(--tx)">${fmtNum(inc.schools_list.length)} sekolah terdampak:</div>${inc.schools_list.slice(0, 8).map(s => `&middot; ${esc(s)}`).join('<br/>')}${inc.schools_list.length > 8 ? `<br/>&middot; +${fmtNum(inc.schools_list.length - 8)} lainnya` : ''}</div>` : ''}
+    ${accusedBlock(accused)}
     <div style="font-family:var(--mo);font-size:9px;color:var(--mu);margin-top:6px">${esc(inc.source || 'Wikipedia')} &middot; <a href="${esc(srcUrl)}" target="_blank" rel="noopener noreferrer" style="color:${srcColor}">${srcLabel}</a></div>
   </div>`;
 }

@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
+import { incidentKey } from '../lib/links';
 
-export function useIncidents(data) {
+export function useIncidents(data, linkIndex = null, onlyAccused = false) {
+  const accusedKeys = linkIndex?.byIncident || new Map();
   const [activeId, setActiveId] = useState(null);
   const [filterCat, setFilterCat] = useState('all');
   const [search, setSearch] = useState('');
@@ -22,6 +24,7 @@ export function useIncidents(data) {
     const q = search.toLowerCase();
     return incidents
       .filter(i => {
+        if (onlyAccused && !accusedKeys.has(incidentKey(i))) return false;
         if (filterCat === 'meninggal') {
           if (!i.deaths) return false;
         } else if (filterCat !== 'all' && i.cat !== filterCat) {
@@ -47,7 +50,7 @@ export function useIncidents(data) {
         const bDate = /^\d{4}-\d{2}-\d{2}/.test(b.date) ? b.date : '0000-00-00';
         return bDate.localeCompare(aDate);
       });
-  }, [incidents, filterCat, search, dateFrom, dateTo]);
+  }, [incidents, filterCat, search, dateFrom, dateTo, onlyAccused, accusedKeys]);
 
   const stats = useMemo(() => {
     const cats = {};

@@ -46,7 +46,7 @@ Be respectful. This project monitors a government program — contributors may h
 Prerequisites: Node.js ≥ 20, npm, Python 3.10+ (for scrapers).
 
 ```bash
-git clone git@gitlab.com:sukma-diki/mbg-monitor.git
+git clone git@github.com:exe-zoinx/mbg-monitor.git
 cd mbg-monitor
 npm install
 npm run dev
@@ -63,7 +63,19 @@ python3 scripts/scrape_wiki.py   # regenerates data/wiki_incidents.json
 Rules:
 - **Never commit raw duplicate rows.** Multi-school incidents must merge with `schools_list` (see dedup key `(date, kabupaten, source_url)` in the script).
 - **Keep Indonesian number formatting** in notes (`fmt_n` helper).
-- After changing the scraper, regenerate the JSON and verify counts change sensibly (current baseline: 377 incidents, 48,399 victims, 2 deaths).
+- After changing the scraper, regenerate the JSON and verify counts change sensibly (current baseline: 520 incidents, 51.362 victims, 3 deaths).
+
+## Adding SPPG ownership data
+
+```bash
+python3 scripts/build_sppg_links.py            # cached
+python3 scripts/build_sppg_links.py --refresh  # re-download JejakMBG + articles
+```
+
+- **Never guess an owner.** BGN publishes no per-SPPG mitra/yayasan roster, so an operator is only attached when a case field or a cited article names it. A missing owner renders as nothing, never as a plausible-looking guess.
+- Every operator shown in the UI must carry a source URL (`operators[].sources`). If you cannot cite it, do not add it.
+- JejakMBG data is CC BY 4.0 — keep the attribution in the Tentang & Data modal.
+- `data/raw/` (downloaded CSV + article text) is gitignored; only the derived `data/sppg_links.json` is committed.
 
 ## Working on the frontend
 
@@ -81,11 +93,11 @@ Rules:
    ```bash
    npm run build
    ```
-4. Push and open a **merge request** against `master`:
+4. Push and open a **pull request** against `master`:
    ```bash
    git push origin feat/your-change
    ```
-5. In the MR description, state: what changed, why, and how you verified it (screenshot for UI changes).
+5. In the PR description, state: what changed, why, and how you verified it (screenshot for UI changes).
 
 ## Commit conventions
 
@@ -103,7 +115,7 @@ Keep the subject ≤ 72 characters. Reference issue numbers when relevant: `fix:
 
 ## Getting help
 
-- Open an issue on GitLab with the `question` label
+- Open an issue on GitHub (https://github.com/exe-zoinx/mbg-monitor/issues) with the `question` label
 - For data disputes, include the source URL (media article or Wikipedia revision)
 
 ---

@@ -12,10 +12,15 @@ All notable changes to this project are documented here. Format based on [Keep a
 - GeoJSON export (QGIS/kepler.gl-ready) next to the CSV exports
 - Keyboard shortcuts: `/` focuses search, `Esc` closes overlays
 - `province` / `kabupaten` stored in D1 and returned by `/api/data`
+- **SPPG ownership & incident linkage**: every SPPG on the map now shows the yayasan/PT/koperasi that runs it when a source names one, plus the poisoning cases that point at it. New `data/sppg_links.json` is built by `scripts/build_sppg_links.py` from the JejakMBG open dataset (CC BY 4.0), matched to SPPG points by kitchen name + regency and to incidents by date + regency
+- Dashed "SPPG dituduh" connectors on the map (incident → accused kitchen) with a layer toggle, `?acc=1` deep link and a `SPPG disebut` filter chip
+- SPPG popups list the operator, its source article, and the related cases; incident popups name the accused SPPG with match confidence and distance
+- JejakMBG attribution (CC BY 4.0) in the Tentang & Data modal; source/issue links moved to GitHub (`exe-zoinx/mbg-monitor`)
 
 ### Changed
 - Search now covers province, kabupaten, school name and the multi-school `schools_list`
 - Stats row shows school venues affected (multi-school rows expanded)
+- Ownership is evidence-based: coverage is 12 of 74 matched SPPG, because BGN publishes no per-SPPG mitra roster. Rows without a source show nothing rather than a guessed owner
 
 ### Fixed
 - **Map tiles**: CARTO started answering unkeyed clients with an "API key required" placeholder tile, so every tile was identical. Replaced with keyless Esri tiles

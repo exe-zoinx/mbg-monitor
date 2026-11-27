@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar, Share2 } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
 import Insights from './Insights';
+import { incidentKey, ownerFor, casesForSppg } from '../lib/links';
 export default function Sidebar({
   incidents,
   filtered,
@@ -23,6 +24,9 @@ export default function Sidebar({
   activeTab,
   setActiveTab,
   sppgData,
+  linkIndex,
+  onlyAccused,
+  setOnlyAccused,
   activeMonth,
   onPickMonth,
   onPickProvince,
@@ -63,7 +67,7 @@ export default function Sidebar({
     }
   }, []);
   const INC_ITEM_H = 88;
-  const SPPG_ITEM_H = 72;
+  const SPPG_ITEM_H = 100; // extra row: penyelenggara + kasus badges
   const VIRT_BUFFER = 5;
   const VIRT_VISIBLE = 18;
 
@@ -72,19 +76,27 @@ export default function Sidebar({
     return ['meninggal', ...set];
   }, [incidents]);
 
-  const hasFilter = filterCat !== 'all' || !!dateFrom || !!dateTo;
+  const accusedIncidentCount = useMemo(
+    () => (linkIndex?.byIncident ? incidents.filter(i => linkIndex.byIncident.has(incidentKey(i))).length : 0),
+    [incidents, linkIndex],
+  );
+
+  const hasFilter = filterCat !== 'all' || !!dateFrom || !!dateTo || !!onlyAccused;
 
   const sppgFiltered = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return sppgData?.sppg || [];
-    return (sppgData?.sppg || []).filter(s =>
-      s.nama?.toLowerCase().includes(q) ||
-      s.provinsi?.toLowerCase().includes(q) ||
-      s.kabupaten?.toLowerCase().includes(q) ||
-      s.kecamatan?.toLowerCase().includes(q) ||
-      s.alamat?.toLowerCase().includes(q)
-    );
-  }, [sppgData, search]);
+    return (sppgData?.sppg || []).filter(s => {
+      const owner = linkIndex?.bySppg?.get(String(s.id)) || linkIndex?.bySppg?.get(String(s.kode));
+      const op = owner?.operators?.[0]?.name || '';
+      return s.nama?.toLowerCase().includes(q) ||
+        s.provinsi?.toLowerCase().includes(q) ||
+        s.kabupaten?.toLowerCase().includes(q) ||
+        s.kecamatan?.toLowerCase().includes(q) ||
+        s.alamat?.toLowerCase().includes(q) ||
+        op.toLowerCase().includes(q);
+    });
+  }, [sppgData, search, linkIndex]);
 
   const sppgStats = useMemo(() => {
     if (!sppgData?.sppg) return null;
@@ -420,6 +432,19 @@ export default function Sidebar({
             {p.label}
           </button>
         ))}
+        <button
+          onClick={() => setOnlyAccused(v => !v)}
+          title="Hanya insiden yang menyebut SPPG yang memasok makanan"
+          style={{
+            fontFamily: 'var(--mo)', fontSize: 9, padding: '3px 8px', borderRadius: 10,
+            cursor: 'pointer', whiteSpace: 'nowrap',
+            border: `1px solid ${onlyAccused ? 'var(--pur)' : 'var(--bd2)'}`,
+            background: onlyAccused ? 'rgba(188,140,255,0.14)' : 'var(--sf2)',
+            color: onlyAccused ? 'var(--pur)' : 'var(--mu)',
+          }}
+        >
+          SPPG disebut{accusedIncidentCount ? ` (${accusedIncidentCount})` : ''}
+        </button>
         {newSinceVisit > 0 && (
           <span
             title={`${newSinceVisit} insiden baru sejak kunjungan terakhir`}
@@ -457,7 +482,7 @@ export default function Sidebar({
         }}>
           <span>{filtered.length} dari {incidents.length} insiden</span>
           <button
-            onClick={() => { setFilterCat('all'); setDateFrom(''); setDateTo(''); onPickMonth && onPickMonth(''); }}
+            onClick={() => { setFilterCat('all'); setDateFrom(''); setDateTo(''); setOnlyAccused(false); onPickMonth && onPickMonth(''); }}
             style={{
               fontFamily: 'var(--mo)',
               fontSize: 9,
@@ -520,6 +545,7 @@ export default function Sidebar({
                         focusInc={focusInc}
                         onClick={() => {}}
                         setSidebarOpen={setSidebarOpen}
+                        accused={linkIndex?.byIncident?.get(incidentKey(inc)) || null}
                       />
                     </div>
                   ))}
@@ -554,7 +580,7 @@ export default function Sidebar({
               <div style={{ height: sppgFiltered.length * h, position: 'relative' }}>
                 {sppgFiltered.slice(start, start + count).map((s, i) => (
                   <div key={s.id ?? s.kode} style={{ position: 'absolute', top: (start + i) * h, left: 0, right: 0 }}>
-                    <SppgItem sppg={s} focusInc={focusInc} setSidebarOpen={setSidebarOpen} />
+                    <SppgItem sppg={s} focusInc={focusInc} setSidebarOpen={setSidebarOpen} linkIndex={linkIndex} />
                   </div>
                 ))}
               </div>
@@ -689,7 +715,7 @@ function StatsRow({ stats, activeTab, sppgData, sppgStats }) {
   );
 }
 
-function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen }) {
+function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen, accused }) {
   const c = COL[inc.cat] || COL.lainnya;
   const hasArticle = !!safeUrl(inc.url);
   const hasCoords = inc.lat && inc.lng;
@@ -741,6 +767,18 @@ function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen }) {
           }}>
             {TLBL[inc.cat] || inc.cat}
           </span>
+          {accused && accused.length > 0 && (
+            <span
+              title={accused.map(c => `${c.kitchen_label}${c.operator ? ` — ${c.operator}` : ''}`).join('\n')}
+              style={{
+                fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
+                letterSpacing: '0.03em', background: 'rgba(188,140,255,0.14)',
+                color: 'var(--pur)', border: '1px solid rgba(188,140,255,0.4)', whiteSpace: 'nowrap',
+              }}
+            >
+              SPPG: {accused[0].operator ? accused[0].operator.slice(0, 22) : (accused[0].sppg_nama || accused[0].kitchen_label || '').slice(0, 22)}
+            </span>
+          )}
           {inc.schools_list && inc.schools_list.length > 0 && (
             <span style={{
               fontFamily: 'var(--mo)',
@@ -825,7 +863,11 @@ function FeedItem({ inc, isActive, onClick, focusInc, setSidebarOpen }) {
   );
 }
 
-function SppgItem({ sppg, focusInc, setSidebarOpen }) {
+function SppgItem({ sppg, focusInc, setSidebarOpen, linkIndex }) {
+  const owner = ownerFor(linkIndex, sppg);
+  const operator = owner?.operators?.[0]?.name || null;
+  const accused = casesForSppg(linkIndex, sppg);
+  const evidence = owner?.operators?.[0]?.sources?.[0]?.url || null;
   return (
     <div
       onClick={() => {
@@ -862,6 +904,32 @@ function SppgItem({ sppg, focusInc, setSidebarOpen }) {
         <div style={{ fontFamily: 'var(--mo)', fontSize: 10, color: 'var(--mu)', marginTop: 4 }}>
           {[sppg.provinsi, sppg.kabupaten, sppg.kecamatan].filter(Boolean).join(' · ')}
         </div>
+        {(operator || accused.length > 0) && (
+          <div style={{ display: 'flex', gap: 5, alignItems: 'center', marginTop: 3, flexWrap: 'wrap' }}>
+            {operator && (
+              <span
+                title={evidence ? `Sumber: ${evidence}` : 'Penyelenggara menurut pemberitaan'}
+                style={{
+                  fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
+                  background: 'rgba(63,185,80,0.12)', color: 'var(--grn)',
+                  border: '1px solid rgba(63,185,80,0.35)', maxWidth: '100%',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}
+              >
+                {operator}
+              </span>
+            )}
+            {accused.length > 0 && (
+              <span style={{
+                fontFamily: 'var(--mo)', fontSize: 9, borderRadius: 3, padding: '1px 5px',
+                background: 'rgba(248,81,73,0.12)', color: 'var(--red)',
+                border: '1px solid rgba(248,81,73,0.35)', whiteSpace: 'nowrap',
+              }}>
+                {accused.length} kasus
+              </span>
+            )}
+          </div>
+        )}
         {sppg.tanggal_pembangunan && (
           <div style={{ fontFamily: 'var(--mo)', fontSize: 9, color: 'var(--mu)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
             <Calendar size={9} strokeWidth={2} />
