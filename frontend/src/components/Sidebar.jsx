@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { X, Utensils, Search, MapPin, Zap, ExternalLink, Flame, AlertTriangle, Skull, Building2, Globe, TrendingUp, Database, Calendar, Share2 } from 'lucide-react';
 import { COL, TLBL, fmtDate, fmtNum, safeUrl } from '../lib/constants';
 import Insights from './Insights';
@@ -31,7 +31,19 @@ export default function Sidebar({
   onPickMonth,
   onPickProvince,
   newSinceVisit,
+  openAnalyticsSignal = 0,
 }) {
+  const analyticsRef = useRef(null);
+  const [analyticsEpoch, setAnalyticsEpoch] = useState(0);
+
+  // "Analitik" on the map: open the drawer, expand the panel, bring it into view.
+  useEffect(() => {
+    if (!openAnalyticsSignal) return;
+    setAnalyticsEpoch(openAnalyticsSignal);
+    requestAnimationFrame(() => {
+      analyticsRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  }, [openAnalyticsSignal]);
 
   const [localSearch, setLocalSearch] = useState(search);
 
@@ -244,6 +256,20 @@ export default function Sidebar({
 
       <StatsRow stats={stats} activeTab={activeTab} sppgData={sppgData} sppgStats={sppgStats} />
 
+      {/* Analytics — above the search box, so the trend reads before scrolling */}
+      {activeTab === 'incidents' && (
+        <div ref={analyticsRef}>
+          <Insights
+            incidents={incidents}
+            activeMonth={activeMonth}
+            onPickMonth={onPickMonth}
+            onPickProvince={onPickProvince}
+            forceOpen={analyticsEpoch}
+            defaultOpen={typeof window !== 'undefined' && window.matchMedia('(min-width: 641px)').matches}
+          />
+        </div>
+      )}
+
       {/* Search */}
       <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
         <div style={{ position: 'relative' }}>
@@ -455,12 +481,6 @@ export default function Sidebar({
         )}
       </div>
 
-      <Insights
-        incidents={incidents}
-        activeMonth={activeMonth}
-        onPickMonth={onPickMonth}
-        onPickProvince={onPickProvince}
-      />
 
       {/* Filter count */}
       {hasFilter && (

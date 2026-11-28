@@ -256,8 +256,16 @@ html, body, #root {
     bottom: 118px !important;
   }
   .map-basemap-toggle .bm-label { display: none; }
-  .mbg-insights[open] {
-    max-height: 42vh;
+  /* The floating "Analitik" pill is the mobile entry point; the bar button is desktop-only. */
+  .map-analytics-btn { display: none !important; }
+  .mbg-insights #mbg-insights-body {
+    max-height: 46vh;
     overflow-y: auto;
   }
+  /* Bars get a real touch target: full column height, ≥ 20 px wide. */
+  .insights-bar { min-width: 20px !important; }
+}
+
+@media (hover: hover) {
+  .insights-bar:hover span { filter: brightness(1.25); }
 }

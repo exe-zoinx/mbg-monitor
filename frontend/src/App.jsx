@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Menu, Download, Database, X, Info, AlertTriangle, FileJson } from 'lucide-react';
+import { Menu, Download, Database, X, Info, AlertTriangle, FileJson, TrendingUp } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import { useData } from './hooks/useData';
@@ -16,6 +16,13 @@ export default function App() {
   const sppgQuery = useSppg();
   const sppgData = sppgQuery.data;
   const { data: linkIndex } = useLinks();
+
+  // "Analitik" from the map: open the drawer and expand+scroll the panel.
+  const [analyticsSignal, setAnalyticsSignal] = useState(0);
+  const openAnalytics = useCallback(() => {
+    setSidebarOpen(true);
+    setAnalyticsSignal(n => n + 1);
+  }, []);
   const {
     incidents,
     filtered,
@@ -205,6 +212,7 @@ export default function App() {
         onPickProvince={(name) => setSearch(name)}
         newSinceVisit={newSinceVisit}
         onShowData={() => setShowDataModal(true)}
+        openAnalyticsSignal={analyticsSignal}
       />
       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <MapView
@@ -214,36 +222,40 @@ export default function App() {
           focusInc={focusInc}
           stats={stats}
           onMenuClick={() => setSidebarOpen(o => !o)}
+          onAnalytics={openAnalytics}
           activeTab={activeTab}
           sppgData={sppgData}
           layers={layers}
           setLayers={setLayers}
           linkIndex={linkIndex}
         />
+        {/* Mobile shortcut into the analytics panel (the drawer's Tentang & Data
+            button already covers data access, so this slot goes to analytics). */}
         <button
-          onClick={() => setShowDataModal(true)}
+          onClick={openAnalytics}
           className="mobile-sidebar-btn"
+          aria-label="Buka analitik"
           style={{
             position: 'absolute',
             bottom: 14,
             left: 14,
             zIndex: 1001,
             display: 'none',
-            background: 'var(--blu)',
+            background: 'var(--red)',
             border: 'none',
             borderRadius: 16,
-            padding: '8px 14px',
+            padding: '9px 14px',
             fontFamily: 'var(--mo)',
             fontSize: 11,
             fontWeight: 700,
             color: '#fff',
             cursor: 'pointer',
             alignItems: 'center',
-            gap: 4,
-            boxShadow: '0 2px 8px rgba(56,139,253,0.4)',
+            gap: 5,
+            boxShadow: '0 2px 10px rgba(248,81,73,0.45)',
           }}
         >
-          <Download size={12} /> Data
+          <TrendingUp size={13} /> Analitik
         </button>
       </div>
 

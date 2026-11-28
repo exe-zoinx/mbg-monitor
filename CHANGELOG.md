@@ -24,6 +24,8 @@ All notable changes to this project are documented here. Format based on [Keep a
 - Nearby pins fan out on 18/36/54 m rings (grouped within ~66 m) so co-located incidents stay individually clickable
 
 ### Changed
+- Analytics panel moved above the sidebar search box (open by default on desktop, collapsed on mobile) with a 3-month-vs-previous-3 trend chip, 18 monthly bars, and a top-6 provinces list (rank · kasus · korban · jiwa); floating mobile button relabelled from "Data" to "Analitik"; desktop "Analitik" button added to the map title bar
+- SPPG connectors: anchors resolved from the current incident pin (data coords are stale scrape-time values), deduped, dark casing + brighter purple dashes + endpoint dot, drawn on a dedicated SVG renderer so they stay visible over the 7.6k SPPG canvas; active incident highlighted
 - Search now covers province, kabupaten, school name and the multi-school `schools_list`
 - Stats row shows school venues affected (multi-school rows expanded)
 - Ownership is evidence-based: BGN names a yayasan for 315 units (≈330 of our 7.642 points after matching); the rest show nothing rather than a guessed owner

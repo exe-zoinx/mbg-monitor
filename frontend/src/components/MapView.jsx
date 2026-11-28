@@ -15,13 +15,17 @@ const GEO_LABEL = {
   missing: 'lokasi belum diketahui',
 };
 
-export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, activeTab, sppgData, layers, setLayers, linkIndex }) {
+export default function MapView({ incidents, filtered, activeId, focusInc, stats, onMenuClick, onAnalytics, activeTab, sppgData, layers, setLayers, linkIndex }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const clusterRef = useRef(null);
   const sppgClusterRef = useRef(null);
   const meninggalClusterRef = useRef(null);
   const linkLayerRef = useRef(null);
+  const linkHiRef = useRef(null);
+  // Connectors get their own SVG renderer: the map-wide canvas (preferCanvas)
+  // paints them first and they read as faint smudges there.
+  const linkSvgRef = useRef(null);
   const markersRef = useRef(new Map());
   const baseRef = useRef(null);
   const labelRef = useRef(null);
@@ -103,7 +107,10 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       },
     });
     const linkLayer = L.layerGroup();
+    const linkHi = L.layerGroup();
+    linkSvgRef.current = L.svg({ padding: 0.4 });
     map.addLayer(linkLayer);         // bottom — incident→accused-SPPG connectors
+    map.addLayer(linkHi);            // active incident's connectors, above the rest
     map.addLayer(sppgCluster);       // back
     map.addLayer(cluster);           // middle — all incidents
     map.addLayer(meninggalCluster);  // top — deaths only
@@ -113,6 +120,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
     sppgClusterRef.current = sppgCluster;
     meninggalClusterRef.current = meninggalCluster;
     linkLayerRef.current = linkLayer;
+    linkHiRef.current = linkHi;
     setMapReady(v => v + 1);
     map.invalidateSize();
 
@@ -123,6 +131,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
       sppgClusterRef.current = null;
       meninggalClusterRef.current = null;
       linkLayerRef.current = null;
+      linkHiRef.current = null;
     };
   }, []);
 
@@ -279,29 +288,76 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
   }, [sppgData, layers?.sppg, linkIndex]);
   // Incident → accused SPPG connectors (JejakMBG cases). Dashed, non-interactive,
   // drawn on their own layer so the 7.6k SPPG markers stay untouched.
+  //
+  // Endpoint accuracy matters: the case file carries the coordinates JejakMBG
+  // recorded at scrape time, while the incident pin now comes from geocoding.
+  // Anchor on the CURRENT pin (same incident_key), so a line always starts at
+  // the pin a reader can see. Casing + brighter dash keeps it legible on the
+  // satellite basemap too.
+  const linkByKey = useMemo(() => {
+    const m = new Map();
+    for (const inc of incidents) {
+      if (inc.lat == null || inc.lng == null) continue;
+      const k = incidentKey(inc);
+      if (!m.has(k)) m.set(k, [inc.lat, inc.lng]);
+    }
+    return m;
+  }, [incidents]);
+
   useEffect(() => {
     const layer = linkLayerRef.current;
+    const hi = linkHiRef.current;
     if (!layer) return;
     layer.clearLayers();
+    hi?.clearLayers();
     if (layers?.links === false) return;
     if (!linkIndex?.cases?.length) return;
 
+    const activeKey = (() => {
+      if (!activeId) return '';
+      const e = markersRef.current.get(activeId);
+      return e ? incidentKey(e.inc) : '';
+    })();
+
+    const seen = new Set();
     for (const c of linkIndex.cases) {
-      const from = c.incident_lat != null && c.incident_lng != null
-        ? [c.incident_lat, c.incident_lng]
-        : (c.lat != null && c.lng != null ? [c.lat, c.lng] : null);
+      const from = linkByKey.get(c.incident_key)
+        || (c.incident_lat != null && c.incident_lng != null ? [c.incident_lat, c.incident_lng] : null)
+        || (c.lat != null && c.lng != null ? [c.lat, c.lng] : null);
       const to = c.sppg_lat != null && c.sppg_lng != null ? [c.sppg_lat, c.sppg_lng] : null;
       if (!from || !to) continue;
       if (Math.abs(from[0] - to[0]) < 1e-6 && Math.abs(from[1] - to[1]) < 1e-6) continue;
+
+      const active = activeKey && c.incident_key === activeKey;
+      const dedupe = `${from.join()}|${to.join()}`;
+      if (!active && seen.has(dedupe)) continue;
+      seen.add(dedupe);
+
+      // Dark casing under the dash: keeps the purple readable over bright tiles.
       L.polyline([from, to], {
-        color: '#bc8cff',
-        weight: 1.2,
-        opacity: 0.45,
-        dashArray: '3 4',
-        interactive: false,
-      }).addTo(layer);
+        color: '#0b0f14', weight: active ? 9 : 7, opacity: active ? 0.9 : 0.7,
+        lineCap: 'round', interactive: false, renderer: linkSvgRef.current,
+      }).addTo(active ? hi : layer);
+      L.polyline([from, to], {
+        color: active ? '#e6d4ff' : '#bc8cff',
+        weight: active ? 3.2 : 2.2,
+        opacity: active ? 1 : 0.9,
+        dashArray: active ? '9 5' : '7 5',
+        lineCap: 'round',
+        interactive: false, renderer: linkSvgRef.current,
+      }).addTo(active ? hi : layer);
+
+      // Purple dot on the accused kitchen so both ends read as connected points.
+      L.circleMarker(to, {
+        radius: active ? 5 : 3.5,
+        color: active ? '#e6d4ff' : '#bc8cff',
+        weight: active ? 2 : 1.5,
+        fillColor: '#bc8cff',
+        fillOpacity: active ? 0.9 : 0.5,
+        interactive: false, renderer: linkSvgRef.current,
+      }).addTo(active ? hi : layer);
     }
-  }, [linkIndex, layers?.links, mapReady]);
+  }, [linkIndex, linkByKey, layers?.links, mapReady, activeId, markersVersion]);
 
   // Handle activeId changes (fly to marker)
   useEffect(() => {
@@ -379,6 +435,22 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             </p>
           </div>
         </div>
+        <button
+          className="map-analytics-btn"
+          onClick={onAnalytics}
+          title="Buka panel analitik: tren bulanan & provinsi terdampak"
+          aria-label="Buka panel analitik"
+          style={{
+            marginLeft: 'auto', flexShrink: 0,
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            background: 'rgba(248,81,73,0.14)', border: '1px solid rgba(248,81,73,0.45)',
+            borderRadius: 7, padding: '7px 11px', cursor: 'pointer',
+            fontFamily: 'var(--mo)', fontSize: 11, fontWeight: 700, color: 'var(--red)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <TrendingUp size={13} strokeWidth={2.5} /> Analitik
+        </button>
         {/* Stat chips — row below title on mobile */}
         <div className="map-title-stats" style={{
           display: 'none',
@@ -474,7 +546,7 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
           { key: 'keracunan', label: 'Keracunan', color: 'var(--red)' },
           { key: 'meninggal', label: 'Meninggal', color: 'var(--pur)' },
           { key: 'sppg', label: 'SPPG', color: 'var(--blu)' },
-          { key: 'links', label: 'SPPG dituduh', color: 'var(--pur)' },
+          { key: 'links', label: 'Garis SPPG dituduh', color: 'var(--pur)' },
         ].map(row => (
           <label
             key={row.key}
@@ -499,6 +571,9 @@ export default function MapView({ incidents, filtered, activeId, focusInc, stats
             </span>
           </label>
         ))}
+        <div style={{ borderTop: '1px solid var(--bd)', marginTop: 4, paddingTop: 5, fontSize: 9, color: 'var(--mu)', lineHeight: 1.35, maxWidth: 150 }}>
+          <span style={{ color: 'var(--pur)' }}>– –</span> insiden → SPPG yang dituduh sumber
+        </div>
       </div>
 
     </>
