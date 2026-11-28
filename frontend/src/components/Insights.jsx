@@ -9,9 +9,9 @@ const MLBL = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Ok
 const monthLabel = (key) => `${MLBL[Number(key.slice(5, 7)) - 1]} ${key.slice(2, 4)}`;
 
 export default function Insights({
-  incidents, onPickMonth, onPickProvince, activeMonth, defaultOpen = false, forceOpen = 0,
+  incidents, onPickMonth, onPickProvince, activeMonth, forceOpen = 0,
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(false);
   useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
 
   const months = useMemo(() => {
@@ -67,6 +67,7 @@ export default function Insights({
   return (
     <div id="mbg-insights" className="mbg-insights" style={{ borderBottom: '1px solid var(--bd)', flexShrink: 0 }}>
       <button
+        className="mbg-insights-head"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
         aria-controls="mbg-insights-body"
@@ -74,7 +75,7 @@ export default function Insights({
           display: 'flex', alignItems: 'center', gap: 8, width: '100%',
           background: open ? 'var(--sf2)' : 'transparent', border: 'none',
           cursor: 'pointer', padding: '9px 14px', textAlign: 'left', color: 'var(--tx)',
-          borderBottom: open ? '1px solid var(--bd)' : 'none',
+          borderBottom: open ? '1px solid var(--bd)' : 'none', minHeight: 44,
         }}
       >
         <span style={{
@@ -95,10 +96,25 @@ export default function Insights({
         >
           <TI size={11} strokeWidth={2.5} /> {trend.label}
         </span>
-        <ChevronDown
-          size={14}
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .18s', color: 'var(--mu)', flexShrink: 0 }}
-        />
+        <span
+          className="mbg-insights-toggle"
+          style={{
+            marginLeft: 4, display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontFamily: 'var(--mo)', fontSize: 10, fontWeight: 700,
+            color: open ? 'var(--tx)' : 'var(--pur)',
+            background: open ? '#ffffff0d' : '#bc8cff1a',
+            border: `1px solid ${open ? 'var(--bd2)' : '#bc8cff66'}`,
+            borderRadius: 999, padding: '4px 9px', whiteSpace: 'nowrap',
+            flexShrink: 0, minHeight: 24,
+          }}
+        >
+          {open ? 'Tutup' : 'Buka'}
+          <ChevronDown
+            size={13}
+            strokeWidth={3}
+            style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}
+          />
+        </span>
       </button>
 
       {open && (

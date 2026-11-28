@@ -265,7 +265,6 @@ export default function Sidebar({
             onPickMonth={onPickMonth}
             onPickProvince={onPickProvince}
             forceOpen={analyticsEpoch}
-            defaultOpen={typeof window !== 'undefined' && window.matchMedia('(min-width: 641px)').matches}
           />
         </div>
       )}

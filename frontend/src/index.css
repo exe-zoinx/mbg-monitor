@@ -268,4 +268,15 @@ html, body, #root {
 
 @media (hover: hover) {
   .insights-bar:hover span { filter: brightness(1.25); }
+  .mbg-insights-head:hover { background: var(--sf2) !important; }
+  .mbg-insights-head:hover .mbg-insights-toggle {
+    background: #bc8cff33 !important;
+    border-color: var(--pur) !important;
+    color: var(--tx) !important;
+  }
 }
+
+/* Analytics header behaves like a real control: whole row hovers, pill lights up. */
+.mbg-insights-head { transition: background .15s; }
+.mbg-insights-head:focus-visible { outline: 2px solid var(--pur); outline-offset: -2px; }
+.mbg-insights-toggle { transition: background .15s, border-color .15s, color .15s; }
